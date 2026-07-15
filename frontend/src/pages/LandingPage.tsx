@@ -6,7 +6,7 @@
 export default function LandingPage() {
   return (
     <main className="landing">
-      <h1 className="landing-brand">Restart</h1>
+      <h1 className="landing-brand">Рестарт</h1>
       <p className="landing-lead">Начни новую финансовую главу&nbsp;🚀</p>
       <p className="landing-sub">
         Проведём тебя через процедуру банкротства шаг за шагом. Никаких сложных инструкций.
