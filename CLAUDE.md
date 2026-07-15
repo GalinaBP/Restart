@@ -100,4 +100,5 @@ fast) must be chosen explicitly; `test` is used by integration tests via Testcon
 `frontend/` — React 19 + TypeScript + Vite SPA, served by nginx in Docker (static + SPA fallback,
 no API proxy; the API base URL is baked in via the `VITE_API_BASE` build arg). UI shell only — all
 legal/eligibility logic belongs to the backend. Copy style: warm, short, second-person singular
-("ты"), zero legalese.
+("ты"), zero legalese. Visual style: Gen-Z-friendly — dark canvas, violet→cyan gradient accents,
+pill shapes, emoji accents — but calm, never loud: the subject matter is heavy for the user.

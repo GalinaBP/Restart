@@ -1,13 +1,15 @@
-/* Calm, light, consumer-friendly base theme — the product speaks softly, so does the UI. */
+/* Gen-Z-friendly base theme: dark canvas, vivid gradient accents, big friendly type.
+   The tone stays calm — the product talks about a hard topic, so vivid but not loud. */
 :root {
-  --bg: #f8fafc;
-  --text: #0f172a;
-  --muted: #64748b;
-  --accent: #2563eb;
-  --accent-contrast: #ffffff;
-  --border: #e2e8f0;
-  font-family: system-ui, -apple-system, sans-serif;
-  color-scheme: light;
+  --bg: #0b0b12;
+  --text: #f4f4f8;
+  --muted: #9d9daf;
+  --accent-from: #7c3aed;
+  --accent-to: #06b6d4;
+  --pill-bg: rgba(255, 255, 255, 0.07);
+  --pill-border: rgba(255, 255, 255, 0.14);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
 }
 
 * {
@@ -21,18 +23,13 @@ body {
 }
 
 a {
-  color: var(--accent);
+  color: var(--accent-to);
 }
 
 button {
-  background: var(--accent);
-  color: var(--accent-contrast);
   border: none;
-  border-radius: 0.75rem;
-  padding: 0.9rem 2.2rem;
-  font-size: 1.05rem;
-  font-weight: 600;
   cursor: pointer;
+  font: inherit;
 }
 
 button:disabled {
@@ -40,41 +37,113 @@ button:disabled {
   cursor: default;
 }
 
+/* --- Landing ---------------------------------------------------------------- */
+
 .landing {
+  position: relative;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.1rem;
   padding: 1.5rem;
   text-align: center;
+  overflow: hidden;
+}
+
+/* Soft gradient glows behind the content. */
+.landing::before,
+.landing::after {
+  content: '';
+  position: absolute;
+  width: 26rem;
+  height: 26rem;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.landing::before {
+  background: var(--accent-from);
+  top: -8rem;
+  left: -8rem;
+}
+
+.landing::after {
+  background: var(--accent-to);
+  bottom: -8rem;
+  right: -8rem;
+}
+
+.landing > * {
+  position: relative;
 }
 
 .landing-brand {
-  font-size: 2.2rem;
-  letter-spacing: 0.02em;
+  font-size: clamp(2.6rem, 8vw, 3.6rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
   margin: 0;
+  background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .landing-lead {
-  font-size: 1.4rem;
-  font-weight: 600;
+  font-size: clamp(1.3rem, 5vw, 1.7rem);
+  font-weight: 700;
   margin: 0;
 }
 
 .landing-sub {
   color: var(--muted);
-  line-height: 1.6;
+  font-size: 1.05rem;
+  line-height: 1.65;
   margin: 0;
+  max-width: 26rem;
+}
+
+.landing-values {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-values li {
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .landing-cta {
-  margin-top: 1rem;
+  margin-top: 1.1rem;
+  padding: 1rem 3rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
+  box-shadow: 0 10px 34px rgba(124, 58, 237, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.landing-cta:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 14px 40px rgba(6, 182, 212, 0.45);
 }
 
 .landing-note {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   margin: 0;
 }
