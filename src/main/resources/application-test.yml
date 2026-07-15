@@ -1,0 +1,24 @@
+# Integration tests use Testcontainers (see AbstractIntegrationTest); the datasource is supplied
+# dynamically at runtime, so no static URL is configured here.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+app:
+  security:
+    jwt:
+      access-secret: test-access-secret-0123456789-0123456789-0123456789
+      refresh-secret: test-refresh-secret-0123456789-0123456789-0123456789
+
+restart:
+  seed:
+    enabled: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

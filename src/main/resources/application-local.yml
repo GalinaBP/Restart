@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/restart?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:restart}
+    password: ${DB_PASSWORD:restart}
+
+# Local-only development secrets. NEVER reuse these anywhere real; they exist so the app boots
+# without external secret management on a developer machine.
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+  security:
+    jwt:
+      access-secret: ${JWT_ACCESS_SECRET:local-development-access-secret-change-me-01234567890}
+      refresh-secret: ${JWT_REFRESH_SECRET:local-development-refresh-secret-change-me-01234567890}
+
+# Seed synthetic accounts/data for local use only. No seeder exists yet; the flag is reserved
+# for when the auth module lands. Never enabled in prod.
+restart:
+  seed:
+    enabled: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+logging:
+  level:
+    ru.restart.app: DEBUG
