@@ -147,3 +147,105 @@ button:disabled {
   font-size: 0.95rem;
   margin: 0;
 }
+
+/* --- Eligibility check: one question per screen ------------------------------ */
+
+.check {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.check-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.35rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.check-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
+  border-radius: 0 999px 999px 0;
+  transition: width 0.25s ease;
+}
+
+.check-emoji {
+  font-size: 3rem;
+  margin: 0;
+}
+
+.check-question {
+  font-size: clamp(1.3rem, 5vw, 1.7rem);
+  font-weight: 700;
+  margin: 0;
+  max-width: 24rem;
+}
+
+.check-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 100%;
+  max-width: 22rem;
+  margin-top: 0.5rem;
+}
+
+.check-option {
+  padding: 1rem 1.2rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 1rem;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.check-option:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-to);
+}
+
+.check-back {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-top: 0.6rem;
+  text-decoration: none;
+}
+
+.check-hint {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 26rem;
+}
+
+.check-reasons {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 26rem;
+}
+
+.check-reasons li {
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 1rem;
+  padding: 0.8rem 1rem;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  text-align: left;
+}

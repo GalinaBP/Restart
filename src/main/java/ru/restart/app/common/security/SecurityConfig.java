@@ -55,6 +55,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        // The eligibility check runs before any account exists.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/eligibility/check").permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**",
                                 "/actuator/info").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
