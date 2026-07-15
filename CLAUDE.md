@@ -57,8 +57,9 @@ Swagger UI (`local` profile only, disabled in `prod`): http://localhost:8080/swa
 ## Architecture
 
 One Spring Boot 4.1 / Java 21 **modular monolith**, one MySQL schema, one deployable artifact.
-Feature modules live under `ru.restart.app`; `common` holds shared technical building blocks. As of
-scaffolding only `common` exists — business modules are added per feature.
+Feature modules live under `ru.restart.app`; `common` holds shared technical building blocks.
+Business modules so far: `eligibility` (the 2-minute screening check — stateless, anonymous,
+placeholder rules pending lawyer review).
 
 Every business module gets identical internal layering:
 
