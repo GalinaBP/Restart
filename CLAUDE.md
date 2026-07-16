@@ -59,9 +59,11 @@ Swagger UI (`local` profile only, disabled in `prod`): http://localhost:8080/swa
 One Spring Boot 4.1 / Java 21 **modular monolith**, one MySQL schema, one deployable artifact.
 Feature modules live under `ru.restart.app`; `common` holds shared technical building blocks.
 Business modules so far: `eligibility` (the 2-minute screening check — stateless, anonymous,
-placeholder rules pending lawyer review) and `auth` (accounts + stateless JWT: register/login/
+placeholder rules pending lawyer review), `auth` (accounts + stateless JWT: register/login/
 refresh/me; contributes its token filter via `HttpSecurityCustomizer`; local demo account seeded
-when `restart.seed.enabled=true`).
+when `restart.seed.enabled=true`) and `casefile` (the bankruptcy case container: one active case
+per user, draft → in_progress → ready → filed; ownership enforced at the service layer, foreign
+cases answered as 404).
 
 Every business module gets identical internal layering:
 
