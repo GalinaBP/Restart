@@ -1,0 +1,71 @@
+# CI for every PR and for main. The backend job runs the FULL suite — unit, architecture
+# (Modulith + ArchUnit), and the Testcontainers integration tests: GitHub's ubuntu runners have a
+# Docker daemon, so the tests that skip on machines without Docker (disabledWithoutDocker) run
+# here for real against MySQL.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (mvn verify, incl. Testcontainers)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build and test
+        run: ./mvnw --batch-mode --no-transfer-progress verify
+
+      - name: Ensure integration tests actually ran (not skipped)
+        # Guards against silently green builds if Docker ever disappears from the runners:
+        # the Testcontainers tests are disabledWithoutDocker, so we assert none were skipped.
+        run: |
+          skipped=$(grep -rhoE 'skipped="[0-9]+"' target/surefire-reports/*.xml | grep -oE '[0-9]+' | paste -sd+ - | bc)
+          echo "Skipped tests: ${skipped:-0}"
+          if [ "${skipped:-0}" -ne 0 ]; then
+            echo "::error::${skipped} tests were skipped on CI — integration tests must run here."
+            exit 1
+          fi
+
+  frontend:
+    name: Frontend (lint, typecheck+build, vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck and build
+        run: npm run build
+
+      - name: Test
+        run: npm test

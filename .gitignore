@@ -74,3 +74,6 @@ nb-configuration.xml
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Claude Code local session config
+.claude/
