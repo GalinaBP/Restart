@@ -63,7 +63,8 @@ placeholder rules pending lawyer review), `auth` (accounts + stateless JWT: regi
 refresh/me; contributes its token filter via `HttpSecurityCustomizer`; local demo account seeded
 when `restart.seed.enabled=true`) and `casefile` (the bankruptcy case container: one active case
 per user, draft → in_progress → ready → filed; ownership enforced at the service layer, foreign
-cases answered as 404).
+cases answered as 404; step-by-step data collection driven by `casefile/sections.yml` — the
+field ↔ 127-ФЗ mapping config, placeholder pending lawyer review).
 
 Every business module gets identical internal layering:
 

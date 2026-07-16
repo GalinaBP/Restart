@@ -33,6 +33,14 @@ public class BankruptcyCase {
         return status != CaseStatus.FILED;
     }
 
+    /** Saving the first piece of data moves a draft into {@code IN_PROGRESS}; otherwise a no-op. */
+    public BankruptcyCase progressStarted() {
+        if (status != CaseStatus.DRAFT) {
+            return this;
+        }
+        return new BankruptcyCase(id, userId, type, CaseStatus.IN_PROGRESS);
+    }
+
     public boolean isOwnedBy(UUID candidate) {
         return userId.equals(candidate);
     }
