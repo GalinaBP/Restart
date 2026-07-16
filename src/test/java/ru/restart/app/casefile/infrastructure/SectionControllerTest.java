@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import ru.restart.app.casefile.application.CaseService;
 import ru.restart.app.casefile.application.SectionService;
+import ru.restart.app.casefile.application.ValidationService;
 import ru.restart.app.casefile.domain.BankruptcyCase;
 import ru.restart.app.casefile.domain.CaseRepository;
 import ru.restart.app.casefile.domain.CaseSection;
@@ -44,9 +45,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * repositories are mocked. Covers the API contract of the data-collection workflow.
  */
 @WebMvcTest(SectionController.class)
-@Import({SectionService.class, CaseService.class, YamlSectionRegistry.class,
-        SecurityContextCurrentUser.class, SecurityConfig.class, RestAuthenticationEntryPoint.class,
-        RestAccessDeniedHandler.class, GlobalExceptionHandler.class, ClockConfig.class,
+@Import({SectionService.class, ValidationService.class, CaseService.class,
+        YamlSectionRegistry.class, SecurityContextCurrentUser.class, SecurityConfig.class,
+        RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class,
+        GlobalExceptionHandler.class, ClockConfig.class,
         SectionControllerTest.EnableSecurity.class})
 class SectionControllerTest {
 
@@ -116,7 +118,10 @@ class SectionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.key").value("PASSPORT"))
                 .andExpect(jsonPath("$.data.series").value("1234"))
-                .andExpect(jsonPath("$.fields").isNotEmpty());
+                .andExpect(jsonPath("$.fields[0].name").isNotEmpty())
+                // Saving is never blocked, but the still-missing required fields come back as issues.
+                .andExpect(jsonPath("$.issues[?(@.field == 'issueDate')].code")
+                        .value(org.hamcrest.Matchers.hasItem("REQUIRED_FIELD_MISSING")));
     }
 
     @Test

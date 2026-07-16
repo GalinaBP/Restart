@@ -8,6 +8,8 @@ import ru.restart.app.casefile.domain.CaseRepository;
 import ru.restart.app.casefile.domain.CaseSection;
 import ru.restart.app.casefile.domain.CaseSectionRepository;
 import ru.restart.app.casefile.domain.CaseStatus;
+import ru.restart.app.casefile.domain.FieldDefinition;
+import ru.restart.app.casefile.domain.FieldType;
 import ru.restart.app.casefile.domain.SectionDefinition;
 import ru.restart.app.casefile.domain.SectionKey;
 import ru.restart.app.casefile.domain.SectionRegistry;
@@ -159,10 +161,12 @@ class SectionServiceTest {
     /** Two sections stand in for the full registry: PASSPORT (regular) and CREDITORS (repeatable). */
     private static final class StubRegistry implements SectionRegistry {
         private final List<SectionDefinition> definitions = List.of(
-                new SectionDefinition(SectionKey.PASSPORT, 1, false, "тест",
-                        List.of("series", "number")),
-                new SectionDefinition(SectionKey.CREDITORS, 2, true, "тест",
-                        List.of("name", "debtAmount")));
+                new SectionDefinition(SectionKey.PASSPORT, 1, false, true, "тест", List.of(),
+                        List.of(new FieldDefinition("series", FieldType.PASSPORT_SERIES, true),
+                                new FieldDefinition("number", FieldType.PASSPORT_NUMBER, true))),
+                new SectionDefinition(SectionKey.CREDITORS, 2, true, true, "тест", List.of("name"),
+                        List.of(new FieldDefinition("name", FieldType.STRING, true),
+                                new FieldDefinition("debtAmount", FieldType.MONEY, true))));
 
         @Override
         public List<SectionDefinition> all() {

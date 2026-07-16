@@ -1,6 +1,7 @@
 package ru.restart.app.casefile.infrastructure;
 
 import org.junit.jupiter.api.Test;
+import ru.restart.app.casefile.domain.FieldType;
 import ru.restart.app.casefile.domain.SectionDefinition;
 import ru.restart.app.casefile.domain.SectionKey;
 
@@ -36,6 +37,22 @@ class YamlSectionRegistryTest {
             assertThat(definition.statutoryBasis())
                     .as("statutory basis of %s", definition.key()).isNotBlank();
         }
+    }
+
+    @Test
+    void validationRulesAreConfigured() {
+        // The engine's inputs the workflow relies on (placeholder values pending lawyer review).
+        assertThat(registry.get(SectionKey.PASSPORT).mandatory()).isTrue();
+        assertThat(registry.get(SectionKey.VEHICLES).mandatory()).isFalse();
+        assertThat(registry.get(SectionKey.CREDITORS).uniqueBy()).containsExactly("name", "inn");
+        assertThat(registry.get(SectionKey.CREDITORS).fields())
+                .filteredOn(f -> f.name().equals("address"))
+                .singleElement()
+                .satisfies(f -> assertThat(f.required()).isTrue());
+        assertThat(registry.get(SectionKey.PASSPORT).fields())
+                .filteredOn(f -> f.name().equals("series"))
+                .singleElement()
+                .satisfies(f -> assertThat(f.type()).isEqualTo(FieldType.PASSPORT_SERIES));
     }
 
     @Test

@@ -63,8 +63,10 @@ placeholder rules pending lawyer review), `auth` (accounts + stateless JWT: regi
 refresh/me; contributes its token filter via `HttpSecurityCustomizer`; local demo account seeded
 when `restart.seed.enabled=true`) and `casefile` (the bankruptcy case container: one active case
 per user, draft → in_progress → ready → filed; ownership enforced at the service layer, foreign
-cases answered as 404; step-by-step data collection driven by `casefile/sections.yml` — the
-field ↔ 127-ФЗ mapping config, placeholder pending lawyer review).
+cases answered as 404; step-by-step data collection and the deterministic validation engine are
+both driven by `casefile/sections.yml` — field types, required flags, mandatory sections,
+duplicate rules, and the field ↔ 127-ФЗ mapping, placeholder pending lawyer review. Validation
+never blocks saving; `GET /cases/{id}/validation` is the report AI-007 will gate generation on).
 
 Every business module gets identical internal layering:
 
