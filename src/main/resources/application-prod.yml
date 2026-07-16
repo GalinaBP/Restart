@@ -1,5 +1,10 @@
 # Production profile. Every secret and connection detail MUST come from the environment; there are
 # no defaults here on purpose, so a misconfigured deployment fails fast instead of using weak values.
+
+# PaaS platforms (Railway, Heroku, …) tell the app which port to listen on via PORT.
+server:
+  port: ${PORT:8080}
+
 spring:
   datasource:
     url: ${DB_URL}
