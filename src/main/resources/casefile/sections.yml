@@ -1,114 +1,199 @@
-# Data-collection sections for a personal bankruptcy case (backlog AI-002).
+# Data-collection sections for a personal bankruptcy case (backlog AI-002 + AI-003).
 #
-# This file is the field ↔ statutory-basis mapping config the backlog requires: every section
-# carries the 127-ФЗ reference it originates from, so a legislative amendment means editing this
-# file (and the templates), not the workflow engine.
+# This file is the field ↔ statutory-basis mapping config the backlog requires, and — since
+# AI-003 — also the validation rulebook: field types, required flags, mandatory sections, and
+# duplicate detection are all defined here, so a legislative amendment means editing this file
+# (and the templates), not the workflow or validation engine.
 #
 # ############################################################################################
-# ##  ПЛЕЙСХОЛДЕР ДО ПРОВЕРКИ ЮРИСТОМ. Список секций, состав полей и ссылки на нормы         ##
-# ##  127-ФЗ (ред., действующая с 21.06.2026) требуют подтверждения юристом до релиза.       ##
+# ##  ПЛЕЙСХОЛДЕР ДО ПРОВЕРКИ ЮРИСТОМ. Список секций, состав полей, обязательность и ссылки  ##
+# ##  на нормы 127-ФЗ (ред., действующая с 21.06.2026) требуют подтверждения юристом.        ##
 # ############################################################################################
 #
 # Structure:
 #   key            — stable machine key, must match SectionKey enum
 #   order          — position in the step-by-step journey (one section per screen)
 #   repeatable     — true: payload is an array of entry objects; false: payload is one object
+#   mandatory      — true: an empty/absent section blocks document generation (AI-003/AI-007)
 #   statutoryBasis — the 127-ФЗ provision this section traces back to (placeholder wording)
-#   fields         — allowed field names of the section (or of one entry, when repeatable)
+#   uniqueBy       — repeatable only: entries with equal values of these fields are duplicates
+#   fields         — the section's fields (of one entry, when repeatable):
+#     name           — field key as submitted by the client
+#     type           — STRING | BOOLEAN | INTEGER | MONEY | DATE |
+#                      PASSPORT_SERIES | PASSPORT_NUMBER | INN  (validated deterministically)
+#     required       — true: must be present and non-blank for the section to be complete
 
 sections:
   - key: PERSONAL_DETAILS
     order: 1
     repeatable: false
+    mandatory: true
     statutoryBasis: "ст. 213.4 127-ФЗ — сведения о гражданине (ПЛЕЙСХОЛДЕР, уточнить у юриста)"
-    fields: [lastName, firstName, middleName, birthDate, birthPlace, inn, snils]
+    fields:
+      - { name: lastName,   type: STRING, required: true }
+      - { name: firstName,  type: STRING, required: true }
+      - { name: middleName, type: STRING, required: false }
+      - { name: birthDate,  type: DATE,   required: true }
+      - { name: birthPlace, type: STRING, required: true }
+      - { name: inn,        type: INN,    required: false }
+      - { name: snils,      type: STRING, required: false }
 
   - key: PASSPORT
     order: 2
     repeatable: false
+    mandatory: true
     statutoryBasis: "ст. 213.4 127-ФЗ — документ, удостоверяющий личность (ПЛЕЙСХОЛДЕР)"
-    fields: [series, number, issuedBy, issueDate, departmentCode]
+    fields:
+      - { name: series,         type: PASSPORT_SERIES, required: true }
+      - { name: number,         type: PASSPORT_NUMBER, required: true }
+      - { name: issuedBy,       type: STRING,          required: true }
+      - { name: issueDate,      type: DATE,            required: true }
+      - { name: departmentCode, type: STRING,          required: false }
 
   - key: REGISTRATION_ADDRESS
     order: 3
     repeatable: false
+    mandatory: true
     statutoryBasis: "ст. 213.4 127-ФЗ — место жительства (ПЛЕЙСХОЛДЕР)"
-    fields: [region, city, street, house, apartment, postalCode]
+    fields:
+      - { name: region,     type: STRING, required: true }
+      - { name: city,       type: STRING, required: true }
+      - { name: street,     type: STRING, required: true }
+      - { name: house,      type: STRING, required: true }
+      - { name: apartment,  type: STRING, required: false }
+      - { name: postalCode, type: STRING, required: false }
 
   - key: CONTACT_INFO
     order: 4
     repeatable: false
+    mandatory: true
     statutoryBasis: "требование суда к заявлению — контактные данные (ПЛЕЙСХОЛДЕР)"
-    fields: [phone, email]
+    fields:
+      - { name: phone, type: STRING, required: true }
+      - { name: email, type: STRING, required: false }
 
   - key: EMPLOYMENT
     order: 5
     repeatable: false
+    mandatory: true
     statutoryBasis: "ст. 213.4 127-ФЗ — сведения о занятости (ПЛЕЙСХОЛДЕР)"
-    fields: [status, employerName, position]
+    fields:
+      - { name: status,       type: STRING, required: true }
+      - { name: employerName, type: STRING, required: false }
+      - { name: position,     type: STRING, required: false }
 
   - key: MONTHLY_INCOME
     order: 6
     repeatable: false
+    mandatory: true
     statutoryBasis: "ст. 213.4 127-ФЗ — сведения о доходах (ПЛЕЙСХОЛДЕР)"
-    fields: [amount, source]
+    fields:
+      - { name: amount, type: MONEY,  required: true }
+      - { name: source, type: STRING, required: true }
 
   - key: MARITAL_STATUS
     order: 7
     repeatable: false
+    mandatory: true
     statutoryBasis: "ст. 213.4, 213.25 127-ФЗ — семейное положение (ПЛЕЙСХОЛДЕР)"
-    fields: [status, hasMarriageContract]
+    fields:
+      - { name: status,              type: STRING,  required: true }
+      - { name: hasMarriageContract, type: BOOLEAN, required: false }
 
   - key: DEPENDENTS
     order: 8
     repeatable: true
+    mandatory: false
     statutoryBasis: "ст. 213.4 127-ФЗ — иждивенцы (ПЛЕЙСХОЛДЕР)"
-    fields: [fullName, birthDate, relation]
+    fields:
+      - { name: fullName,  type: STRING, required: true }
+      - { name: birthDate, type: DATE,   required: true }
+      - { name: relation,  type: STRING, required: true }
 
   - key: CREDITORS
     order: 9
     repeatable: true
+    mandatory: true
     statutoryBasis: "ст. 213.4 127-ФЗ — список кредиторов (форма утв. Минэкономразвития; ПЛЕЙСХОЛДЕР)"
-    fields: [name, inn, address, debtAmount, debtType]
+    uniqueBy: [name, inn]
+    fields:
+      - { name: name,       type: STRING, required: true }
+      - { name: inn,        type: INN,    required: false }
+      - { name: address,    type: STRING, required: true }
+      - { name: debtAmount, type: MONEY,  required: true }
+      - { name: debtType,   type: STRING, required: false }
 
   - key: DEBTS
     order: 10
     repeatable: true
+    mandatory: true
     statutoryBasis: "ст. 213.4 127-ФЗ — сведения о задолженности (ПЛЕЙСХОЛДЕР)"
-    fields: [creditorName, amount, overdueSinceDate, type]
+    fields:
+      - { name: creditorName,     type: STRING, required: true }
+      - { name: amount,           type: MONEY,  required: true }
+      - { name: overdueSinceDate, type: DATE,   required: false }
+      - { name: type,             type: STRING, required: false }
 
   - key: BANK_ACCOUNTS
     order: 11
     repeatable: true
+    mandatory: false
     statutoryBasis: "ст. 213.4 127-ФЗ — счета в банках (ПЛЕЙСХОЛДЕР)"
-    fields: [bankName, accountNumber, balance]
+    fields:
+      - { name: bankName,      type: STRING, required: true }
+      - { name: accountNumber, type: STRING, required: true }
+      - { name: balance,       type: MONEY,  required: false }
 
   - key: PROPERTY
     order: 12
     repeatable: true
+    mandatory: false
     statutoryBasis: "ст. 213.4 127-ФЗ — опись имущества (форма утв. Минэкономразвития; ПЛЕЙСХОЛДЕР)"
-    fields: [description, estimatedValue]
+    fields:
+      - { name: description,    type: STRING, required: true }
+      - { name: estimatedValue, type: MONEY,  required: false }
 
   - key: REAL_ESTATE
     order: 13
     repeatable: true
+    mandatory: false
     statutoryBasis: "ст. 213.4 127-ФЗ — недвижимое имущество (ПЛЕЙСХОЛДЕР)"
-    fields: [type, address, area, ownershipShare]
+    fields:
+      - { name: type,           type: STRING, required: true }
+      - { name: address,        type: STRING, required: true }
+      - { name: area,           type: MONEY,  required: false }
+      - { name: ownershipShare, type: STRING, required: false }
 
   - key: VEHICLES
     order: 14
     repeatable: true
+    mandatory: false
     statutoryBasis: "ст. 213.4 127-ФЗ — транспортные средства (ПЛЕЙСХОЛДЕР)"
-    fields: [type, brand, model, year, regNumber]
+    fields:
+      - { name: type,      type: STRING,  required: true }
+      - { name: brand,     type: STRING,  required: false }
+      - { name: model,     type: STRING,  required: false }
+      - { name: year,      type: INTEGER, required: false }
+      - { name: regNumber, type: STRING,  required: false }
 
   - key: COURT_PROCEEDINGS
     order: 15
     repeatable: true
+    mandatory: false
     statutoryBasis: "ст. 213.4 127-ФЗ — судебные производства (ПЛЕЙСХОЛДЕР)"
-    fields: [courtName, caseNumber, subject, status]
+    fields:
+      - { name: courtName,  type: STRING, required: true }
+      - { name: caseNumber, type: STRING, required: true }
+      - { name: subject,    type: STRING, required: false }
+      - { name: status,     type: STRING, required: false }
 
   - key: ENFORCEMENT_PROCEEDINGS
     order: 16
     repeatable: true
+    mandatory: false
     statutoryBasis: "ст. 69.1 229-ФЗ, ст. 213.4 127-ФЗ — исполнительные производства (ПЛЕЙСХОЛДЕР)"
-    fields: [bailiffDepartment, proceedingNumber, subject, amount]
+    fields:
+      - { name: bailiffDepartment, type: STRING, required: true }
+      - { name: proceedingNumber,  type: STRING, required: true }
+      - { name: subject,           type: STRING, required: false }
+      - { name: amount,            type: MONEY,  required: false }

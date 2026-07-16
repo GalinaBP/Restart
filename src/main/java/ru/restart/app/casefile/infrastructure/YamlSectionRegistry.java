@@ -3,6 +3,8 @@ package ru.restart.app.casefile.infrastructure;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
+import ru.restart.app.casefile.domain.FieldDefinition;
+import ru.restart.app.casefile.domain.FieldType;
 import ru.restart.app.casefile.domain.SectionDefinition;
 import ru.restart.app.casefile.domain.SectionKey;
 import ru.restart.app.casefile.domain.SectionRegistry;
@@ -60,17 +62,34 @@ class YamlSectionRegistry implements SectionRegistry {
     @SuppressWarnings("unchecked")
     private static SectionDefinition toDefinition(Map<String, Object> raw) {
         SectionKey key = SectionKey.valueOf((String) raw.get("key"));
-        List<String> fields = (List<String>) raw.get("fields");
+        List<Map<String, Object>> rawFields = (List<Map<String, Object>>) raw.get("fields");
         String statutoryBasis = (String) raw.get("statutoryBasis");
-        if (fields == null || fields.isEmpty()) {
+        if (rawFields == null || rawFields.isEmpty()) {
             throw new IllegalStateException(RESOURCE + ": section " + key + " has no fields");
         }
         if (statutoryBasis == null || statutoryBasis.isBlank()) {
             throw new IllegalStateException(
                     RESOURCE + ": section " + key + " has no statutoryBasis");
         }
-        return new SectionDefinition(key, (Integer) raw.get("order"),
-                (Boolean) raw.get("repeatable"), statutoryBasis, List.copyOf(fields));
+        List<FieldDefinition> fields = rawFields.stream()
+                .map(f -> new FieldDefinition((String) f.get("name"),
+                        FieldType.valueOf((String) f.get("type")),
+                        Boolean.TRUE.equals(f.get("required"))))
+                .toList();
+        List<String> uniqueBy = raw.get("uniqueBy") == null
+                ? List.of()
+                : List.copyOf((List<String>) raw.get("uniqueBy"));
+        SectionDefinition definition = new SectionDefinition(key, (Integer) raw.get("order"),
+                (Boolean) raw.get("repeatable"), Boolean.TRUE.equals(raw.get("mandatory")),
+                statutoryBasis, uniqueBy, fields);
+        if (fields.stream().map(FieldDefinition::name).distinct().count() != fields.size()) {
+            throw new IllegalStateException(RESOURCE + ": section " + key + " has duplicate fields");
+        }
+        if (!definition.fieldSet().containsAll(uniqueBy)) {
+            throw new IllegalStateException(
+                    RESOURCE + ": section " + key + " uniqueBy references unknown fields");
+        }
+        return definition;
     }
 
     @Override
