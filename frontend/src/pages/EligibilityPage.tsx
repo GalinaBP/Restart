@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   checkEligibility,
   type DebtRange,
@@ -182,6 +182,7 @@ export default function EligibilityPage() {
 }
 
 function ResultScreen({ result }: { result: EligibilityResult }) {
+  const navigate = useNavigate();
   if (result.decision === 'SELF_SERVICE_OK') {
     return (
       <main className="check">
@@ -190,7 +191,9 @@ function ResultScreen({ result }: { result: EligibilityResult }) {
         <p className="check-hint">
           Мы будем сопровождать каждый этап процедуры. Двигаемся по одному шагу за раз.
         </p>
-        <button type="button" className="landing-cta">Продолжить</button>
+        <button type="button" className="landing-cta" onClick={() => navigate('/auth')}>
+          Продолжить
+        </button>
       </main>
     );
   }
