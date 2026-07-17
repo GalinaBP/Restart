@@ -1,5 +1,8 @@
 package ru.restart.app.doctemplate.domain;
 
+import ru.restart.app.doctemplate.api.DocumentType;
+import ru.restart.app.doctemplate.api.RenderedDocument;
+
 import java.util.Map;
 
 /**

@@ -1,4 +1,4 @@
-package ru.restart.app.doctemplate.domain;
+package ru.restart.app.doctemplate.api;
 
 /**
  * The six documents of the filing package (backlog AI-005). {@code templateName} is the file base

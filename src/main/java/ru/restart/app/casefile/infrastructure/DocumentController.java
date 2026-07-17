@@ -1,0 +1,70 @@
+package ru.restart.app.casefile.infrastructure;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import ru.restart.app.casefile.application.DocumentGenerationService;
+import ru.restart.app.casefile.domain.CaseDocument;
+import ru.restart.app.common.web.ApiPaths;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * The generated filing package of a case (backlog AI-006). Ownership follows the case endpoints;
+ * generation is hard-gated on a clean validation report — the client is expected to check
+ * {@code GET /cases/{id}/validation} first and will get a 409 here otherwise.
+ */
+@RestController
+@RequestMapping(ApiPaths.API_V1 + "/cases/{caseId}/documents")
+@Tag(name = "Case documents", description = "Generate and download the filing package")
+public class DocumentController {
+
+    private final DocumentGenerationService service;
+
+    public DocumentController(DocumentGenerationService service) {
+        this.service = service;
+    }
+
+    @Operation(summary = "Generate the filing package",
+            description = "Renders all six documents in every supported format (txt, docx) from "
+                    + "the current case data and the active template version, replacing any "
+                    + "previously generated files. 409 while validation reports any issue.")
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<DocumentResponse> generate(@PathVariable UUID caseId) {
+        return service.generate(caseId).stream().map(DocumentResponse::from).toList();
+    }
+
+    @Operation(summary = "List generated documents",
+            description = "Metadata of the case's generated files; empty until first generation.")
+    @GetMapping
+    public List<DocumentResponse> list(@PathVariable UUID caseId) {
+        return service.list(caseId).stream().map(DocumentResponse::from).toList();
+    }
+
+    @Operation(summary = "Download one document",
+            description = "The file bytes with the proper content type and attachment filename.")
+    @GetMapping("/{documentId}")
+    public ResponseEntity<byte[]> download(@PathVariable UUID caseId,
+                                           @PathVariable UUID documentId) {
+        CaseDocument document = service.download(caseId, documentId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(document.format().mediaType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename(document.filename())
+                        .build()
+                        .toString())
+                .body(document.content());
+    }
+}

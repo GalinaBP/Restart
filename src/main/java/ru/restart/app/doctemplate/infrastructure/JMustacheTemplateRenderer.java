@@ -6,8 +6,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import ru.restart.app.doctemplate.domain.DocumentTemplateRenderer;
-import ru.restart.app.doctemplate.domain.DocumentType;
-import ru.restart.app.doctemplate.domain.RenderedDocument;
+import ru.restart.app.doctemplate.api.DocumentType;
+import ru.restart.app.doctemplate.api.RenderedDocument;
 
 import java.io.IOException;
 import java.io.InputStream;

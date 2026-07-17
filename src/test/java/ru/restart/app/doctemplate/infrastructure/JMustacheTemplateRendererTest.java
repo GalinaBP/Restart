@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import ru.restart.app.doctemplate.SampleModels;
-import ru.restart.app.doctemplate.domain.DocumentType;
-import ru.restart.app.doctemplate.domain.RenderedDocument;
+import ru.restart.app.doctemplate.api.DocumentType;
+import ru.restart.app.doctemplate.api.RenderedDocument;
 
 import java.io.UncheckedIOException;
 import java.util.Map;
