@@ -157,6 +157,48 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @Order(6)
+    void fixingTheCaseAllowsExportingTheWholePackage() throws Exception {
+        // The case is invalid since order(5); export must show the blocking contract:
+        ResponseEntity<Map> blocked = rest.post()
+                .uri("/api/v1/cases/" + caseId + "/documents/export")
+                .header("Authorization", "Bearer " + token)
+                .retrieve().toEntity(Map.class);
+        assertThat(blocked.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(blocked.getBody()).containsEntry("code", "GENERATION_BLOCKED");
+
+        // Fix the passport, then export the full zip:
+        rest.put().uri("/api/v1/cases/" + caseId + "/sections/PASSPORT")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        {"series": "4519", "number": "123456",
+                         "issuedBy": "ГУ МВД России по г. Москве", "issueDate": "2019-06-14"}""")
+                .header("Authorization", "Bearer " + token)
+                .retrieve().toEntity(Map.class);
+
+        ResponseEntity<byte[]> export = rest.post()
+                .uri("/api/v1/cases/" + caseId + "/documents/export")
+                .header("Authorization", "Bearer " + token)
+                .retrieve().toEntity(byte[].class);
+
+        assertThat(export.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(export.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION))
+                .contains("restart-filing-package.zip");
+        List<String> entries = new java.util.ArrayList<>();
+        try (java.util.zip.ZipInputStream zip = new java.util.zip.ZipInputStream(
+                new java.io.ByteArrayInputStream(export.getBody()))) {
+            for (java.util.zip.ZipEntry entry = zip.getNextEntry(); entry != null;
+                 entry = zip.getNextEntry()) {
+                entries.add(entry.getName());
+            }
+        }
+        assertThat(entries).hasSize(12)
+                .contains("bankruptcy_application.docx", "creditor_list.docx",
+                        "property_information.docx", "debt_summary.docx",
+                        "attachments_checklist.docx", "filing_checklist.docx");
+    }
+
+    @Test
+    @Order(7)
     void strangersSeeNeitherListNorFiles() {
         String stranger = (String) rest.post().uri("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
