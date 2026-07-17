@@ -1,0 +1,18 @@
+{{> partials/draft_warning}}
+                        СВОДКА ЗАДОЛЖЕННОСТИ
+          (вспомогательный документ к заявлению о банкротстве)
+
+Должник: {{> partials/applicant}}
+
+Обязательства:
+{{#debts}}
+   {{index}}. {{creditorName}} — {{amount}} руб.
+      Вид обязательства: {{type}}; просрочка с: {{overdueSinceDate}}
+{{/debts}}
+{{^debts}}
+   Сведения о задолженности не заполнены.
+{{/debts}}
+
+Итого: {{totalDebt}} руб.
+Ежемесячный доход должника: {{monthlyIncome.amount}} руб. ({{monthlyIncome.source}}).
+{{> partials/signature}}

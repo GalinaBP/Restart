@@ -1,0 +1,5 @@
+# Which template edition is in force. Bumping this (after adding a new version directory) is the
+# whole deployment story for a legislative amendment — no code changes.
+#
+# Versioning convention: <127-ФЗ edition effective date>.<revision>
+activeVersion: "2026-06-21.1"
