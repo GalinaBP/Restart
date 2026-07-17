@@ -146,6 +146,38 @@ class DocumentGenerationServiceTest {
     }
 
     @Test
+    void exportBundlesEveryFileIntoOneZip() throws Exception {
+        fillValidCase();
+
+        byte[] zip = service.exportPackage(existingCase.id());
+
+        Map<String, byte[]> entries = new HashMap<>();
+        try (java.util.zip.ZipInputStream in =
+                     new java.util.zip.ZipInputStream(new java.io.ByteArrayInputStream(zip))) {
+            for (java.util.zip.ZipEntry entry = in.getNextEntry(); entry != null;
+                 entry = in.getNextEntry()) {
+                entries.put(entry.getName(), in.readAllBytes());
+            }
+        }
+        assertThat(entries).hasSize(12);
+        assertThat(entries.keySet())
+                .contains("bankruptcy_application.docx", "bankruptcy_application.txt",
+                        "creditor_list.docx", "filing_checklist.txt");
+        // Entry bytes are exactly the stored documents:
+        CaseDocument storedTxt = documents
+                .findByCaseIdAndTypeAndFormat(existingCase.id(),
+                        DocumentType.BANKRUPTCY_APPLICATION, DocumentFormat.TXT)
+                .orElseThrow();
+        assertThat(entries.get("bankruptcy_application.txt")).isEqualTo(storedTxt.content());
+    }
+
+    @Test
+    void exportIsBlockedExactlyLikeGeneration() {
+        assertThatExceptionOfType(GenerationBlockedException.class)
+                .isThrownBy(() -> service.exportPackage(existingCase.id()));
+    }
+
+    @Test
     void someoneElsesCaseCannotBeGenerated() {
         fillValidCase();
         currentUser.actAs(UUID.randomUUID());

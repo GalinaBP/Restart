@@ -71,7 +71,8 @@ document generation `POST /cases/{id}/documents` renders all six filing document
 — minimal hand-built OOXML, no library — hard-gated 409 GENERATION_BLOCKED with the missing-item
 list; once documents exist, every section save regenerates all of them while the case stays
 valid, or flags them `stale` when it doesn't — full regeneration by design, documents are never
-silently outdated)
+silently outdated; `POST /cases/{id}/documents/export` regenerates and bundles everything into
+one zip behind the same gate)
 and `doctemplate` (versioned Mustache templates for the six filing documents under
 `resources/doctemplates/<version>/`, shared legal boilerplate as partials, edition picked by
 `doctemplates/manifest.yml` — a legislative amendment is a new version directory + manifest bump,

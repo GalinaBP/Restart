@@ -12,10 +12,16 @@ import ru.restart.app.doctemplate.api.DocumentTemplates;
 import ru.restart.app.doctemplate.api.DocumentType;
 import ru.restart.app.doctemplate.api.RenderedDocument;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * The document-generation engine (backlog AI-006). One run renders all six documents of the
@@ -75,6 +81,32 @@ public class DocumentGenerationService {
             }
         }
         return generated;
+    }
+
+    /**
+     * The downloadable filing package (backlog AI-009). Export format is a ZIP of every generated
+     * file — the documented choice: combined PDF needs PDF rendering first, and a zip picks up
+     * new formats automatically. Export regenerates before bundling, so the package always
+     * reflects the current data and the template edition currently in force — the same hard gate
+     * applies, and a blocked case exports nothing.
+     */
+    @Transactional
+    public byte[] exportPackage(UUID caseId) {
+        List<CaseDocument> generated = new ArrayList<>(generate(caseId));
+        generated.sort(Comparator
+                .comparing((CaseDocument d) -> d.type().ordinal())
+                .thenComparing(d -> d.format().ordinal()));
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (ZipOutputStream zip = new ZipOutputStream(out)) {
+            for (CaseDocument document : generated) {
+                zip.putNextEntry(new ZipEntry(document.filename()));
+                zip.write(document.content());
+                zip.closeEntry();
+            }
+        } catch (IOException ex) {
+            throw new UncheckedIOException("Cannot build the export package", ex);
+        }
+        return out.toByteArray();
     }
 
     @Transactional(readOnly = true)

@@ -59,6 +59,23 @@ public class DocumentController {
         return service.list(caseId).stream().map(DocumentResponse::from).toList();
     }
 
+    @Operation(summary = "Export the filing package",
+            description = "One ZIP with every generated file, regenerated from the current data "
+                    + "just before bundling — the package can never contain stale documents. The "
+                    + "same 409 GENERATION_BLOCKED contract applies while the case is incomplete. "
+                    + "Format choice (zip, not combined PDF) is documented in the service.")
+    @PostMapping("/export")
+    public ResponseEntity<byte[]> export(@PathVariable UUID caseId) {
+        byte[] zip = service.exportPackage(caseId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/zip"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename("restart-filing-package.zip")
+                        .build()
+                        .toString())
+                .body(zip);
+    }
+
     /**
      * The AI-007 blocking screen contract. Controller-local so it takes precedence over the
      * generic BusinessException mapping in {@code GlobalExceptionHandler} without any advice

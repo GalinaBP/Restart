@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -162,6 +163,35 @@ class DocumentControllerTest {
                         org.hamcrest.Matchers.containsString("creditor_list.txt")))
                 .andExpect(content().contentTypeCompatibleWith("text/plain"))
                 .andExpect(content().string("СПИСОК КРЕДИТОРОВ"));
+    }
+
+    @Test
+    void exportSendsAZipOrTheBlockingContract() throws Exception {
+        BankruptcyCase existing = ownCase();
+        // Blocked case first — same missing-info contract as generation:
+        when(sections.findByCaseId(existing.id())).thenReturn(List.of());
+        mockMvc.perform(post("/api/v1/cases/" + existing.id() + "/documents/export").with(user()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("GENERATION_BLOCKED"))
+                .andExpect(jsonPath("$.missing").isNotEmpty());
+
+        // Valid case — a zip attachment:
+        when(sections.findByCaseId(existing.id()))
+                .thenReturn(CaseFixtures.validCaseSections(existing.id()));
+        when(documents.findByCaseIdAndTypeAndFormat(eq(existing.id()), any(), any()))
+                .thenReturn(Optional.empty());
+        when(documents.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(templates.render(any(), any())).thenAnswer(invocation -> new RenderedDocument(
+                invocation.getArgument(0), "2026-06-21.1", "ТЕКСТ"));
+
+        byte[] zip = mockMvc.perform(post("/api/v1/cases/" + existing.id() + "/documents/export")
+                        .with(user()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/zip"))
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        org.hamcrest.Matchers.containsString("restart-filing-package.zip")))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(new String(zip, 0, 2, StandardCharsets.US_ASCII)).isEqualTo("PK");
     }
 
     @Test
