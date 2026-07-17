@@ -53,8 +53,9 @@ public class DocumentGenerationService {
     @Transactional
     public List<CaseDocument> generate(UUID caseId) {
         BankruptcyCase bankruptcyCase = caseService.get(caseId);
-        if (!validationService.validateCase(bankruptcyCase.id()).isEmpty()) {
-            throw new GenerationBlockedException();
+        var issues = validationService.validateCase(bankruptcyCase.id());
+        if (!issues.isEmpty()) {
+            throw new GenerationBlockedException(issues);
         }
 
         Map<String, Object> model = assembler.assemble(sections.findByCaseId(bankruptcyCase.id()));
