@@ -66,7 +66,10 @@ per user, draft → in_progress → ready → filed; ownership enforced at the s
 cases answered as 404; step-by-step data collection and the deterministic validation engine are
 both driven by `casefile/sections.yml` — field types, required flags, mandatory sections,
 duplicate rules, and the field ↔ 127-ФЗ mapping, placeholder pending lawyer review. Validation
-never blocks saving; `GET /cases/{id}/validation` is the report AI-007 will gate generation on)
+never blocks saving; `GET /cases/{id}/validation` is the report the generation gate consumes;
+document generation `POST /cases/{id}/documents` renders all six filing documents in txt + docx
+— minimal hand-built OOXML, no library — hard-gated 409 on any validation issue, regeneration
+replaces per (case, type, format))
 and `doctemplate` (versioned Mustache templates for the six filing documents under
 `resources/doctemplates/<version>/`, shared legal boilerplate as partials, edition picked by
 `doctemplates/manifest.yml` — a legislative amendment is a new version directory + manifest bump,

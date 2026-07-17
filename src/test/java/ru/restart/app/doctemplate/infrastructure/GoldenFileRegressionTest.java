@@ -3,7 +3,7 @@ package ru.restart.app.doctemplate.infrastructure;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import ru.restart.app.doctemplate.SampleModels;
-import ru.restart.app.doctemplate.domain.DocumentType;
+import ru.restart.app.doctemplate.api.DocumentType;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

@@ -1,4 +1,4 @@
-package ru.restart.app.doctemplate.domain;
+package ru.restart.app.doctemplate.api;
 
 /**
  * The rendered text of one document. {@code templateVersion} is carried with every render so a
