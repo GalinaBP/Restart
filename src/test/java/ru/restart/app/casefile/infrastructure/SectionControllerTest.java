@@ -13,14 +13,18 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import ru.restart.app.casefile.application.CaseModelAssembler;
 import ru.restart.app.casefile.application.CaseService;
+import ru.restart.app.casefile.application.DocumentGenerationService;
 import ru.restart.app.casefile.application.SectionService;
 import ru.restart.app.casefile.application.ValidationService;
 import ru.restart.app.casefile.domain.BankruptcyCase;
+import ru.restart.app.casefile.domain.CaseDocumentRepository;
 import ru.restart.app.casefile.domain.CaseRepository;
 import ru.restart.app.casefile.domain.CaseSection;
 import ru.restart.app.casefile.domain.CaseSectionRepository;
 import ru.restart.app.casefile.domain.SectionKey;
+import ru.restart.app.doctemplate.api.DocumentTemplates;
 import ru.restart.app.common.config.ClockConfig;
 import ru.restart.app.common.error.GlobalExceptionHandler;
 import ru.restart.app.common.security.AuthenticatedUser;
@@ -46,8 +50,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(SectionController.class)
 @Import({SectionService.class, ValidationService.class, CaseService.class,
-        YamlSectionRegistry.class, SecurityContextCurrentUser.class, SecurityConfig.class,
-        RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class,
+        DocumentGenerationService.class, CaseModelAssembler.class, TxtDocumentWriter.class,
+        DocxDocumentWriter.class, YamlSectionRegistry.class, SecurityContextCurrentUser.class,
+        SecurityConfig.class, RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class,
         GlobalExceptionHandler.class, ClockConfig.class,
         SectionControllerTest.EnableSecurity.class})
 class SectionControllerTest {
@@ -68,6 +73,14 @@ class SectionControllerTest {
 
     @MockitoBean
     private CaseSectionRepository sections;
+
+    // AI-008 collaborators: no documents exist in these tests (Mockito's empty-list default
+    // keeps the regeneration path dormant), templates are never rendered.
+    @MockitoBean
+    private CaseDocumentRepository documents;
+
+    @MockitoBean
+    private DocumentTemplates templates;
 
     private static RequestPostProcessor user(UUID userId) {
         Authentication auth = new UsernamePasswordAuthenticationToken(

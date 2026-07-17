@@ -20,4 +20,7 @@ public interface CaseDocumentRepository {
 
     Optional<CaseDocument> findByCaseIdAndTypeAndFormat(UUID caseId, DocumentType type,
                                                         DocumentFormat format);
+
+    /** Flags every document of the case as outdated (AI-008: superseded, never silently stale). */
+    void markAllStale(UUID caseId);
 }

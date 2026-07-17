@@ -46,7 +46,16 @@ class SectionServiceTest {
     @BeforeEach
     void setUp() {
         CaseService caseService = new CaseService(cases, currentUser);
-        service = new SectionService(caseService, cases, sections, registry);
+        ValidationService validationService =
+                new ValidationService(caseService, sections, registry, json);
+        // No documents exist in these tests, so the AI-008 refresh path stays dormant; the
+        // regeneration scenarios live in RegenerationFlowTest against the real registry.
+        DocumentGenerationService generationService = new DocumentGenerationService(caseService,
+                validationService, sections, new NoDocuments(),
+                new CaseModelAssembler(json, java.time.Clock.systemUTC()),
+                new NeverRenderedTemplates(), List.of());
+        service = new SectionService(caseService, cases, sections, registry, validationService,
+                generationService, new NoDocuments());
         currentUser.actAs(UUID.randomUUID());
         existingCase = caseService.create();
     }
@@ -220,6 +229,55 @@ class SectionServiceTest {
         @Override
         public List<CaseSection> findByCaseId(UUID caseId) {
             return byId.values().stream().filter(s -> s.caseId().equals(caseId)).toList();
+        }
+    }
+
+    /** These tests never generate documents; renders here would mean a broken dormant path. */
+    private static final class NeverRenderedTemplates
+            implements ru.restart.app.doctemplate.api.DocumentTemplates {
+        @Override
+        public String activeVersion() {
+            return "test-0";
+        }
+
+        @Override
+        public ru.restart.app.doctemplate.api.RenderedDocument render(
+                ru.restart.app.doctemplate.api.DocumentType type,
+                Map<String, Object> model) {
+            throw new UnsupportedOperationException("not rendered in this test");
+        }
+    }
+
+    /** Empty document store: the AI-008 refresh path must treat it as "nothing generated yet". */
+    private static final class NoDocuments
+            implements ru.restart.app.casefile.domain.CaseDocumentRepository {
+        @Override
+        public ru.restart.app.casefile.domain.CaseDocument save(
+                ru.restart.app.casefile.domain.CaseDocument document) {
+            throw new UnsupportedOperationException("no documents in this test");
+        }
+
+        @Override
+        public List<ru.restart.app.casefile.domain.CaseDocument> findByCaseId(UUID caseId) {
+            return List.of();
+        }
+
+        @Override
+        public Optional<ru.restart.app.casefile.domain.CaseDocument> findByIdAndCaseId(
+                UUID id, UUID caseId) {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<ru.restart.app.casefile.domain.CaseDocument> findByCaseIdAndTypeAndFormat(
+                UUID caseId, ru.restart.app.doctemplate.api.DocumentType type,
+                ru.restart.app.casefile.domain.DocumentFormat format) {
+            return Optional.empty();
+        }
+
+        @Override
+        public void markAllStale(UUID caseId) {
+            throw new UnsupportedOperationException("no documents in this test");
         }
     }
 

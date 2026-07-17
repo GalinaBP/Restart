@@ -3,6 +3,7 @@ package ru.restart.app.casefile.application;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.restart.app.casefile.domain.BankruptcyCase;
+import ru.restart.app.casefile.domain.CaseDocumentRepository;
 import ru.restart.app.casefile.domain.CaseRepository;
 import ru.restart.app.casefile.domain.CaseSection;
 import ru.restart.app.casefile.domain.CaseSectionRepository;
@@ -23,6 +24,13 @@ import java.util.stream.Collectors;
  * {@link CaseService#get}, so ownership and existence rules are identical to the case endpoints.
  * Submitting a step replaces that section's data wholesale — for repeatable sections the client
  * sends the full entry list, which is also how entries are added and removed.
+ *
+ * <p>Regeneration on edit (AI-008): once documents exist, every saved step re-runs full
+ * validation and — if the case is still clean — regenerates ALL documents synchronously (full
+ * regeneration by design: every document derives from the whole case model, and twelve small
+ * files render in milliseconds; partial tracking would add complexity without user value). If
+ * the edit left the case invalid, regeneration is impossible (the AI-007 gate), so the existing
+ * documents are flagged stale instead — superseded, never silently outdated.
  */
 @Service
 public class SectionService {
@@ -31,13 +39,22 @@ public class SectionService {
     private final CaseRepository cases;
     private final CaseSectionRepository sections;
     private final SectionRegistry registry;
+    private final ValidationService validationService;
+    private final DocumentGenerationService generationService;
+    private final CaseDocumentRepository documents;
 
     public SectionService(CaseService caseService, CaseRepository cases,
-                          CaseSectionRepository sections, SectionRegistry registry) {
+                          CaseSectionRepository sections, SectionRegistry registry,
+                          ValidationService validationService,
+                          DocumentGenerationService generationService,
+                          CaseDocumentRepository documents) {
         this.caseService = caseService;
         this.cases = cases;
         this.sections = sections;
         this.registry = registry;
+        this.validationService = validationService;
+        this.generationService = generationService;
+        this.documents = documents;
     }
 
     /** The whole journey for one case: every section in order, with its filled state. */
@@ -79,7 +96,20 @@ public class SectionService {
         if (bankruptcyCase.status() == CaseStatus.DRAFT) {
             cases.save(bankruptcyCase.progressStarted());
         }
+        refreshGeneratedDocuments(bankruptcyCase.id());
         return new SectionContent(definition, saved.payloadJson());
+    }
+
+    /** AI-008: documents follow the data — regenerate while valid, flag stale otherwise. */
+    private void refreshGeneratedDocuments(UUID caseId) {
+        if (documents.findByCaseId(caseId).isEmpty()) {
+            return; // nothing generated yet — nothing can go stale
+        }
+        if (validationService.validateCase(caseId).isEmpty()) {
+            generationService.generate(caseId);
+        } else {
+            documents.markAllStale(caseId);
+        }
     }
 
     /**

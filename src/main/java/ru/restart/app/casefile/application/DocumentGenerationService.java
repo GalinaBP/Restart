@@ -67,7 +67,7 @@ public class DocumentGenerationService {
                         .findByCaseIdAndTypeAndFormat(bankruptcyCase.id(), type, writer.format())
                         .map(existing -> new CaseDocument(existing.id(), existing.caseId(), type,
                                 writer.format(), rendered.templateVersion(),
-                                writer.write(rendered)))
+                                writer.write(rendered), false))
                         .orElseGet(() -> CaseDocument.of(bankruptcyCase.id(), type,
                                 writer.format(), rendered.templateVersion(),
                                 writer.write(rendered)));
