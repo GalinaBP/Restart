@@ -249,3 +249,199 @@ button:disabled {
   line-height: 1.5;
   text-align: left;
 }
+
+/* --- Auth --------------------------------------------------------------------- */
+
+.auth {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.auth-title {
+  font-size: clamp(1.4rem, 5vw, 1.8rem);
+  font-weight: 800;
+  margin: 0;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  width: 100%;
+  max-width: 22rem;
+  margin-top: 0.4rem;
+}
+
+.auth-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: left;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.auth-input {
+  padding: 0.85rem 1rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 0.9rem;
+  outline: none;
+}
+
+.auth-input:focus {
+  border-color: var(--accent-to);
+}
+
+.auth-error {
+  color: #fda4af;
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+/* --- Journey map --------------------------------------------------------------- */
+
+.journey {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 2rem 1.5rem 3rem;
+  max-width: 30rem;
+  margin: 0 auto;
+}
+
+.journey-header {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.journey-title {
+  font-size: clamp(1.5rem, 5vw, 1.9rem);
+  font-weight: 800;
+  margin: 0;
+}
+
+.journey-progress {
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.journey-continue {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.journey-steps {
+  width: 100%;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.journey-step {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 1rem;
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 1rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.12s ease;
+}
+
+.journey-step:hover {
+  border-color: var(--accent-to);
+}
+
+.journey-step-done {
+  opacity: 0.75;
+}
+
+.journey-step-title {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+}
+
+.journey-step-state {
+  color: var(--accent-to);
+  font-weight: 800;
+}
+
+/* --- Section form ---------------------------------------------------------------- */
+
+.section {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 2rem 1.5rem 3rem;
+  max-width: 30rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.section-form {
+  max-width: 24rem;
+}
+
+.section-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  border: 1px solid var(--pill-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  margin: 0;
+}
+
+.section-entry-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.section-bool {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.section-input-invalid {
+  border-color: #fda4af;
+}
+
+.section-saved-note {
+  background: rgba(124, 58, 237, 0.18);
+  border: 1px solid var(--pill-border);
+  border-radius: 1rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  margin: 0;
+  max-width: 24rem;
+}
