@@ -76,10 +76,36 @@ class DocumentGenerationServiceTest {
     }
 
     @Test
-    void incompleteCaseIsHardBlocked() {
+    void incompleteCaseIsHardBlockedWithTheFindingsAttached() {
         assertThatExceptionOfType(GenerationBlockedException.class)
-                .isThrownBy(() -> service.generate(existingCase.id()));
+                .isThrownBy(() -> service.generate(existingCase.id()))
+                .satisfies(ex -> assertThat(ex.issues())
+                        .extracting(i -> i.section().name() + ":" + i.code())
+                        .contains("PASSPORT:SECTION_EMPTY", "CREDITORS:SECTION_EMPTY"));
         assertThat(documents.findByCaseId(existingCase.id())).isEmpty();
+    }
+
+    @Test
+    void specificMissingFieldsAreNamedInTheBlock() {
+        // Everything valid except: passport without an issue date, second creditor without address.
+        CaseFixtures.validCaseSections(existingCase.id()).forEach(sections::save);
+        sections.save(sections.findByCaseIdAndKey(existingCase.id(), SectionKey.PASSPORT)
+                .orElseThrow()
+                .withPayload("{\"series\": \"4519\", \"number\": \"123456\", "
+                        + "\"issuedBy\": \"ГУ МВД России по г. Москве\"}"));
+        sections.save(sections.findByCaseIdAndKey(existingCase.id(), SectionKey.CREDITORS)
+                .orElseThrow()
+                .withPayload("[{\"name\": \"ПАО «Банк Восход»\", \"address\": \"г. Москва\", "
+                        + "\"debtAmount\": 1000000}, "
+                        + "{\"name\": \"МФО «Деньги-Быстро»\", \"debtAmount\": 250000}]"));
+
+        assertThatExceptionOfType(GenerationBlockedException.class)
+                .isThrownBy(() -> service.generate(existingCase.id()))
+                .satisfies(ex -> assertThat(ex.issues())
+                        .extracting(i -> i.section() + ":" + i.entryIndex() + ":" + i.field())
+                        .containsExactlyInAnyOrder(
+                                "PASSPORT:null:issueDate",
+                                "CREDITORS:1:address"));
     }
 
     @Test

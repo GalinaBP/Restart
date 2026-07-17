@@ -106,15 +106,22 @@ class DocumentControllerTest {
     }
 
     @Test
-    void generationIsBlockedWhileTheCaseIsIncomplete() throws Exception {
+    void blockedGenerationListsTheMissingItemsAddressedToSteps() throws Exception {
         BankruptcyCase existing = ownCase();
         when(sections.findByCaseId(existing.id())).thenReturn(List.of());
 
         mockMvc.perform(post("/api/v1/cases/" + existing.id() + "/documents").with(user()))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("INVALID_STATE"))
+                .andExpect(jsonPath("$.code").value("GENERATION_BLOCKED"))
                 .andExpect(jsonPath("$.message").value(
-                        org.hamcrest.Matchers.containsString("обязательные разделы")));
+                        org.hamcrest.Matchers.containsString("обязательные разделы")))
+                .andExpect(jsonPath("$.missing").isNotEmpty())
+                // Every mandatory step shows up as a navigable item; optional ones don't:
+                .andExpect(jsonPath("$.missing[*].step").value(
+                        org.hamcrest.Matchers.hasItems("PASSPORT", "CREDITORS", "MONTHLY_INCOME")))
+                .andExpect(jsonPath("$.missing[?(@.step == 'VEHICLES')]").isEmpty())
+                .andExpect(jsonPath("$.missing[0].code").value("SECTION_EMPTY"))
+                .andExpect(jsonPath("$.missing[0].message").isNotEmpty());
     }
 
     @Test

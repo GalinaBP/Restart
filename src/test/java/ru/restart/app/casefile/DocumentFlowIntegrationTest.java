@@ -61,7 +61,12 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
                 .retrieve().toEntity(Map.class);
 
         assertThat(blocked.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(blocked.getBody()).containsEntry("code", "INVALID_STATE");
+        assertThat(blocked.getBody()).containsEntry("code", "GENERATION_BLOCKED");
+        List<Map<String, Object>> missing =
+                (List<Map<String, Object>>) blocked.getBody().get("missing");
+        assertThat(missing)
+                .extracting(item -> item.get("step") + ":" + item.get("code"))
+                .contains("PASSPORT:SECTION_EMPTY", "CREDITORS:SECTION_EMPTY");
     }
 
     @Test

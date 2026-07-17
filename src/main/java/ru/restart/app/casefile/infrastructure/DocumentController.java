@@ -2,11 +2,13 @@ package ru.restart.app.casefile.infrastructure;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.restart.app.casefile.application.DocumentGenerationService;
+import ru.restart.app.casefile.application.GenerationBlockedException;
 import ru.restart.app.casefile.domain.CaseDocument;
 import ru.restart.app.common.web.ApiPaths;
+import ru.restart.app.common.web.CorrelationId;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,7 +43,9 @@ public class DocumentController {
     @Operation(summary = "Generate the filing package",
             description = "Renders all six documents in every supported format (txt, docx) from "
                     + "the current case data and the active template version, replacing any "
-                    + "previously generated files. 409 while validation reports any issue.")
+                    + "previously generated files. While validation reports any issue, responds "
+                    + "409 GENERATION_BLOCKED with the `missing` list — each item addressed to "
+                    + "the workflow step (section), entry, and field that fixes it.")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public List<DocumentResponse> generate(@PathVariable UUID caseId) {
@@ -51,6 +57,20 @@ public class DocumentController {
     @GetMapping
     public List<DocumentResponse> list(@PathVariable UUID caseId) {
         return service.list(caseId).stream().map(DocumentResponse::from).toList();
+    }
+
+    /**
+     * The AI-007 blocking screen contract. Controller-local so it takes precedence over the
+     * generic BusinessException mapping in {@code GlobalExceptionHandler} without any advice
+     * ordering: same ApiError shape, plus the structured {@code missing} list.
+     */
+    @ExceptionHandler(GenerationBlockedException.class)
+    public ResponseEntity<MissingInfoResponse> handleBlocked(GenerationBlockedException ex,
+                                                             HttpServletRequest request) {
+        MissingInfoResponse body = MissingInfoResponse.of(ex.status().value(),
+                ex.errorCode().name(), ex.getMessage(), request.getRequestURI(),
+                CorrelationId.current(), ex.issues());
+        return ResponseEntity.status(ex.status()).body(body);
     }
 
     @Operation(summary = "Download one document",
