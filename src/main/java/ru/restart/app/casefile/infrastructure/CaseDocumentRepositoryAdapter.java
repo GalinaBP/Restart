@@ -24,13 +24,21 @@ class CaseDocumentRepositoryAdapter implements CaseDocumentRepository {
     public CaseDocument save(CaseDocument document) {
         CaseDocumentEntity entity = jpa.findById(document.id())
                 .map(existing -> {
-                    existing.replaceContent(document.templateVersion(), document.content());
+                    existing.replaceContent(document.templateVersion(), document.content(),
+                            document.stale());
                     return existing;
                 })
                 .orElseGet(() -> new CaseDocumentEntity(document.id(), document.caseId(),
                         document.type(), document.format(), document.templateVersion(),
-                        document.content()));
+                        document.content(), document.stale()));
         return toDomain(jpa.save(entity));
+    }
+
+    @Override
+    public void markAllStale(UUID caseId) {
+        List<CaseDocumentEntity> entities = jpa.findByCaseId(caseId);
+        entities.forEach(CaseDocumentEntity::markStale);
+        jpa.saveAll(entities);
     }
 
     @Override
@@ -51,6 +59,7 @@ class CaseDocumentRepositoryAdapter implements CaseDocumentRepository {
 
     private CaseDocument toDomain(CaseDocumentEntity entity) {
         return new CaseDocument(entity.getId(), entity.getCaseId(), entity.getDocumentType(),
-                entity.getFormat(), entity.getTemplateVersion(), entity.getContent());
+                entity.getFormat(), entity.getTemplateVersion(), entity.getContent(),
+                entity.isStale());
     }
 }

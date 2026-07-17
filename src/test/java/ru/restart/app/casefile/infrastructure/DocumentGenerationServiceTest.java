@@ -242,6 +242,12 @@ class DocumentGenerationServiceTest {
                             && d.format() == format)
                     .findFirst();
         }
+
+        @Override
+        public void markAllStale(UUID caseId) {
+            findByCaseId(caseId).forEach(d -> byId.put(d.id(), new CaseDocument(d.id(),
+                    d.caseId(), d.type(), d.format(), d.templateVersion(), d.content(), true)));
+        }
     }
 
     private static final class StubCurrentUser implements CurrentUser {

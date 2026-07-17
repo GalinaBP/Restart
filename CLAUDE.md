@@ -68,8 +68,10 @@ both driven by `casefile/sections.yml` — field types, required flags, mandator
 duplicate rules, and the field ↔ 127-ФЗ mapping, placeholder pending lawyer review. Validation
 never blocks saving; `GET /cases/{id}/validation` is the report the generation gate consumes;
 document generation `POST /cases/{id}/documents` renders all six filing documents in txt + docx
-— minimal hand-built OOXML, no library — hard-gated 409 on any validation issue, regeneration
-replaces per (case, type, format))
+— minimal hand-built OOXML, no library — hard-gated 409 GENERATION_BLOCKED with the missing-item
+list; once documents exist, every section save regenerates all of them while the case stays
+valid, or flags them `stale` when it doesn't — full regeneration by design, documents are never
+silently outdated)
 and `doctemplate` (versioned Mustache templates for the six filing documents under
 `resources/doctemplates/<version>/`, shared legal boilerplate as partials, edition picked by
 `doctemplates/manifest.yml` — a legislative amendment is a new version directory + manifest bump,

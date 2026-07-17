@@ -113,6 +113,50 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @Order(4)
+    void editingDataRegeneratesTheDocumentsAutomatically() {
+        // Remove the second creditor; the case stays valid, so documents refresh on their own.
+        rest.put().uri("/api/v1/cases/" + caseId + "/sections/CREDITORS")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        [{"name": "ПАО «Банк Восход»", "inn": "7707083893",
+                          "address": "г. Москва, ул. Банковская, д. 3",
+                          "debtAmount": 1000000, "debtType": "кредитный договор"}]""")
+                .header("Authorization", "Bearer " + token)
+                .retrieve().toEntity(Map.class);
+
+        List<Map<String, Object>> docs = rest.get().uri("/api/v1/cases/" + caseId + "/documents")
+                .header("Authorization", "Bearer " + token)
+                .retrieve().toEntity(List.class).getBody();
+        assertThat(docs).hasSize(12).allSatisfy(d -> assertThat(d.get("stale")).isEqualTo(false));
+
+        String creditorListId = docs.stream()
+                .filter(d -> "CREDITOR_LIST".equals(d.get("type")) && "TXT".equals(d.get("format")))
+                .findFirst().orElseThrow().get("id").toString();
+        byte[] txt = rest.get().uri("/api/v1/cases/" + caseId + "/documents/" + creditorListId)
+                .header("Authorization", "Bearer " + token)
+                .retrieve().toEntity(byte[].class).getBody();
+        assertThat(new String(txt, StandardCharsets.UTF_8))
+                .contains("Итого кредиторов: 1")
+                .doesNotContain("МФО «Деньги-Быстро»");
+    }
+
+    @Test
+    @Order(5)
+    void anInvalidatingEditFlagsTheDocumentsStale() {
+        rest.put().uri("/api/v1/cases/" + caseId + "/sections/PASSPORT")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"series\": \"4519\", \"number\": \"123456\"}")
+                .header("Authorization", "Bearer " + token)
+                .retrieve().toEntity(Map.class);
+
+        List<Map<String, Object>> docs = rest.get().uri("/api/v1/cases/" + caseId + "/documents")
+                .header("Authorization", "Bearer " + token)
+                .retrieve().toEntity(List.class).getBody();
+        assertThat(docs).hasSize(12).allSatisfy(d -> assertThat(d.get("stale")).isEqualTo(true));
+    }
+
+    @Test
+    @Order(6)
     void strangersSeeNeitherListNorFiles() {
         String stranger = (String) rest.post().uri("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)

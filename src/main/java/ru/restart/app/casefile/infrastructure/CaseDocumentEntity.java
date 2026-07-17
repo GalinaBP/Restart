@@ -42,23 +42,32 @@ public class CaseDocumentEntity extends BaseEntity {
     @Column(name = "content", nullable = false)
     private byte[] content;
 
+    @Column(name = "stale", nullable = false)
+    private boolean stale;
+
     protected CaseDocumentEntity() {
         // JPA
     }
 
     CaseDocumentEntity(UUID id, UUID caseId, DocumentType documentType, DocumentFormat format,
-                       String templateVersion, byte[] content) {
+                       String templateVersion, byte[] content, boolean stale) {
         this.id = id;
         this.caseId = caseId;
         this.documentType = documentType;
         this.format = format;
         this.templateVersion = templateVersion;
         this.content = content;
+        this.stale = stale;
     }
 
-    void replaceContent(String templateVersion, byte[] content) {
+    void replaceContent(String templateVersion, byte[] content, boolean stale) {
         this.templateVersion = templateVersion;
         this.content = content;
+        this.stale = stale;
+    }
+
+    void markStale() {
+        this.stale = true;
     }
 
     UUID getId() {
@@ -83,5 +92,9 @@ public class CaseDocumentEntity extends BaseEntity {
 
     byte[] getContent() {
         return content;
+    }
+
+    boolean isStale() {
+        return stale;
     }
 }
