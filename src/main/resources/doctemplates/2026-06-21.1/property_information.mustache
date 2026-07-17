@@ -1,0 +1,42 @@
+{{> partials/draft_warning}}
+                       ОПИСЬ ИМУЩЕСТВА ГРАЖДАНИНА
+       (ст. 213.4 Закона № 127-ФЗ; форма утв. Минэкономразвития —
+                     реквизиты формы: ПЛЕЙСХОЛДЕР)
+
+Должник: {{> partials/applicant}}
+
+I. Недвижимое имущество:
+{{#realEstate}}
+   {{index}}. {{type}}, адрес: {{address}}, площадь: {{area}} кв. м,
+      доля в праве: {{ownershipShare}}
+{{/realEstate}}
+{{^realEstate}}
+   Отсутствует.
+{{/realEstate}}
+
+II. Транспортные средства:
+{{#vehicles}}
+   {{index}}. {{type}} {{brand}} {{model}}, {{year}} г., рег. номер: {{regNumber}}
+{{/vehicles}}
+{{^vehicles}}
+   Отсутствуют.
+{{/vehicles}}
+
+III. Иное имущество:
+{{#propertyItems}}
+   {{index}}. {{description}}, оценочная стоимость: {{estimatedValue}} руб.
+{{/propertyItems}}
+{{^propertyItems}}
+   Отсутствует.
+{{/propertyItems}}
+
+IV. Счета в банках и иных кредитных организациях:
+{{#bankAccounts}}
+   {{index}}. {{bankName}}, счёт № {{accountNumber}}, остаток: {{balance}} руб.
+{{/bankAccounts}}
+{{^bankAccounts}}
+   Отсутствуют.
+{{/bankAccounts}}
+
+Достоверность и полноту сведений подтверждаю.
+{{> partials/signature}}
