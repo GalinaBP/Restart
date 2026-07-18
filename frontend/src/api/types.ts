@@ -7,4 +7,15 @@ export interface ApiErrorBody {
   correlationId: string;
   timestamp: string;
   fieldErrors?: { field: string; message: string }[];
+  /** Present on 409 GENERATION_BLOCKED: what to fix, addressed to the workflow step. */
+  missing?: MissingItem[];
+}
+
+/** One item of the missing-information contract (AI-007). */
+export interface MissingItem {
+  step: string;
+  entryIndex: number | null;
+  field: string | null;
+  code: string;
+  message: string;
 }

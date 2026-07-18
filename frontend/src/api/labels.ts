@@ -142,6 +142,20 @@ const FIELD_LABELS: Record<string, string> = {
   'ENFORCEMENT_PROCEEDINGS.amount': 'Сумма, ₽',
 };
 
+/** The six filing documents, in plain words. */
+const DOCUMENT_LABELS: Record<string, { emoji: string; title: string }> = {
+  BANKRUPTCY_APPLICATION: { emoji: '📨', title: 'Заявление в суд' },
+  CREDITOR_LIST: { emoji: '🏦', title: 'Список кредиторов' },
+  PROPERTY_INFORMATION: { emoji: '📦', title: 'Опись имущества' },
+  DEBT_SUMMARY: { emoji: '🧾', title: 'Сводка долгов' },
+  ATTACHMENTS_CHECKLIST: { emoji: '📎', title: 'Перечень приложений' },
+  FILING_CHECKLIST: { emoji: '✅', title: 'Чек-лист подачи' },
+};
+
+export function documentLabel(type: string): { emoji: string; title: string } {
+  return DOCUMENT_LABELS[type] ?? { emoji: '📄', title: type };
+}
+
 export function sectionLabel(key: string): SectionLabel {
   return SECTION_LABELS[key] ?? { emoji: '📄', title: key };
 }

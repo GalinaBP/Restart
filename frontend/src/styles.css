@@ -445,3 +445,98 @@ button:disabled {
   margin: 0;
   max-width: 24rem;
 }
+
+/* --- Documents ------------------------------------------------------------------ */
+
+.docs-missing {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.docs-missing-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.docs-missing-link {
+  color: var(--text);
+  text-decoration: none;
+  display: block;
+}
+
+.docs-missing-link:hover {
+  color: var(--accent-to);
+}
+
+.docs-list {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.docs-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.85rem 1rem;
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 1rem;
+}
+
+.docs-card-stale {
+  border-color: rgba(253, 164, 175, 0.5);
+}
+
+.docs-card-title {
+  font-weight: 600;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.docs-stale-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fda4af;
+  border: 1px solid rgba(253, 164, 175, 0.5);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+
+.docs-card-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.docs-download {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--pill-border);
+  border-radius: 999px;
+}
+
+.docs-download:hover {
+  border-color: var(--accent-to);
+}
+
+.docs-note {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin: 0.4rem 0 0;
+  max-width: 26rem;
+  text-align: center;
+}
