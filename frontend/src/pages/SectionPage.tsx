@@ -73,6 +73,8 @@ export default function SectionPage() {
   const [saved, setSaved] = useState(false);
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
+  /** A failed SAVE keeps the form and the typed data (AI-004: never silently dropped). */
+  const [saveFailed, setSaveFailed] = useState(false);
 
   // No synchronous setState: the effect calls this directly (lint react-hooks/set-state-in-effect);
   // the retry handler resets the failed flag itself.
@@ -147,7 +149,7 @@ export default function SectionPage() {
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setPending(true);
-    setFailed(false);
+    setSaveFailed(false);
     try {
       const payload = section.repeatable
         ? entries.map((entry) => toApi(section.fields, entry))
@@ -159,7 +161,8 @@ export default function SectionPage() {
         navigate('/journey');
       }
     } catch {
-      setFailed(true);
+      // Keep the form and everything typed; only tell the user and let them retry the save.
+      setSaveFailed(true);
     } finally {
       setPending(false);
     }
@@ -205,6 +208,12 @@ export default function SectionPage() {
       {saved && issues.length > 0 && (
         <p className="section-saved-note" role="status">
           Сохранили! Осталось поправить пару мест — они подсвечены ниже.
+        </p>
+      )}
+      {saveFailed && (
+        <p className="auth-error" role="alert">
+          Не получилось сохранить — проверь интернет и нажми «Сохранить» ещё раз.
+          Всё, что ты ввёл(а), на месте.
         </p>
       )}
       <form className="auth-form section-form" onSubmit={(e) => void submit(e)}>
