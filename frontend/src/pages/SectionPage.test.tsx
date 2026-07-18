@@ -104,6 +104,29 @@ describe('SectionPage', () => {
     expect(screen.queryByText('journey-map')).not.toBeInTheDocument();
   });
 
+  it('keeps the form and the typed data when the save itself fails (AI-004)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith('/cases/current')) {
+        return new Response(JSON.stringify(CASE), { status: 200 });
+      }
+      if (init?.method === 'PUT') {
+        throw new TypeError('network down');
+      }
+      return new Response(JSON.stringify(PASSPORT_SECTION), { status: 200 });
+    }));
+    const user = userEvent.setup();
+    renderAt('PASSPORT');
+
+    await user.type(await screen.findByLabelText('Серия — 4 цифры'), '4519');
+    await user.click(screen.getByRole('button', { name: 'Сохранить и дальше' }));
+
+    // No page swap, no data loss — an inline alert and the same form:
+    expect(await screen.findByRole('alert')).toHaveTextContent('Не получилось сохранить');
+    expect(screen.getByDisplayValue('4519')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Сохранить и дальше' })).toBeEnabled();
+  });
+
   it('lets the user add and remove repeatable entries', async () => {
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
