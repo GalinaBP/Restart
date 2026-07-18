@@ -110,21 +110,29 @@ export default function JourneyPage() {
     <main className="journey">
       <header className="journey-header">
         <h1 className="journey-title">Твоё дело</h1>
-        <button type="button" className="check-back" onClick={() => { logout(); navigate('/'); }}>
-          Выйти
-        </button>
+        <span>
+          <Link to="/documents" className="check-back">Документы</Link>
+          {' · '}
+          <button type="button" className="check-back" onClick={() => { logout(); navigate('/'); }}>
+            Выйти
+          </button>
+        </span>
       </header>
       <p className="check-hint">
         {filled === total
-          ? 'Все шаги заполнены! Скоро здесь появится кнопка «Собрать документы» 🎉'
+          ? 'Все шаги заполнены! Пора собирать документы 🎉'
           : `Заполнено ${filled} из ${total}. Продолжай — всё сохраняется сразу.`}
       </p>
       <div className="journey-progress" aria-label={`Заполнено ${filled} из ${total}`}>
         <div className="check-progress-fill" style={{ width: `${total ? (filled / total) * 100 : 0}%` }} />
       </div>
-      {next && (
+      {next ? (
         <Link className="landing-cta journey-continue" to={`/journey/${next.key}`}>
           Продолжить
+        </Link>
+      ) : (
+        <Link className="landing-cta journey-continue" to="/documents">
+          Собрать документы
         </Link>
       )}
       <ul className="journey-steps">

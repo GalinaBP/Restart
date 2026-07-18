@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
+import DocumentsPage from './pages/DocumentsPage';
 import EligibilityPage from './pages/EligibilityPage';
 import JourneyPage from './pages/JourneyPage';
 import LandingPage from './pages/LandingPage';
@@ -13,6 +14,7 @@ export default function App() {
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/journey" element={<JourneyPage />} />
       <Route path="/journey/:sectionKey" element={<SectionPage />} />
+      <Route path="/documents" element={<DocumentsPage />} />
     </Routes>
   );
 }

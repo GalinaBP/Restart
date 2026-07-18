@@ -88,13 +88,22 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
 }
 
 /** Downloads a binary (zip/docx); same bearer-token handling as request(). */
-export async function download(path: string): Promise<Blob> {
+export async function download(path: string, method: string = 'GET'): Promise<Blob> {
   const token = tokenStore.get();
   const response = await fetch(`${API_BASE}${path}`, {
+    method,
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!response.ok) {
-    throw new ApiError(response.status, 'DOWNLOAD_FAILED', 'Не получилось скачать файл');
+    const text = await response.text();
+    let body: ApiErrorBody | undefined;
+    try {
+      body = text ? (JSON.parse(text) as ApiErrorBody) : undefined;
+    } catch {
+      body = undefined;
+    }
+    throw new ApiError(response.status, body?.code ?? 'DOWNLOAD_FAILED',
+      body?.message ?? 'Не получилось скачать файл', body);
   }
   return response.blob();
 }
