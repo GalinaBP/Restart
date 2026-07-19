@@ -67,6 +67,39 @@ automatically; only variables and domains are set in the console.
 - Open the frontend domain → the eligibility check flow works end-to-end (it is anonymous);
   register/login exercises MySQL + JWT.
 
+## Private beta: closing the app to outsiders
+
+Two independent locks, both toggled by env variables only (no code changes, ~1 min each):
+
+1. **Frontend browser login** (nobody even sees the site without a password). Frontend service →
+   Variables:
+
+   ```
+   BASIC_AUTH_REALM=Restart
+   BASIC_AUTH_USERS=<one htpasswd line, see below>
+   ```
+
+   Generate the value locally (pick your own name and password):
+
+   ```bash
+   printf 'galina:%s\n' "$(openssl passwd -apr1 'ТВОЙ-ПАРОЛЬ')"
+   ```
+
+   Paste the full output (`galina:$apr1$...`) as `BASIC_AUTH_USERS`. Apply → the site asks for
+   this login in the browser. **Reopen later**: set `BASIC_AUTH_REALM=off` (or delete both vars).
+
+2. **Registration switch** (nobody can create an account, not even via the API; existing logins —
+   yours — keep working). Backend service → Variables:
+
+   ```
+   REGISTRATION_ENABLED=false
+   ```
+
+   Sign-up attempts get 403 «Регистрация пока закрыта…». **Reopen**: set to `true` or delete.
+
+> Make sure you already have your own account BEFORE setting `REGISTRATION_ENABLED=false`
+> (register once through the UI if needed, then flip the switch).
+
 ## Ongoing
 
 - Every push to `main` redeploys both services (Railway watches the repo). Since GitHub Actions CI

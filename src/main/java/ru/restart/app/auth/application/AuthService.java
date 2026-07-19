@@ -19,6 +19,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokens;
     private final CurrentUser currentUser;
+    /** Private-beta switch: false closes sign-ups entirely while existing logins keep working. */
+    private final boolean registrationEnabled;
 
     /**
      * Hash of a throwaway value. When login hits an unknown email we still run one password check
@@ -28,16 +30,22 @@ public class AuthService {
     private final String timingDummyHash;
 
     public AuthService(UserAccountRepository accounts, PasswordEncoder passwordEncoder,
-                       TokenService tokens, CurrentUser currentUser) {
+                       TokenService tokens, CurrentUser currentUser,
+                       @org.springframework.beans.factory.annotation.Value(
+                               "${restart.registration.enabled:true}") boolean registrationEnabled) {
         this.accounts = accounts;
         this.passwordEncoder = passwordEncoder;
         this.tokens = tokens;
         this.currentUser = currentUser;
+        this.registrationEnabled = registrationEnabled;
         this.timingDummyHash = passwordEncoder.encode(java.util.UUID.randomUUID().toString());
     }
 
     @Transactional
     public IssuedTokens register(String email, String rawPassword) {
+        if (!registrationEnabled) {
+            throw new RegistrationClosedException();
+        }
         String normalized = UserAccount.normalizeEmail(email);
         if (accounts.existsByEmail(normalized)) {
             throw new EmailAlreadyRegisteredException();
