@@ -14,6 +14,13 @@ COPY . .
 RUN npm run build
 
 FROM nginx:1.27-alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# The config is a template: the image's entrypoint envsubsts defined env vars into it at start.
+# BASIC_AUTH_REALM=off (default) keeps the site open; setting it to a word (plus BASIC_AUTH_USERS,
+# see docker-entrypoint.d/40-htpasswd.sh) locks everything behind a browser login — the
+# private-beta gate, toggled by env vars alone.
+ENV BASIC_AUTH_REALM=off
+COPY nginx.conf /etc/nginx/templates/default.conf.template
+COPY docker-entrypoint.d/40-htpasswd.sh /docker-entrypoint.d/40-htpasswd.sh
+RUN chmod +x /docker-entrypoint.d/40-htpasswd.sh && touch /etc/nginx/.htpasswd
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80

@@ -34,7 +34,18 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new AuthService(accounts, encoder, tokens, currentUser);
+        service = new AuthService(accounts, encoder, tokens, currentUser, true);
+    }
+
+    @Test
+    void closedRegistrationRefusesSignUpsButKeepsLoginsWorking() {
+        service.register("user@mail.ru", "correct-horse-1");
+        AuthService closed = new AuthService(accounts, encoder, tokens, currentUser, false);
+
+        assertThatExceptionOfType(RegistrationClosedException.class)
+                .isThrownBy(() -> closed.register("new@mail.ru", "other-password-2"));
+        assertThat(closed.login("user@mail.ru", "correct-horse-1").accessToken())
+                .contains("user@mail.ru");
     }
 
     @Test

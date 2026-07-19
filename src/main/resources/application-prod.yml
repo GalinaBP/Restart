@@ -22,10 +22,13 @@ app:
       access-secret: ${JWT_ACCESS_SECRET}
       refresh-secret: ${JWT_REFRESH_SECRET}
 
-# Seed data must never run in production.
+# Seed data must never run in production. Registration can be closed for the private-beta phase
+# (REGISTRATION_ENABLED=false): existing logins keep working, sign-ups get a plain 403.
 restart:
   seed:
     enabled: false
+  registration:
+    enabled: ${REGISTRATION_ENABLED:true}
 
 # API documentation is disabled in production.
 springdoc:
