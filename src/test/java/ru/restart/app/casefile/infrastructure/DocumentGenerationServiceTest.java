@@ -63,7 +63,8 @@ class DocumentGenerationServiceTest {
         ValidationService validationService = new ValidationService(caseService, sections,
                 new YamlSectionRegistry(), objectMapper);
         CaseModelAssembler assembler = new CaseModelAssembler(objectMapper,
-                Clock.fixed(Instant.parse("2026-07-17T10:00:00Z"), ZoneOffset.UTC));
+                Clock.fixed(Instant.parse("2026-07-17T10:00:00Z"), ZoneOffset.UTC),
+                new YamlCourtDirectory());
         service = new DocumentGenerationService(caseService, validationService, sections,
                 documents, assembler, templates,
                 List.of(new TxtDocumentWriter(), new DocxDocumentWriter(), new PdfDocumentWriter()));

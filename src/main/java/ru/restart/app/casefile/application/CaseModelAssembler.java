@@ -2,6 +2,7 @@ package ru.restart.app.casefile.application;
 
 import org.springframework.stereotype.Component;
 import ru.restart.app.casefile.domain.CaseSection;
+import ru.restart.app.casefile.domain.CourtDirectory;
 import ru.restart.app.casefile.domain.SectionKey;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -26,7 +27,7 @@ import java.util.Map;
 @Component
 public class CaseModelAssembler {
 
-    /** The court is not collected yet (routing by address is a future task) — honest placeholder. */
+    /** Shown when the registration region cannot be matched to a court — honest, never a guess. */
     static final String COURT_PLACEHOLDER =
             "Арбитражный суд по месту регистрации должника — [УТОЧНЯЕТСЯ]";
     private static final String ABSENT = "—";
@@ -34,10 +35,12 @@ public class CaseModelAssembler {
 
     private final ObjectMapper objectMapper;
     private final Clock clock;
+    private final CourtDirectory courts;
 
-    public CaseModelAssembler(ObjectMapper objectMapper, Clock clock) {
+    public CaseModelAssembler(ObjectMapper objectMapper, Clock clock, CourtDirectory courts) {
         this.objectMapper = objectMapper;
         this.clock = clock;
+        this.courts = courts;
     }
 
     public Map<String, Object> assemble(List<CaseSection> sections) {
@@ -48,7 +51,9 @@ public class CaseModelAssembler {
 
         Map<String, Object> model = new HashMap<>();
         model.put("generatedDate", LocalDate.now(clock).format(RU_DATE));
-        model.put("court", Map.of("name", COURT_PLACEHOLDER));
+        JsonNode registration = data.get(SectionKey.REGISTRATION_ADDRESS);
+        String regionText = (text(registration, "region") + " " + text(registration, "city")).trim();
+        model.put("court", Map.of("name", courts.courtFor(regionText).orElse(COURT_PLACEHOLDER)));
         model.put("applicant", applicant(data));
         creditors(data.get(SectionKey.CREDITORS), model);
         model.put("debts", debts(data.get(SectionKey.DEBTS)));

@@ -52,7 +52,7 @@ class SectionServiceTest {
         // regeneration scenarios live in RegenerationFlowTest against the real registry.
         DocumentGenerationService generationService = new DocumentGenerationService(caseService,
                 validationService, sections, new NoDocuments(),
-                new CaseModelAssembler(json, java.time.Clock.systemUTC()),
+                new CaseModelAssembler(json, java.time.Clock.systemUTC(), region -> Optional.empty()),
                 new NeverRenderedTemplates(), List.of());
         service = new SectionService(caseService, cases, sections, registry, validationService,
                 generationService, new NoDocuments());

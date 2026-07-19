@@ -17,8 +17,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 /** Mapping and formatting rules from collected JSON to the template model contract. */
 class CaseModelAssemblerTest {
 
+    /** Directory stub: recognises Москва, knows nothing else — both branches get exercised. */
     private final CaseModelAssembler assembler = new CaseModelAssembler(new ObjectMapper(),
-            Clock.fixed(Instant.parse("2026-07-17T10:00:00Z"), ZoneOffset.UTC));
+            Clock.fixed(Instant.parse("2026-07-17T10:00:00Z"), ZoneOffset.UTC),
+            region -> region.toLowerCase().contains("москв")
+                    ? java.util.Optional.of("Арбитражный суд города Москвы")
+                    : java.util.Optional.empty());
 
     private Map<String, Object> model() {
         return assembler.assemble(CaseFixtures.validCaseSections(UUID.randomUUID()));
@@ -70,10 +74,26 @@ class CaseModelAssemblerTest {
     }
 
     @Test
-    void generatedDateComesFromTheClockAndCourtIsAnHonestPlaceholder() {
+    void generatedDateComesFromTheClockAndTheCourtFromTheRegistrationRegion() {
         Map<String, Object> model = model();
 
         assertThat(model.get("generatedDate")).isEqualTo("17.07.2026");
+        // The fixture is registered in Москва — the directory resolves the court:
+        assertThat(model.get("court")).isEqualTo(Map.of("name", "Арбитражный суд города Москвы"));
+    }
+
+    @Test
+    void anUnrecognisedRegionKeepsTheHonestCourtPlaceholder() {
+        List<ru.restart.app.casefile.domain.CaseSection> sections =
+                CaseFixtures.validCaseSections(UUID.randomUUID()).stream()
+                        .map(s -> s.key() == ru.restart.app.casefile.domain.SectionKey.REGISTRATION_ADDRESS
+                                ? s.withPayload("{\"region\": \"Атлантида\", \"city\": \"Посейдонис\", "
+                                + "\"street\": \"ул. Морская\", \"house\": \"д. 1\"}")
+                                : s)
+                        .toList();
+
+        Map<String, Object> model = assembler.assemble(sections);
+
         assertThat(model.get("court"))
                 .isEqualTo(Map.of("name", CaseModelAssembler.COURT_PLACEHOLDER));
     }
