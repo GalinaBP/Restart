@@ -66,7 +66,7 @@ class DocumentGenerationServiceTest {
                 Clock.fixed(Instant.parse("2026-07-17T10:00:00Z"), ZoneOffset.UTC));
         service = new DocumentGenerationService(caseService, validationService, sections,
                 documents, assembler, templates,
-                List.of(new TxtDocumentWriter(), new DocxDocumentWriter()));
+                List.of(new TxtDocumentWriter(), new DocxDocumentWriter(), new PdfDocumentWriter()));
         currentUser.actAs(UUID.randomUUID());
         existingCase = caseService.create();
     }
@@ -114,7 +114,7 @@ class DocumentGenerationServiceTest {
 
         List<CaseDocument> generated = service.generate(existingCase.id());
 
-        assertThat(generated).hasSize(DocumentType.values().length * 2);
+        assertThat(generated).hasSize(DocumentType.values().length * 3);
         assertThat(generated)
                 .extracting(CaseDocument::type)
                 .containsAll(List.of(DocumentType.values()));
@@ -136,7 +136,7 @@ class DocumentGenerationServiceTest {
 
         List<CaseDocument> second = service.generate(existingCase.id());
 
-        assertThat(documents.findByCaseId(existingCase.id())).hasSize(12);
+        assertThat(documents.findByCaseId(existingCase.id())).hasSize(18);
         assertThat(second).extracting(CaseDocument::id)
                 .containsExactlyInAnyOrderElementsOf(first.stream().map(CaseDocument::id).toList());
         CaseDocument regeneratedTxt = second.stream()
@@ -159,7 +159,7 @@ class DocumentGenerationServiceTest {
                 entries.put(entry.getName(), in.readAllBytes());
             }
         }
-        assertThat(entries).hasSize(12);
+        assertThat(entries).hasSize(18);
         assertThat(entries.keySet())
                 .contains("bankruptcy_application.docx", "bankruptcy_application.txt",
                         "creditor_list.docx", "filing_checklist.txt");

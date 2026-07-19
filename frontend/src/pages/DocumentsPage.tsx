@@ -188,7 +188,7 @@ export default function DocumentsPage() {
                       className="docs-download"
                       onClick={() => void fetchFile(file)}
                     >
-                      {file.format === 'DOCX' ? 'Word' : 'Текст'}
+                      {file.format === 'DOCX' ? 'Word' : file.format === 'PDF' ? 'PDF' : 'Текст'}
                     </button>
                   ))}
                 </span>

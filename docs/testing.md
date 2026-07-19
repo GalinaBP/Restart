@@ -6,7 +6,7 @@ backend `./mvnw verify` — unit + architecture + Testcontainers integration aga
 plus frontend eslint / tsc / vitest. A CI guard fails the build if any test is skipped, so the
 integration layer can never silently drop out.
 
-Counts at the time of writing: **184 backend tests** (25 of them Testcontainers integration),
+Counts at the time of writing: **188 backend tests** (26 of them Testcontainers integration),
 **15 frontend tests**.
 
 | Req | Requirement (short) | Pinned by |
@@ -29,7 +29,9 @@ Counts at the time of writing: **184 backend tests** (25 of them Testcontainers 
   between steps. A failed save keeps the form state and shows an inline retry.
 - **Full regeneration (AI-008):** every document derives from the whole case model (totals and
   lists cross sections), so all documents regenerate together; document ids stay stable.
-- **Export format (AI-009):** zip, not combined PDF (no PDF rendering yet); export regenerates
-  before bundling behind the same gate, so a stale package is impossible.
+- **Export format (AI-009):** zip, not combined PDF; export regenerates before bundling behind
+  the same gate, so a stale package is impossible. Since the PDF format landed, the zip carries
+  txt + docx + pdf per document automatically (the writer port keeps the engine format-agnostic;
+  `PdfDocumentWriterTest` pins Cyrillic extraction, pagination, wrapping, glyph sanitization).
 - **Golden files (AI-005/AI-010):** template output changes must be deliberate — the regeneration
   workflow is documented in `GoldenFileRegressionTest`.

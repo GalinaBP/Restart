@@ -68,7 +68,7 @@ both driven by `casefile/sections.yml` — field types, required flags, mandator
 duplicate rules, and the field ↔ 127-ФЗ mapping, placeholder pending lawyer review. Validation
 never blocks saving; `GET /cases/{id}/validation` is the report the generation gate consumes;
 document generation `POST /cases/{id}/documents` renders all six filing documents in txt + docx
-— minimal hand-built OOXML, no library — hard-gated 409 GENERATION_BLOCKED with the missing-item
++ pdf — minimal hand-built OOXML; PDF via PDFBox with the embedded DejaVu font for Cyrillic — hard-gated 409 GENERATION_BLOCKED with the missing-item
 list; once documents exist, every section save regenerates all of them while the case stays
 valid, or flags them `stale` when it doesn't — full regeneration by design, documents are never
 silently outdated; `POST /cases/{id}/documents/export` regenerates and bundles everything into

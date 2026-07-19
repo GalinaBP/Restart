@@ -88,7 +88,7 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(generated.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         List<Map<String, Object>> body = (List<Map<String, Object>>) generated.getBody();
-        assertThat(body).hasSize(12);
+        assertThat(body).hasSize(18);
         docxDocumentId = body.stream()
                 .filter(d -> "DOCX".equals(d.get("format"))
                         && "BANKRUPTCY_APPLICATION".equals(d.get("type")))
@@ -127,7 +127,7 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
         List<Map<String, Object>> docs = rest.get().uri("/api/v1/cases/" + caseId + "/documents")
                 .header("Authorization", "Bearer " + token)
                 .retrieve().toEntity(List.class).getBody();
-        assertThat(docs).hasSize(12).allSatisfy(d -> assertThat(d.get("stale")).isEqualTo(false));
+        assertThat(docs).hasSize(18).allSatisfy(d -> assertThat(d.get("stale")).isEqualTo(false));
 
         String creditorListId = docs.stream()
                 .filter(d -> "CREDITOR_LIST".equals(d.get("type")) && "TXT".equals(d.get("format")))
@@ -152,7 +152,7 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
         List<Map<String, Object>> docs = rest.get().uri("/api/v1/cases/" + caseId + "/documents")
                 .header("Authorization", "Bearer " + token)
                 .retrieve().toEntity(List.class).getBody();
-        assertThat(docs).hasSize(12).allSatisfy(d -> assertThat(d.get("stale")).isEqualTo(true));
+        assertThat(docs).hasSize(18).allSatisfy(d -> assertThat(d.get("stale")).isEqualTo(true));
     }
 
     @Test
@@ -191,7 +191,7 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
                 entries.add(entry.getName());
             }
         }
-        assertThat(entries).hasSize(12)
+        assertThat(entries).hasSize(18)
                 .contains("bankruptcy_application.docx", "creditor_list.docx",
                         "property_information.docx", "debt_summary.docx",
                         "attachments_checklist.docx", "filing_checklist.docx");
