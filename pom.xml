@@ -131,6 +131,14 @@
             <artifactId>jmustache</artifactId>
         </dependency>
 
+        <!-- PDF output of the filing documents; Cyrillic via the embedded DejaVu font
+             (resources/fonts, free license alongside). -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.5</version>
+        </dependency>
+
         <!-- Mapping / boilerplate -->
         <dependency>
             <groupId>org.mapstruct</groupId>

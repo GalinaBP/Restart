@@ -3,7 +3,7 @@ import { download, request } from './client';
 export interface DocumentMeta {
   id: string;
   type: string;
-  format: 'TXT' | 'DOCX';
+  format: 'TXT' | 'DOCX' | 'PDF';
   templateVersion: string;
   filename: string;
   sizeBytes: number;

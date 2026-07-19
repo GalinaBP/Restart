@@ -59,7 +59,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(DocumentController.class)
 @Import({DocumentGenerationService.class, ValidationService.class, CaseModelAssembler.class,
         CaseService.class, YamlSectionRegistry.class, TxtDocumentWriter.class,
-        DocxDocumentWriter.class, SecurityContextCurrentUser.class, SecurityConfig.class,
+        DocxDocumentWriter.class, PdfDocumentWriter.class, SecurityContextCurrentUser.class, SecurityConfig.class,
         RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class,
         GlobalExceptionHandler.class, ClockConfig.class, DocumentControllerTest.EnableSecurity.class})
 class DocumentControllerTest {
@@ -138,7 +138,7 @@ class DocumentControllerTest {
 
         mockMvc.perform(post("/api/v1/cases/" + existing.id() + "/documents").with(user()))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.length()").value(12))
+                .andExpect(jsonPath("$.length()").value(18))
                 .andExpect(jsonPath("$[0].templateVersion").value("2026-06-21.1"))
                 .andExpect(jsonPath("$[*].filename").value(
                         org.hamcrest.Matchers.hasItems("bankruptcy_application.txt",
