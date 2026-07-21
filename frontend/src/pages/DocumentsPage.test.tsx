@@ -87,7 +87,7 @@ describe('DocumentsPage', () => {
     expect(screen.getByText(/эти файлы устарели/)).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Word' })).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Собрать заново' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '⬇️ Скачать всё одним архивом' }))
+    expect(screen.getByRole('button', { name: 'Скачать всё одним архивом' }))
       .toBeInTheDocument();
   });
 

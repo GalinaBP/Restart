@@ -6,7 +6,6 @@
  */
 
 export interface SectionLabel {
-  emoji: string;
   title: string;
   hint?: string;
   /** What one entry is called in a repeatable section: «Добавить кредитора». */
@@ -14,63 +13,54 @@ export interface SectionLabel {
 }
 
 export const SECTION_LABELS: Record<string, SectionLabel> = {
-  PERSONAL_DETAILS: { emoji: '🙋', title: 'Немного о вас' },
-  PASSPORT: { emoji: '🪪', title: 'Паспорт' },
-  REGISTRATION_ADDRESS: { emoji: '🏠', title: 'Где вы прописаны' },
-  CONTACT_INFO: { emoji: '📱', title: 'Как с вами связаться' },
-  EMPLOYMENT: { emoji: '💼', title: 'Работа' },
-  MONTHLY_INCOME: { emoji: '💰', title: 'Доход в месяц' },
-  MARITAL_STATUS: { emoji: '💍', title: 'Семейное положение' },
+  PERSONAL_DETAILS: { title: 'Немного о вас' },
+  PASSPORT: { title: 'Паспорт' },
+  REGISTRATION_ADDRESS: { title: 'Где вы прописаны' },
+  CONTACT_INFO: { title: 'Как с вами связаться' },
+  EMPLOYMENT: { title: 'Работа' },
+  MONTHLY_INCOME: { title: 'Доход в месяц' },
+  MARITAL_STATUS: { title: 'Семейное положение' },
   DEPENDENTS: {
-    emoji: '👶',
     title: 'Кто на вашем обеспечении',
     hint: 'Дети или другие близкие, которых вы содержите. Если таких нет — просто сохраните пустой список.',
     entryName: 'Добавить человека',
   },
   CREDITORS: {
-    emoji: '🏦',
     title: 'Кому вы должны',
     hint: 'Каждый банк, МФО или человек, которому вы должны. Ничего не пропускайте — это важно.',
     entryName: 'Добавить кредитора',
   },
   DEBTS: {
-    emoji: '🧾',
     title: 'Ваши долги',
     hint: 'По каждому долгу — сумма и с какого момента не получается платить.',
     entryName: 'Добавить долг',
   },
   BANK_ACCOUNTS: {
-    emoji: '💳',
     title: 'Счета и карты',
     hint: 'Все счета в банках, даже пустые.',
     entryName: 'Добавить счёт',
   },
   PROPERTY: {
-    emoji: '📦',
     title: 'Ценные вещи',
     hint: 'Техника, украшения и другое ценное. Обычные личные вещи указывать не нужно.',
     entryName: 'Добавить вещь',
   },
   REAL_ESTATE: {
-    emoji: '🏢',
     title: 'Недвижимость',
     hint: 'Если недвижимости нет — просто сохраните пустой список.',
     entryName: 'Добавить объект',
   },
   VEHICLES: {
-    emoji: '🚗',
     title: 'Транспорт',
     hint: 'Если транспорта нет — просто сохраните пустой список.',
     entryName: 'Добавить транспорт',
   },
   COURT_PROCEEDINGS: {
-    emoji: '⚖️',
     title: 'Суды',
     hint: 'Дела в судах, где вы участвуете. Нет таких — сохраните пустой список.',
     entryName: 'Добавить дело',
   },
   ENFORCEMENT_PROCEEDINGS: {
-    emoji: '📮',
     title: 'Приставы',
     hint: 'Если приставы уже взыскивают с вас долги — укажите эти производства.',
     entryName: 'Добавить производство',
@@ -143,21 +133,21 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 /** The six filing documents, in plain words. */
-const DOCUMENT_LABELS: Record<string, { emoji: string; title: string }> = {
-  BANKRUPTCY_APPLICATION: { emoji: '📨', title: 'Заявление в суд' },
-  CREDITOR_LIST: { emoji: '🏦', title: 'Список кредиторов' },
-  PROPERTY_INFORMATION: { emoji: '📦', title: 'Опись имущества' },
-  DEBT_SUMMARY: { emoji: '🧾', title: 'Сводка долгов' },
-  ATTACHMENTS_CHECKLIST: { emoji: '📎', title: 'Перечень приложений' },
-  FILING_CHECKLIST: { emoji: '✅', title: 'Чек-лист подачи' },
+const DOCUMENT_LABELS: Record<string, { title: string }> = {
+  BANKRUPTCY_APPLICATION: { title: 'Заявление в суд' },
+  CREDITOR_LIST: { title: 'Список кредиторов' },
+  PROPERTY_INFORMATION: { title: 'Опись имущества' },
+  DEBT_SUMMARY: { title: 'Сводка долгов' },
+  ATTACHMENTS_CHECKLIST: { title: 'Перечень приложений' },
+  FILING_CHECKLIST: { title: 'Чек-лист подачи' },
 };
 
-export function documentLabel(type: string): { emoji: string; title: string } {
-  return DOCUMENT_LABELS[type] ?? { emoji: '📄', title: type };
+export function documentLabel(type: string): { title: string } {
+  return DOCUMENT_LABELS[type] ?? { title: type };
 }
 
 export function sectionLabel(key: string): SectionLabel {
-  return SECTION_LABELS[key] ?? { emoji: '📄', title: key };
+  return SECTION_LABELS[key] ?? { title: key };
 }
 
 export function fieldLabel(sectionKey: string, fieldName: string): string {

@@ -122,9 +122,9 @@ legal/eligibility logic belongs to the backend. Copy style: warm, short, **forma
 plural ("Вы")**, zero legalese. (This reverses the constitution's original informal "ты" — a
 product decision recorded in `../Corrections.xlsx`, 2026-07-21; the constitution.docx still says
 "ты" and should be updated to match.) Use lowercase «вы/вас/ваш» mid-sentence, capital only at the
-start of a sentence. Visual style: adopts the **Adiaphora design language** (AI-011, from
-`adiaphora/frontend/src/styles.css`) — a calm slate palette (`--bg #0f172a`, panels `#1e293b`)
-with a **green accent** (`#34d399`, fitting a financial fresh start), `system-ui` type, flat
-bordered panels, small radii, solid buttons; no gradients, glows or big pill shapes. Emoji accents are kept in copy for a little
-warmth. Design tokens live in `frontend/src/styles.css` `:root`; reskin via those tokens, and
-never import from or couple to the Adiaphora repo — copy design values only.
+start of a sentence. Visual style: a dark **"space" theme** — deep canvas (`--bg #0b0b12`), a
+**blue→cyan gradient accent** (`--accent-from #3b82f6` → `--accent-to #22d3ee`), soft blurred
+glows behind the landing, big friendly type, pill shapes; calm, never loud (the subject matter is
+heavy). Emoji are **removed everywhere except the single rocket 🚀** in the landing lead (product
+decision, 2026-07-21). Design tokens live in `frontend/src/styles.css` `:root`. (Earlier AI-011
+experiments with an Adiaphora slate/green and a light marketing landing were reverted.)

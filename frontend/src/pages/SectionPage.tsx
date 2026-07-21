@@ -111,7 +111,7 @@ export default function SectionPage() {
   if (failed) {
     return (
       <main className="check">
-        <p className="check-question">Что-то пошло не так 😔</p>
+        <p className="check-question">Что-то пошло не так</p>
         <button
           type="button"
           className="landing-cta"
@@ -202,7 +202,6 @@ export default function SectionPage() {
   return (
     <main className="section">
       <Link to="/journey" className="check-back">← К списку шагов</Link>
-      <p className="check-emoji" aria-hidden="true">{label.emoji}</p>
       <h1 className="check-question">{label.title}</h1>
       {label.hint && <p className="check-hint">{label.hint}</p>}
       {saved && issues.length > 0 && (

@@ -70,7 +70,7 @@ export default function JourneyPage() {
   if (failed) {
     return (
       <main className="check">
-        <p className="check-question">Что-то пошло не так 😔</p>
+        <p className="check-question">Что-то пошло не так</p>
         <button
           type="button"
           className="landing-cta"
@@ -89,7 +89,6 @@ export default function JourneyPage() {
   if (!bankruptcyCase) {
     return (
       <main className="check">
-        <p className="check-emoji" aria-hidden="true">🚀</p>
         <h1 className="check-question">Начнём ваше дело</h1>
         <p className="check-hint">
           Мы соберём всё по шагам: немного о вас, долги, доходы. Каждый шаг — один экран.
@@ -120,8 +119,8 @@ export default function JourneyPage() {
       </header>
       <p className="check-hint">
         {filled === total
-          ? 'Все шаги заполнены! Пора собирать документы 🎉'
-          : `Заполнено ${filled} из ${total}. Продолжай — всё сохраняется сразу.`}
+          ? 'Все шаги заполнены! Пора собирать документы.'
+          : `Заполнено ${filled} из ${total}. Продолжайте — всё сохраняется сразу.`}
       </p>
       <div className="journey-progress" aria-label={`Заполнено ${filled} из ${total}`}>
         <div className="check-progress-fill" style={{ width: `${total ? (filled / total) * 100 : 0}%` }} />
@@ -142,10 +141,9 @@ export default function JourneyPage() {
             <li key={step.key}>
               <Link className={`journey-step${step.filled ? ' journey-step-done' : ''}`}
                     to={`/journey/${step.key}`}>
-                <span aria-hidden="true">{label.emoji}</span>
                 <span className="journey-step-title">{label.title}</span>
                 <span className="journey-step-state" aria-label={step.filled ? 'заполнено' : 'не заполнено'}>
-                  {step.filled ? '✓' : '›'}
+                  {step.filled ? 'Готово' : ''}
                 </span>
               </Link>
             </li>

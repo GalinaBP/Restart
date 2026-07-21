@@ -19,7 +19,6 @@ import {
 interface BoolQuestion {
   kind: 'bool';
   field: keyof Omit<EligibilityAnswers, 'debtRange'>;
-  emoji: string;
   text: string;
   /** Which answer means "fits": most questions expect "нет", the debts one expects "да". */
   yesLabel: string;
@@ -28,7 +27,6 @@ interface BoolQuestion {
 
 interface DebtQuestion {
   kind: 'debt';
-  emoji: string;
   text: string;
 }
 
@@ -36,28 +34,26 @@ type Question = BoolQuestion | DebtQuestion;
 
 /** Consequences of court bankruptcy, in plain language. PLACEHOLDER — pending lawyer review. */
 const CONSEQUENCES: string[] = [
-  '🏠 Имущество, кроме единственного жилья, могут продать на торгах.',
-  '💳 Пять лет придётся сообщать о банкротстве, когда берёте кредит или заём.',
-  '🏢 Три года нельзя руководить компанией или быть её учредителем.',
-  '🔁 Повторно пройти банкротство можно только через пять лет.',
-  '👤 Пока идёт процедура, вашими счетами и сделками распоряжается финансовый управляющий.',
+  'Имущество, кроме единственного жилья, могут продать на торгах.',
+  'Пять лет придётся сообщать о банкротстве, когда берёте кредит или заём.',
+  'Три года нельзя руководить компанией или быть её учредителем.',
+  'Повторно пройти банкротство можно только через пять лет.',
+  'Пока идёт процедура, вашими счетами и сделками распоряжается финансовый управляющий.',
 ];
 
 const QUESTIONS: Question[] = [
-  { kind: 'debt', emoji: '💸', text: 'Сколько вы всего должны?' },
+  { kind: 'debt', text: 'Сколько вы всего должны?' },
   {
     kind: 'bool',
     field: 'onlyConsumerDebts',
-    emoji: '🧾',
     text: 'Все долги — это кредиты, карты, микрозаймы или рассрочки?',
     yesLabel: 'Да, только это',
     noLabel: 'Есть и другие',
   },
-  { kind: 'bool', field: 'hasCar', emoji: '🚗', text: 'У вас есть машина?', yesLabel: 'Да', noLabel: 'Нет' },
+  { kind: 'bool', field: 'hasCar', text: 'У вас есть машина?', yesLabel: 'Да', noLabel: 'Нет' },
   {
     kind: 'bool',
     field: 'hasExtraRealEstate',
-    emoji: '🏠',
     text: 'Есть недвижимость, кроме единственного жилья?',
     yesLabel: 'Да',
     noLabel: 'Нет',
@@ -65,7 +61,6 @@ const QUESTIONS: Question[] = [
   {
     kind: 'bool',
     field: 'hasBusiness',
-    emoji: '💼',
     text: 'Есть свой бизнес или доля в компании?',
     yesLabel: 'Да',
     noLabel: 'Нет',
@@ -73,7 +68,6 @@ const QUESTIONS: Question[] = [
   {
     kind: 'bool',
     field: 'marriedOrDivorcing',
-    emoji: '💍',
     text: 'Состоите в браке или сейчас идёт развод?',
     yesLabel: 'Да',
     noLabel: 'Нет',
@@ -81,7 +75,6 @@ const QUESTIONS: Question[] = [
   {
     kind: 'bool',
     field: 'soldOrGiftedAssetsRecently',
-    emoji: '🎁',
     text: 'Продавали или дарили что-то ценное за последние три года?',
     yesLabel: 'Да',
     noLabel: 'Нет',
@@ -89,7 +82,6 @@ const QUESTIONS: Question[] = [
   {
     kind: 'bool',
     field: 'hasForeignAssetsOrLawsuits',
-    emoji: '🌍',
     text: 'Есть счета или имущество за границей, или судебные споры?',
     yesLabel: 'Да',
     noLabel: 'Нет',
@@ -97,7 +89,6 @@ const QUESTIONS: Question[] = [
   {
     kind: 'bool',
     field: 'plansToStartBusiness',
-    emoji: '🚀',
     text: 'Планируете открыть свой бизнес или руководить компанией в ближайшие три года?',
     yesLabel: 'Да',
     noLabel: 'Нет',
@@ -105,7 +96,6 @@ const QUESTIONS: Question[] = [
   {
     kind: 'bool',
     field: 'plansMajorBorrowingSoon',
-    emoji: '🏦',
     text: 'Планируете в ближайшие пять лет брать крупные кредиты или ипотеку?',
     yesLabel: 'Да',
     noLabel: 'Нет',
@@ -159,7 +149,7 @@ export default function EligibilityPage() {
           <p className="check-question">Секунду, смотрим…</p>
         ) : (
           <>
-            <p className="check-question">Что-то пошло не так 😔</p>
+            <p className="check-question">Что-то пошло не так</p>
             <p className="check-hint">Проверьте интернет и попробуйте ещё раз.</p>
             <button type="button" className="landing-cta" onClick={() => void submit(answers as EligibilityAnswers)}>
               Повторить
@@ -180,7 +170,6 @@ export default function EligibilityPage() {
       <div className="check-progress" aria-label={`Вопрос ${step + 1} из ${QUESTIONS.length}`}>
         <div className="check-progress-fill" style={{ width: `${(step / QUESTIONS.length) * 100}%` }} />
       </div>
-      <p className="check-emoji" aria-hidden="true">{question.emoji}</p>
       <h1 className="check-question">{question.text}</h1>
       {question.kind === 'debt' ? (
         <div className="check-options">
@@ -220,7 +209,6 @@ function ConsequencesScreen({ onContinue }: { onContinue: () => void }) {
       <p className="check-placeholder" role="note">
         Черновик — проверяется юристом
       </p>
-      <p className="check-emoji" aria-hidden="true">📋</p>
       <h1 className="check-question">Сначала — что важно знать</h1>
       <p className="check-hint">
         Банкротство спишет долги, но у него есть последствия. Коротко о главном:
@@ -242,7 +230,6 @@ function ResultScreen({ result }: { result: EligibilityResult }) {
   if (result.decision === 'SELF_SERVICE_OK') {
     return (
       <main className="check">
-        <p className="check-emoji" aria-hidden="true">🎉</p>
         <h1 className="check-question">Отлично! Ваш случай подходит</h1>
         <p className="check-hint">
           Мы будем сопровождать каждый этап процедуры. Двигаемся по одному шагу за раз.
@@ -255,7 +242,6 @@ function ResultScreen({ result }: { result: EligibilityResult }) {
   }
   return (
     <main className="check">
-      <p className="check-emoji" aria-hidden="true">🤝</p>
       <h1 className="check-question">Скажем честно: вам лучше с юристом</h1>
       <p className="check-hint">В вашей ситуации есть моменты, где самостоятельно легко ошибиться:</p>
       <ul className="check-reasons">
