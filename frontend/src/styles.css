@@ -1,15 +1,15 @@
 /* Restart theme — adopts the Adiaphora design language (AI-011): a calm, professional slate
-   palette with a soft sky-blue accent, system type, flat bordered panels and small radii.
-   No gradients, glows or big pill shapes — the subject matter is heavy, the surface stays quiet.
-   Emoji accents are kept (they live in the copy) to add a little warmth. */
+   palette, system type, flat bordered panels and small radii, with a green accent that fits a
+   financial fresh start. No gradients, glows or big pill shapes — the subject matter is heavy,
+   the surface stays quiet. Emoji accents are kept (they live in the copy) to add a little warmth. */
 :root {
   --bg: #0f172a;
   --panel: #1e293b;
   --panel-2: #334155;
   --text: #e2e8f0;
   --muted: #94a3b8;
-  --accent: #7dd3fc;
-  --accent-ink: #0b1220;
+  --accent: #34d399;
+  --accent-ink: #052e1a;
   --danger: #fca5a5;
   --warning: #fcd34d;
   --border: #334155;
@@ -470,8 +470,8 @@ input[type='radio'] {
 }
 
 .section-saved-note {
-  background: rgba(125, 211, 252, 0.1);
-  border: 1px solid rgba(125, 211, 252, 0.35);
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.35);
   border-radius: var(--radius);
   padding: 0.7rem 1rem;
   font-size: 0.95rem;
