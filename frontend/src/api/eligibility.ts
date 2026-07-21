@@ -11,6 +11,8 @@ export interface EligibilityAnswers {
   soldOrGiftedAssetsRecently: boolean;
   onlyConsumerDebts: boolean;
   hasForeignAssetsOrLawsuits: boolean;
+  plansToStartBusiness: boolean;
+  plansMajorBorrowingSoon: boolean;
 }
 
 export interface EligibilityResult {

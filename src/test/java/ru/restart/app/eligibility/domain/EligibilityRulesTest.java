@@ -12,7 +12,7 @@ class EligibilityRulesTest {
 
     private static EligibilityAnswers fittingAnswers() {
         return new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, false, false, true, false);
+                false, false, false, false, false, true, false, false, false);
     }
 
     @Test
@@ -27,7 +27,7 @@ class EligibilityRulesTest {
     @EnumSource(value = DebtRange.class, names = {"UNDER_500K", "OVER_3M"})
     void debtOutsideFocusRangeNeedsLawyer(DebtRange range) {
         EligibilityAnswers answers = new EligibilityAnswers(range,
-                false, false, false, false, false, true, false);
+                false, false, false, false, false, true, false, false, false);
 
         EligibilityResult result = rules.evaluate(answers);
 
@@ -38,22 +38,27 @@ class EligibilityRulesTest {
     @Test
     void anySingleComplexityMarkerNeedsLawyer() {
         EligibilityAnswers car = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                true, false, false, false, false, true, false);
+                true, false, false, false, false, true, false, false, false);
         EligibilityAnswers realEstate = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, true, false, false, false, true, false);
+                false, true, false, false, false, true, false, false, false);
         EligibilityAnswers business = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, true, false, false, true, false);
+                false, false, true, false, false, true, false, false, false);
         EligibilityAnswers marriage = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, true, false, true, false);
+                false, false, false, true, false, true, false, false, false);
         EligibilityAnswers recentDeals = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, false, true, true, false);
+                false, false, false, false, true, true, false, false, false);
         EligibilityAnswers nonConsumerDebts = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, false, false, false, false);
+                false, false, false, false, false, false, false, false, false);
         EligibilityAnswers foreign = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, false, false, true, true);
+                false, false, false, false, false, true, true, false, false);
+        EligibilityAnswers plansBusiness = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
+                false, false, false, false, false, true, false, true, false);
+        EligibilityAnswers plansBorrowing = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
+                false, false, false, false, false, true, false, false, true);
 
         for (EligibilityAnswers answers : new EligibilityAnswers[] {
-                car, realEstate, business, marriage, recentDeals, nonConsumerDebts, foreign}) {
+                car, realEstate, business, marriage, recentDeals, nonConsumerDebts, foreign,
+                plansBusiness, plansBorrowing}) {
             EligibilityResult result = rules.evaluate(answers);
             assertThat(result.decision()).isEqualTo(EligibilityDecision.NEEDS_LAWYER);
             assertThat(result.reasons()).hasSize(1);
@@ -63,18 +68,18 @@ class EligibilityRulesTest {
     @Test
     void everyMarkerContributesItsOwnReason() {
         EligibilityAnswers everything = new EligibilityAnswers(DebtRange.OVER_3M,
-                true, true, true, true, true, false, true);
+                true, true, true, true, true, false, true, true, true);
 
         EligibilityResult result = rules.evaluate(everything);
 
         assertThat(result.decision()).isEqualTo(EligibilityDecision.NEEDS_LAWYER);
-        assertThat(result.reasons()).hasSize(8);
+        assertThat(result.reasons()).hasSize(10);
     }
 
     @Test
     void reasonsAreUserFacingRussianWithoutLegalese() {
         EligibilityAnswers everything = new EligibilityAnswers(DebtRange.OVER_3M,
-                true, true, true, true, true, false, true);
+                true, true, true, true, true, false, true, true, true);
 
         EligibilityResult result = rules.evaluate(everything);
 

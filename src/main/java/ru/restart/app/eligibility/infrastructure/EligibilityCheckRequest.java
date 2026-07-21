@@ -16,11 +16,13 @@ public record EligibilityCheckRequest(
         @NotNull Boolean marriedOrDivorcing,
         @NotNull Boolean soldOrGiftedAssetsRecently,
         @NotNull Boolean onlyConsumerDebts,
-        @NotNull Boolean hasForeignAssetsOrLawsuits) {
+        @NotNull Boolean hasForeignAssetsOrLawsuits,
+        @NotNull Boolean plansToStartBusiness,
+        @NotNull Boolean plansMajorBorrowingSoon) {
 
     EligibilityAnswers toAnswers() {
         return new EligibilityAnswers(debtRange, hasCar, hasExtraRealEstate, hasBusiness,
                 marriedOrDivorcing, soldOrGiftedAssetsRecently, onlyConsumerDebts,
-                hasForeignAssetsOrLawsuits);
+                hasForeignAssetsOrLawsuits, plansToStartBusiness, plansMajorBorrowingSoon);
     }
 }

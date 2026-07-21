@@ -8,9 +8,12 @@ import {
 } from '../api/eligibility';
 
 /**
- * The 2-minute eligibility check: one question per screen (a product constitution rule),
- * big tap targets, progress on top. All decision logic lives in the backend — this screen
- * only collects answers and renders the verdict.
+ * The 2-minute eligibility check. It opens with a plain-language "what bankruptcy means" checklist
+ * (the consequences screen), then asks one question per screen — a product constitution rule.
+ * All decision logic lives in the backend; this screen only shows consequences, collects answers,
+ * and renders the verdict.
+ *
+ * PLACEHOLDER: the consequences list and the forward-looking questions are pending lawyer review.
  */
 
 interface BoolQuestion {
@@ -31,8 +34,17 @@ interface DebtQuestion {
 
 type Question = BoolQuestion | DebtQuestion;
 
+/** Consequences of court bankruptcy, in plain language. PLACEHOLDER — pending lawyer review. */
+const CONSEQUENCES: string[] = [
+  '🏠 Имущество, кроме единственного жилья, могут продать на торгах.',
+  '💳 Пять лет придётся сообщать о банкротстве, когда берёте кредит или заём.',
+  '🏢 Три года нельзя руководить компанией или быть её учредителем.',
+  '🔁 Повторно пройти банкротство можно только через пять лет.',
+  '👤 Пока идёт процедура, вашими счетами и сделками распоряжается финансовый управляющий.',
+];
+
 const QUESTIONS: Question[] = [
-  { kind: 'debt', emoji: '💸', text: 'Сколько ты всего должен?' },
+  { kind: 'debt', emoji: '💸', text: 'Сколько вы всего должны?' },
   {
     kind: 'bool',
     field: 'onlyConsumerDebts',
@@ -41,7 +53,7 @@ const QUESTIONS: Question[] = [
     yesLabel: 'Да, только это',
     noLabel: 'Есть и другие',
   },
-  { kind: 'bool', field: 'hasCar', emoji: '🚗', text: 'У тебя есть машина?', yesLabel: 'Да', noLabel: 'Нет' },
+  { kind: 'bool', field: 'hasCar', emoji: '🚗', text: 'У вас есть машина?', yesLabel: 'Да', noLabel: 'Нет' },
   {
     kind: 'bool',
     field: 'hasExtraRealEstate',
@@ -62,7 +74,7 @@ const QUESTIONS: Question[] = [
     kind: 'bool',
     field: 'marriedOrDivorcing',
     emoji: '💍',
-    text: 'Состоишь в браке или сейчас идёт развод?',
+    text: 'Состоите в браке или сейчас идёт развод?',
     yesLabel: 'Да',
     noLabel: 'Нет',
   },
@@ -70,7 +82,7 @@ const QUESTIONS: Question[] = [
     kind: 'bool',
     field: 'soldOrGiftedAssetsRecently',
     emoji: '🎁',
-    text: 'Продавал или дарил что-то ценное за последние три года?',
+    text: 'Продавали или дарили что-то ценное за последние три года?',
     yesLabel: 'Да',
     noLabel: 'Нет',
   },
@@ -79,6 +91,22 @@ const QUESTIONS: Question[] = [
     field: 'hasForeignAssetsOrLawsuits',
     emoji: '🌍',
     text: 'Есть счета или имущество за границей, или судебные споры?',
+    yesLabel: 'Да',
+    noLabel: 'Нет',
+  },
+  {
+    kind: 'bool',
+    field: 'plansToStartBusiness',
+    emoji: '🚀',
+    text: 'Планируете открыть свой бизнес или руководить компанией в ближайшие три года?',
+    yesLabel: 'Да',
+    noLabel: 'Нет',
+  },
+  {
+    kind: 'bool',
+    field: 'plansMajorBorrowingSoon',
+    emoji: '🏦',
+    text: 'Планируете в ближайшие пять лет брать крупные кредиты или ипотеку?',
     yesLabel: 'Да',
     noLabel: 'Нет',
   },
@@ -91,6 +119,7 @@ const DEBT_OPTIONS: { value: DebtRange; label: string }[] = [
 ];
 
 export default function EligibilityPage() {
+  const [started, setStarted] = useState(false);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Partial<EligibilityAnswers>>({});
   const [result, setResult] = useState<EligibilityResult | null>(null);
@@ -131,7 +160,7 @@ export default function EligibilityPage() {
         ) : (
           <>
             <p className="check-question">Что-то пошло не так 😔</p>
-            <p className="check-hint">Проверь интернет и попробуй ещё раз.</p>
+            <p className="check-hint">Проверьте интернет и попробуйте ещё раз.</p>
             <button type="button" className="landing-cta" onClick={() => void submit(answers as EligibilityAnswers)}>
               Повторить
             </button>
@@ -139,6 +168,10 @@ export default function EligibilityPage() {
         )}
       </main>
     );
+  }
+
+  if (!started) {
+    return <ConsequencesScreen onContinue={() => setStarted(true)} />;
   }
 
   const question = QUESTIONS[step];
@@ -181,13 +214,36 @@ export default function EligibilityPage() {
   );
 }
 
+function ConsequencesScreen({ onContinue }: { onContinue: () => void }) {
+  return (
+    <main className="check check-intro">
+      <p className="check-placeholder" role="note">
+        Черновик — проверяется юристом
+      </p>
+      <p className="check-emoji" aria-hidden="true">📋</p>
+      <h1 className="check-question">Сначала — что важно знать</h1>
+      <p className="check-hint">
+        Банкротство спишет долги, но у него есть последствия. Коротко о главном:
+      </p>
+      <ul className="check-checklist">
+        {CONSEQUENCES.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      <button type="button" className="landing-cta" onClick={onContinue}>
+        Понятно, продолжить
+      </button>
+    </main>
+  );
+}
+
 function ResultScreen({ result }: { result: EligibilityResult }) {
   const navigate = useNavigate();
   if (result.decision === 'SELF_SERVICE_OK') {
     return (
       <main className="check">
         <p className="check-emoji" aria-hidden="true">🎉</p>
-        <h1 className="check-question">Отлично! Твой случай подходит</h1>
+        <h1 className="check-question">Отлично! Ваш случай подходит</h1>
         <p className="check-hint">
           Мы будем сопровождать каждый этап процедуры. Двигаемся по одному шагу за раз.
         </p>
@@ -200,8 +256,8 @@ function ResultScreen({ result }: { result: EligibilityResult }) {
   return (
     <main className="check">
       <p className="check-emoji" aria-hidden="true">🤝</p>
-      <h1 className="check-question">Скажем честно: тебе лучше с юристом</h1>
-      <p className="check-hint">В твоей ситуации есть моменты, где самостоятельно легко ошибиться:</p>
+      <h1 className="check-question">Скажем честно: вам лучше с юристом</h1>
+      <p className="check-hint">В вашей ситуации есть моменты, где самостоятельно легко ошибиться:</p>
       <ul className="check-reasons">
         {result.reasons.map((reason) => (
           <li key={reason}>{reason}</li>
