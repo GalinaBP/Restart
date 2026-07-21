@@ -63,7 +63,7 @@ describe('JourneyPage', () => {
     });
     renderSignedIn();
 
-    expect(await screen.findByText('Заполнено 1 из 3. Продолжай — всё сохраняется сразу.'))
+    expect(await screen.findByText('Заполнено 1 из 3. Продолжайте — всё сохраняется сразу.'))
       .toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Продолжить' }))
       .toHaveAttribute('href', '/journey/PASSPORT');

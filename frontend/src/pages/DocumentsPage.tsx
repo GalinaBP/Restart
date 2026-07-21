@@ -102,7 +102,7 @@ export default function DocumentsPage() {
   if (failed) {
     return (
       <main className="check">
-        <p className="check-question">Что-то пошло не так 😔</p>
+        <p className="check-question">Что-то пошло не так</p>
         <button
           type="button"
           className="landing-cta"
@@ -142,7 +142,7 @@ export default function DocumentsPage() {
             {missing.map((item, index) => (
               <li key={index}>
                 <Link to={`/journey/${item.step}`} className="docs-missing-link">
-                  {sectionLabel(item.step).emoji} {sectionLabel(item.step).title}
+                  {sectionLabel(item.step).title}
                   {item.field ? ` — ${fieldLabel(item.step, item.field)}` : ''}
                   {item.entryIndex !== null && item.entryIndex !== undefined
                     ? ` (запись № ${item.entryIndex + 1})`
@@ -162,7 +162,6 @@ export default function DocumentsPage() {
 
       {documents.length === 0 ? (
         <>
-          <p className="check-emoji" aria-hidden="true">📄</p>
           <p className="check-hint">
             Когда все шаги заполнены, мы соберём весь пакет для суда: заявление, списки,
             опись — всё по форме.
@@ -177,7 +176,7 @@ export default function DocumentsPage() {
             return (
               <li key={type} className={`docs-card${stale ? ' docs-card-stale' : ''}`}>
                 <span className="docs-card-title">
-                  <span aria-hidden="true">{label.emoji}</span> {label.title}
+                  {label.title}
                   {stale && <span className="docs-stale-badge">устарел</span>}
                 </span>
                 <span className="docs-card-actions">
@@ -207,7 +206,7 @@ export default function DocumentsPage() {
       </button>
       {documents.length > 0 && (
         <button type="button" className="check-option" disabled={pending} onClick={() => void exportZip()}>
-          ⬇️ Скачать всё одним архивом
+          Скачать всё одним архивом
         </button>
       )}
       <p className="docs-note">

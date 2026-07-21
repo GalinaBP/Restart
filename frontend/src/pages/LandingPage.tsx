@@ -26,7 +26,7 @@ export default function LandingPage() {
       <button type="button" className="landing-cta" onClick={() => navigate('/check')}>
         Начать
       </button>
-      <p className="landing-note">⏱ ≈ 30 минут на подготовку документов</p>
+      <p className="landing-note">≈ 30 минут на подготовку документов</p>
     </main>
   );
 }
