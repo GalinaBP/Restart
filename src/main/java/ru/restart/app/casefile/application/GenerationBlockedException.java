@@ -18,7 +18,7 @@ public class GenerationBlockedException extends BusinessException {
 
     public GenerationBlockedException(List<ValidationIssue> issues) {
         super(ErrorCode.GENERATION_BLOCKED, HttpStatus.CONFLICT,
-                "Пока нельзя собрать документы — сначала заполни обязательные разделы");
+                "Пока нельзя собрать документы — сначала заполните обязательные разделы");
         this.issues = List.copyOf(issues);
     }
 

@@ -156,7 +156,7 @@ export default function DocumentsPage() {
 
       {anyStale && (
         <p className="section-saved-note" role="status">
-          Ты менял(а) данные — эти файлы устарели. Собери документы заново.
+          Вы меняли данные — эти файлы устарели. Соберите документы заново.
         </p>
       )}
 

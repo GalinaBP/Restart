@@ -44,12 +44,12 @@ describe('DocumentsPage', () => {
         return new Response(JSON.stringify({
           status: 409,
           code: 'GENERATION_BLOCKED',
-          message: 'Пока нельзя собрать документы — сначала заполни обязательные разделы',
+          message: 'Пока нельзя собрать документы — сначала заполните обязательные разделы',
           missing: [
             { step: 'PASSPORT', entryIndex: null, field: 'issueDate',
-              code: 'REQUIRED_FIELD_MISSING', message: 'Заполни это поле' },
+              code: 'REQUIRED_FIELD_MISSING', message: 'Заполните это поле' },
             { step: 'CREDITORS', entryIndex: 1, field: 'address',
-              code: 'REQUIRED_FIELD_MISSING', message: 'Заполни это поле' },
+              code: 'REQUIRED_FIELD_MISSING', message: 'Заполните это поле' },
           ],
         }), { status: 409 });
       }
@@ -63,7 +63,7 @@ describe('DocumentsPage', () => {
     expect(await screen.findByText('Почти готово! Осталось дозаполнить:')).toBeInTheDocument();
     const passportLink = screen.getByRole('link', { name: /Паспорт — Дата выдачи/ });
     expect(passportLink).toHaveAttribute('href', '/journey/PASSPORT');
-    expect(screen.getByRole('link', { name: /Кому ты должен.*запись № 2/ }))
+    expect(screen.getByRole('link', { name: /Кому вы должны.*запись № 2/ }))
       .toHaveAttribute('href', '/journey/CREDITORS');
 
     // The link leads straight to the step screen:

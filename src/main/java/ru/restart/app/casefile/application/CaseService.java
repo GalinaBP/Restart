@@ -39,7 +39,7 @@ public class CaseService {
     @Transactional(readOnly = true)
     public BankruptcyCase current() {
         return cases.findActiveByUserId(currentUser.require().userId())
-                .orElseThrow(() -> new ResourceNotFoundException("У тебя пока нет начатого дела"));
+                .orElseThrow(() -> new ResourceNotFoundException("У вас пока нет начатого дела"));
     }
 
     /** A case by id, only if the caller owns it; otherwise indistinguishable from "not found". */

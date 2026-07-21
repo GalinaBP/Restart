@@ -9,6 +9,6 @@ public class EmailAlreadyRegisteredException extends BusinessException {
 
     public EmailAlreadyRegisteredException() {
         super(ErrorCode.EMAIL_ALREADY_REGISTERED, HttpStatus.CONFLICT,
-                "Эта почта уже зарегистрирована. Попробуй войти");
+                "Эта почта уже зарегистрирована. Попробуйте войти");
     }
 }

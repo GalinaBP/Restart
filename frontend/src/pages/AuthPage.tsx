@@ -27,7 +27,7 @@ export default function AuthPage() {
       }
       navigate('/journey');
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Нет связи — проверь интернет и попробуй ещё раз');
+      setError(e instanceof ApiError ? e.message : 'Нет связи — проверьте интернет и попробуйте ещё раз');
     } finally {
       setPending(false);
     }
@@ -36,12 +36,12 @@ export default function AuthPage() {
   return (
     <main className="auth">
       <h1 className="auth-title">
-        {mode === 'register' ? 'Создадим твой аккаунт' : 'С возвращением!'}
+        {mode === 'register' ? 'Создадим ваш аккаунт' : 'С возвращением!'}
       </h1>
       <p className="check-hint">
         {mode === 'register'
-          ? 'Всё, что ты заполнишь, будет ждать тебя здесь — начни на телефоне, продолжи с ноутбука.'
-          : 'Твоё дело на месте. Войди и продолжай с того шага, где остановился.'}
+          ? 'Всё, что вы заполните, будет ждать вас здесь — начните на телефоне, продолжите с ноутбука.'
+          : 'Ваше дело на месте. Войдите и продолжайте с того шага, где остановились.'}
       </p>
       <form className="auth-form" onSubmit={(e) => void submit(e)}>
         <label className="auth-label">
