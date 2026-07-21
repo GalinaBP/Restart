@@ -1,14 +1,21 @@
-/* Gen-Z-friendly base theme: dark canvas, vivid gradient accents, big friendly type.
-   The tone stays calm — the product talks about a hard topic, so vivid but not loud. */
+/* Restart theme — adopts the Adiaphora design language (AI-011): a calm, professional slate
+   palette, system type, flat bordered panels and small radii, with a green accent that fits a
+   financial fresh start. No gradients, glows or big pill shapes — the subject matter is heavy,
+   the surface stays quiet. Emoji accents are kept (they live in the copy) to add a little warmth. */
 :root {
-  --bg: #0b0b12;
-  --text: #f4f4f8;
-  --muted: #9d9daf;
-  --accent-from: #7c3aed;
-  --accent-to: #06b6d4;
-  --pill-bg: rgba(255, 255, 255, 0.07);
-  --pill-border: rgba(255, 255, 255, 0.14);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --panel-2: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #34d399;
+  --accent-ink: #052e1a;
+  --danger: #fca5a5;
+  --warning: #fcd34d;
+  --border: #334155;
+  --radius: 0.5rem;
+  --radius-sm: 0.375rem;
+  font-family: system-ui, -apple-system, sans-serif;
   color-scheme: dark;
 }
 
@@ -23,7 +30,7 @@ body {
 }
 
 a {
-  color: var(--accent-to);
+  color: var(--accent);
 }
 
 button {
@@ -35,6 +42,27 @@ button {
 button:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--accent);
+}
+
+/* Primary action button — reused across screens (landing CTA, continue, submit, retry). */
+.landing-cta {
+  margin-top: 1.1rem;
+  padding: 0.75rem 2rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+  transition: filter 0.15s ease;
+}
+
+.landing-cta:hover {
+  filter: brightness(1.08);
 }
 
 /* --- Landing ---------------------------------------------------------------- */
@@ -49,52 +77,19 @@ button:disabled {
   gap: 1.1rem;
   padding: 1.5rem;
   text-align: center;
-  overflow: hidden;
-}
-
-/* Soft gradient glows behind the content. */
-.landing::before,
-.landing::after {
-  content: '';
-  position: absolute;
-  width: 26rem;
-  height: 26rem;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.35;
-  pointer-events: none;
-}
-
-.landing::before {
-  background: var(--accent-from);
-  top: -8rem;
-  left: -8rem;
-}
-
-.landing::after {
-  background: var(--accent-to);
-  bottom: -8rem;
-  right: -8rem;
-}
-
-.landing > * {
-  position: relative;
 }
 
 .landing-brand {
-  font-size: clamp(2.6rem, 8vw, 3.6rem);
-  font-weight: 900;
-  letter-spacing: -0.02em;
+  font-size: clamp(2.2rem, 7vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
   margin: 0;
-  background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--accent);
 }
 
 .landing-lead {
-  font-size: clamp(1.3rem, 5vw, 1.7rem);
-  font-weight: 700;
+  font-size: clamp(1.25rem, 5vw, 1.6rem);
+  font-weight: 600;
   margin: 0;
 }
 
@@ -108,13 +103,14 @@ button:disabled {
 
 .landing-tagline {
   display: inline-block;
-  background: var(--pill-bg);
-  border: 1px solid var(--pill-border);
-  border-radius: 999px;
-  padding: 0.45rem 1.05rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.9rem;
   margin: 0.1rem 0 0;
   font-size: 0.95rem;
   font-weight: 600;
+  color: var(--muted);
 }
 
 .landing-login {
@@ -122,36 +118,18 @@ button:disabled {
   top: 1.25rem;
   right: 1.25rem;
   z-index: 1;
-  padding: 0.55rem 1.2rem;
+  padding: 0.5rem 1rem;
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
-  background: var(--pill-bg);
-  border: 1px solid var(--pill-border);
-  border-radius: 999px;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease;
 }
 
 .landing-login:hover {
-  transform: translateY(-1px);
-  border-color: var(--accent-to);
-}
-
-.landing-cta {
-  margin-top: 1.1rem;
-  padding: 1rem 3rem;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #ffffff;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
-  box-shadow: 0 10px 34px rgba(124, 58, 237, 0.45);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.landing-cta:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 14px 40px rgba(6, 182, 212, 0.45);
+  border-color: var(--accent);
 }
 
 .landing-note {
@@ -179,13 +157,12 @@ button:disabled {
   left: 0;
   right: 0;
   height: 0.35rem;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--panel-2);
 }
 
 .check-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
-  border-radius: 0 999px 999px 0;
+  background: var(--accent);
   transition: width 0.25s ease;
 }
 
@@ -211,19 +188,19 @@ button:disabled {
 }
 
 .check-option {
-  padding: 1rem 1.2rem;
+  padding: 0.9rem 1.2rem;
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--text);
-  background: var(--pill-bg);
-  border: 1px solid var(--pill-border);
-  border-radius: 1rem;
-  transition: transform 0.12s ease, border-color 0.12s ease;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.12s ease, background 0.12s ease;
 }
 
 .check-option:hover {
-  transform: translateY(-1px);
-  border-color: var(--accent-to);
+  border-color: var(--accent);
+  background: var(--panel-2);
 }
 
 .check-back {
@@ -233,6 +210,10 @@ button:disabled {
   font-size: 0.95rem;
   margin-top: 0.6rem;
   text-decoration: none;
+}
+
+.check-back:hover {
+  color: var(--accent);
 }
 
 .check-hint {
@@ -253,9 +234,9 @@ button:disabled {
 }
 
 .check-reasons li {
-  background: var(--pill-bg);
-  border: 1px solid var(--pill-border);
-  border-radius: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 0.8rem 1rem;
   font-size: 0.98rem;
   line-height: 1.5;
@@ -272,10 +253,10 @@ button:disabled {
   align-self: center;
   margin: 0;
   padding: 0.3rem 0.85rem;
-  border-radius: 999px;
-  background: rgba(234, 179, 8, 0.14);
-  border: 1px solid rgba(234, 179, 8, 0.4);
-  color: #eab308;
+  border-radius: var(--radius-sm);
+  background: rgba(252, 211, 77, 0.12);
+  border: 1px solid rgba(252, 211, 77, 0.4);
+  color: var(--warning);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -293,9 +274,9 @@ button:disabled {
 }
 
 .check-checklist li {
-  background: var(--pill-bg);
-  border: 1px solid var(--pill-border);
-  border-radius: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 0.8rem 1rem;
   font-size: 0.98rem;
   line-height: 1.5;
@@ -317,7 +298,7 @@ button:disabled {
 
 .auth-title {
   font-size: clamp(1.4rem, 5vw, 1.8rem);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -340,21 +321,21 @@ button:disabled {
 }
 
 .auth-input {
-  padding: 0.85rem 1rem;
+  padding: 0.7rem 0.9rem;
   font: inherit;
   color: var(--text);
-  background: var(--pill-bg);
-  border: 1px solid var(--pill-border);
-  border-radius: 0.9rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   outline: none;
 }
 
 .auth-input:focus {
-  border-color: var(--accent-to);
+  border-color: var(--accent);
 }
 
 .auth-error {
-  color: #fda4af;
+  color: var(--danger);
   font-size: 0.92rem;
   margin: 0;
 }
@@ -381,7 +362,7 @@ button:disabled {
 
 .journey-title {
   font-size: clamp(1.5rem, 5vw, 1.9rem);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -390,7 +371,7 @@ button:disabled {
   height: 0.5rem;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--panel-2);
 }
 
 .journey-continue {
@@ -413,16 +394,16 @@ button:disabled {
   align-items: center;
   gap: 0.7rem;
   padding: 0.85rem 1rem;
-  background: var(--pill-bg);
-  border: 1px solid var(--pill-border);
-  border-radius: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   color: var(--text);
   text-decoration: none;
   transition: border-color 0.12s ease;
 }
 
 .journey-step:hover {
-  border-color: var(--accent-to);
+  border-color: var(--accent);
 }
 
 .journey-step-done {
@@ -436,8 +417,8 @@ button:disabled {
 }
 
 .journey-step-state {
-  color: var(--accent-to);
-  font-weight: 800;
+  color: var(--accent);
+  font-weight: 700;
 }
 
 /* --- Section form ---------------------------------------------------------------- */
@@ -462,8 +443,8 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-  border: 1px solid var(--pill-border);
-  border-radius: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 1rem;
   margin: 0;
 }
@@ -485,13 +466,13 @@ button:disabled {
 }
 
 .section-input-invalid {
-  border-color: #fda4af;
+  border-color: var(--danger);
 }
 
 .section-saved-note {
-  background: rgba(124, 58, 237, 0.18);
-  border: 1px solid var(--pill-border);
-  border-radius: 1rem;
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: var(--radius);
   padding: 0.7rem 1rem;
   font-size: 0.95rem;
   margin: 0;
@@ -519,7 +500,7 @@ button:disabled {
 }
 
 .docs-missing-link:hover {
-  color: var(--accent-to);
+  color: var(--accent);
 }
 
 .docs-list {
@@ -538,13 +519,13 @@ button:disabled {
   justify-content: space-between;
   gap: 0.7rem;
   padding: 0.85rem 1rem;
-  background: var(--pill-bg);
-  border: 1px solid var(--pill-border);
-  border-radius: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
 .docs-card-stale {
-  border-color: rgba(253, 164, 175, 0.5);
+  border-color: rgba(252, 165, 165, 0.5);
 }
 
 .docs-card-title {
@@ -559,8 +540,8 @@ button:disabled {
 .docs-stale-badge {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #fda4af;
-  border: 1px solid rgba(253, 164, 175, 0.5);
+  color: var(--danger);
+  border: 1px solid rgba(252, 165, 165, 0.5);
   border-radius: 999px;
   padding: 0.1rem 0.55rem;
 }
@@ -571,17 +552,17 @@ button:disabled {
 }
 
 .docs-download {
-  padding: 0.45rem 0.8rem;
+  padding: 0.4rem 0.8rem;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text);
   background: none;
-  border: 1px solid var(--pill-border);
-  border-radius: 999px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 
 .docs-download:hover {
-  border-color: var(--accent-to);
+  border-color: var(--accent);
 }
 
 .docs-note {
