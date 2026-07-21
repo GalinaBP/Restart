@@ -1,11 +1,11 @@
-/* Dark "space" theme: deep canvas, blue→cyan gradient accents, big friendly type.
+/* Dark "space" theme: deep canvas, a solid green accent (no gradients), big friendly type.
    The tone stays calm — the product talks about a hard topic, so vivid but not loud. */
 :root {
   --bg: #0b0b12;
   --text: #f4f4f8;
   --muted: #9d9daf;
-  --accent-from: #3b82f6;
-  --accent-to: #22d3ee;
+  --accent-from: #34d399;
+  --accent-to: #34d399;
   --pill-bg: rgba(255, 255, 255, 0.07);
   --pill-border: rgba(255, 255, 255, 0.14);
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -86,10 +86,7 @@ button:disabled {
   font-weight: 900;
   letter-spacing: -0.02em;
   margin: 0;
-  background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--accent-from);
 }
 
 .landing-lead {
@@ -142,16 +139,16 @@ button:disabled {
   padding: 1rem 3rem;
   font-size: 1.15rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #04231a;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
-  box-shadow: 0 10px 34px rgba(59, 130, 246, 0.45);
+  background: var(--accent-from);
+  box-shadow: 0 10px 34px rgba(52, 211, 153, 0.4);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .landing-cta:hover {
   transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 14px 40px rgba(34, 211, 238, 0.45);
+  box-shadow: 0 14px 40px rgba(52, 211, 153, 0.5);
 }
 
 .landing-note {
@@ -184,7 +181,7 @@ button:disabled {
 
 .check-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
+  background: var(--accent-from);
   border-radius: 0 999px 999px 0;
   transition: width 0.25s ease;
 }
@@ -489,7 +486,7 @@ button:disabled {
 }
 
 .section-saved-note {
-  background: rgba(59, 130, 246, 0.18);
+  background: rgba(52, 211, 153, 0.18);
   border: 1px solid var(--pill-border);
   border-radius: 1rem;
   padding: 0.7rem 1rem;
