@@ -123,8 +123,9 @@ plural ("Вы")**, zero legalese. (This reverses the constitution's original inf
 product decision recorded in `../Corrections.xlsx`, 2026-07-21; the constitution.docx still says
 "ты" and should be updated to match.) Use lowercase «вы/вас/ваш» mid-sentence, capital only at the
 start of a sentence. Visual style: a dark **"space" theme** — deep canvas (`--bg #0b0b12`), a
-**blue→cyan gradient accent** (`--accent-from #3b82f6` → `--accent-to #22d3ee`), soft blurred
-glows behind the landing, big friendly type, pill shapes; calm, never loud (the subject matter is
-heavy). Emoji are **removed everywhere except the single rocket 🚀** in the landing lead (product
-decision, 2026-07-21). Design tokens live in `frontend/src/styles.css` `:root`. (Earlier AI-011
-experiments with an Adiaphora slate/green and a light marketing landing were reverted.)
+**solid green accent** (`#34d399`, no gradients) on buttons and text, soft green glows behind the
+landing, big friendly type, pill shapes; calm, never loud (the subject matter is heavy). Green
+buttons use dark ink text (`#04231a`) for contrast. Emoji are **removed everywhere except the
+single rocket 🚀** in the landing lead (product decision, 2026-07-21). Design tokens live in
+`frontend/src/styles.css` `:root`. (Earlier AI-011 experiments with an Adiaphora slate/green, a
+light marketing landing, and a blue→cyan gradient were reverted.)
