@@ -53,7 +53,9 @@ class EligibilityControllerTest {
                   "marriedOrDivorcing": false,
                   "soldOrGiftedAssetsRecently": false,
                   "onlyConsumerDebts": true,
-                  "hasForeignAssetsOrLawsuits": false
+                  "hasForeignAssetsOrLawsuits": false,
+                  "plansToStartBusiness": false,
+                  "plansMajorBorrowingSoon": false
                 }
                 """.formatted(debtRange, anyMarker);
     }
