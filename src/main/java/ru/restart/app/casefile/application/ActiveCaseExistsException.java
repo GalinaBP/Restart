@@ -12,6 +12,6 @@ public class ActiveCaseExistsException extends BusinessException {
 
     public ActiveCaseExistsException() {
         super(ErrorCode.INVALID_STATE, HttpStatus.CONFLICT,
-                "У тебя уже есть начатое дело — продолжай его");
+                "У вас уже есть начатое дело — продолжите его");
     }
 }

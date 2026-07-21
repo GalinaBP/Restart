@@ -9,12 +9,12 @@ import jakarta.validation.constraints.Size;
  * plain Russian because field errors are shown to the user as-is.
  */
 public record RegisterRequest(
-        @NotBlank(message = "Укажи электронную почту")
+        @NotBlank(message = "Укажите электронную почту")
         @Email(message = "Похоже, в адресе почты опечатка")
         @Size(max = 320, message = "Слишком длинный адрес почты")
         String email,
 
-        @NotBlank(message = "Придумай пароль")
+        @NotBlank(message = "Придумайте пароль")
         @Size(min = 8, max = 72, message = "Пароль должен быть от 8 до 72 символов")
         String password) {
 }

@@ -90,9 +90,9 @@ export default function JourneyPage() {
     return (
       <main className="check">
         <p className="check-emoji" aria-hidden="true">🚀</p>
-        <h1 className="check-question">Начнём твоё дело</h1>
+        <h1 className="check-question">Начнём ваше дело</h1>
         <p className="check-hint">
-          Мы соберём всё по шагам: немного о тебе, долги, доходы. Каждый шаг — один экран.
+          Мы соберём всё по шагам: немного о вас, долги, доходы. Каждый шаг — один экран.
           Всё сохраняется сразу, бросить и вернуться можно в любой момент.
         </p>
         <button type="button" className="landing-cta" onClick={() => void start()}>
@@ -109,7 +109,7 @@ export default function JourneyPage() {
   return (
     <main className="journey">
       <header className="journey-header">
-        <h1 className="journey-title">Твоё дело</h1>
+        <h1 className="journey-title">Ваше дело</h1>
         <span>
           <Link to="/documents" className="check-back">Документы</Link>
           {' · '}

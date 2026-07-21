@@ -9,6 +9,6 @@ public class SessionExpiredException extends BusinessException {
 
     public SessionExpiredException() {
         super(ErrorCode.AUTHENTICATION_FAILED, HttpStatus.UNAUTHORIZED,
-                "Сессия истекла — войди ещё раз");
+                "Сессия истекла — войдите ещё раз");
     }
 }

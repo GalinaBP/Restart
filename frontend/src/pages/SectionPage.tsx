@@ -212,8 +212,8 @@ export default function SectionPage() {
       )}
       {saveFailed && (
         <p className="auth-error" role="alert">
-          Не получилось сохранить — проверь интернет и нажми «Сохранить» ещё раз.
-          Всё, что ты ввёл(а), на месте.
+          Не получилось сохранить — проверьте интернет и нажмите «Сохранить» ещё раз.
+          Всё, что вы ввели, на месте.
         </p>
       )}
       <form className="auth-form section-form" onSubmit={(e) => void submit(e)}>

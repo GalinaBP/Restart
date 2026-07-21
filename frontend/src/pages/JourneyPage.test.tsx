@@ -40,12 +40,12 @@ describe('JourneyPage', () => {
     stubFetch({
       '/cases/current': {
         status: 404,
-        body: { status: 404, code: 'RESOURCE_NOT_FOUND', message: 'У тебя пока нет начатого дела' },
+        body: { status: 404, code: 'RESOURCE_NOT_FOUND', message: 'У вас пока нет начатого дела' },
       },
     });
     renderSignedIn();
 
-    expect(await screen.findByText('Начнём твоё дело')).toBeInTheDocument();
+    expect(await screen.findByText('Начнём ваше дело')).toBeInTheDocument();
 
     stubFetch({
       '/cases/case-1/sections': { status: 200, body: STEPS },
@@ -53,7 +53,7 @@ describe('JourneyPage', () => {
     });
     await userEvent.setup().click(screen.getByRole('button', { name: 'Поехали' }));
 
-    expect(await screen.findByText('Немного о тебе')).toBeInTheDocument();
+    expect(await screen.findByText('Немного о вас')).toBeInTheDocument();
   });
 
   it('shows progress and points «Продолжить» at the first unfilled step', async () => {
@@ -67,6 +67,6 @@ describe('JourneyPage', () => {
       .toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Продолжить' }))
       .toHaveAttribute('href', '/journey/PASSPORT');
-    expect(screen.getByText('Кому ты должен')).toBeInTheDocument();
+    expect(screen.getByText('Кому вы должны')).toBeInTheDocument();
   });
 });

@@ -118,6 +118,9 @@ fast) must be chosen explicitly; `test` is used by integration tests via Testcon
 
 `frontend/` — React 19 + TypeScript + Vite SPA, served by nginx in Docker (static + SPA fallback,
 no API proxy; the API base URL is baked in via the `VITE_API_BASE` build arg). UI shell only — all
-legal/eligibility logic belongs to the backend. Copy style: warm, short, second-person singular
-("ты"), zero legalese. Visual style: Gen-Z-friendly — dark canvas, violet→cyan gradient accents,
+legal/eligibility logic belongs to the backend. Copy style: warm, short, **formal second-person
+plural ("Вы")**, zero legalese. (This reverses the constitution's original informal "ты" — a
+product decision recorded in `../Corrections.xlsx`, 2026-07-21; the constitution.docx still says
+"ты" and should be updated to match.) Use lowercase «вы/вас/ваш» mid-sentence, capital only at the
+start of a sentence. Visual style: Gen-Z-friendly — dark canvas, violet→cyan gradient accents,
 pill shapes, emoji accents — but calm, never loud: the subject matter is heavy for the user.
