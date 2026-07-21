@@ -204,6 +204,7 @@ export default function EligibilityPage() {
 }
 
 function ConsequencesScreen({ onContinue }: { onContinue: () => void }) {
+  const navigate = useNavigate();
   return (
     <main className="check check-intro">
       <p className="check-placeholder" role="note">
@@ -220,6 +221,9 @@ function ConsequencesScreen({ onContinue }: { onContinue: () => void }) {
       </ul>
       <button type="button" className="landing-cta" onClick={onContinue}>
         Понятно, продолжить
+      </button>
+      <button type="button" className="check-back" onClick={() => navigate('/')}>
+        Нет, это не для меня
       </button>
     </main>
   );
