@@ -1,25 +1,28 @@
 import { useNavigate } from 'react-router-dom';
 
 /**
- * Landing screen per the product constitution: one message, one action, a calm promise of
- * step-by-step guidance. No legal terminology anywhere on this screen. The three value pills
- * are the constitution's brand values (Понятно / Спокойно / Честно).
+ * Landing screen per the product constitution: one message, one primary action, a calm promise of
+ * step-by-step guidance. No legal terminology in the reassurance copy. A short tagline states the
+ * positioning up front — this is a self-guided court-bankruptcy service. Returning users reach their
+ * case through the «Войти» link; new visitors start the screening with «Начать».
  */
 export default function LandingPage() {
   const navigate = useNavigate();
   return (
     <main className="landing">
+      <button
+        type="button"
+        className="landing-login"
+        onClick={() => navigate('/auth')}
+      >
+        Войти
+      </button>
       <h1 className="landing-brand">Рестарт</h1>
-      <p className="landing-lead">Начни новую финансовую главу&nbsp;🚀</p>
+      <p className="landing-lead">Начните новую финансовую главу&nbsp;🚀</p>
+      <p className="landing-tagline">Сервис для самостоятельного судебного банкротства</p>
       <p className="landing-sub">
-        Проведём тебя через процедуру банкротства шаг за шагом. Никаких сложных инструкций.
-        Никакой юридической терминологии. Только следующий шаг — и он всегда понятен.
+        Проведём вас через процедуру банкротства шаг за шагом. Никаких сложных инструкций.
       </p>
-      <ul className="landing-values">
-        <li>💬 Понятно</li>
-        <li>🧘 Спокойно</li>
-        <li>🤝 Честно</li>
-      </ul>
       <button type="button" className="landing-cta" onClick={() => navigate('/check')}>
         Начать
       </button>
