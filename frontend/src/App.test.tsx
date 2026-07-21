@@ -10,7 +10,11 @@ describe('App', () => {
       </MemoryRouter>,
     );
     expect(screen.getByRole('heading', { name: 'Рестарт' })).toBeInTheDocument();
-    expect(screen.getByText(/Начни новую финансовую главу/)).toBeInTheDocument();
+    expect(screen.getByText(/Начните новую финансовую главу/)).toBeInTheDocument();
+    expect(
+      screen.getByText('Сервис для самостоятельного судебного банкротства'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Начать' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Войти' })).toBeInTheDocument();
   });
 });
