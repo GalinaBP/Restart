@@ -2,35 +2,255 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   checkEligibility,
-  type DebtRange,
   type EligibilityAnswers,
   type EligibilityResult,
 } from '../api/eligibility';
 
 /**
- * The 2-minute eligibility check. It opens with a plain-language "what bankruptcy means" checklist
- * (the consequences screen), then asks one question per screen — a product constitution rule.
- * All decision logic lives in the backend; this screen only shows consequences, collects answers,
- * and renders the verdict.
+ * The 2-minute eligibility check. It opens with a plain-language "what bankruptcy means"
+ * checklist (the consequences screen), then walks four grouped screens of questions — each
+ * question says why it is asked, so nothing feels like bureaucracy for its own sake.
+ * All decision logic lives in the backend; this screen only collects answers.
  *
- * PLACEHOLDER: the consequences list and the forward-looking questions are pending lawyer review.
+ * PLACEHOLDER: the consequences, the questions and the "why" texts are pending lawyer review.
  */
 
-interface BoolQuestion {
-  kind: 'bool';
-  field: keyof Omit<EligibilityAnswers, 'debtRange'>;
-  text: string;
-  /** Which answer means "fits": most questions expect "нет", the debts one expects "да". */
-  yesLabel: string;
-  noLabel: string;
+/** Boolean answer fields a question option can switch on. */
+type BoolField =
+  | 'hasCar'
+  | 'hasExtraRealEstate'
+  | 'hasBusiness'
+  | 'marriedOrDivorcing'
+  | 'soldOrGiftedAssetsRecently'
+  | 'onlyConsumerDebts'
+  | 'hasForeignAssetsOrLawsuits';
+
+type Patch = Partial<EligibilityAnswers>;
+
+interface SingleOption {
+  key: string;
+  emoji: string;
+  label: string;
+  patch: Patch;
 }
 
-interface DebtQuestion {
-  kind: 'debt';
-  text: string;
+/** An option with no field is the exclusive "nothing of the sort" choice. */
+interface MultiOption {
+  key: string;
+  emoji: string;
+  label: string;
+  field?: BoolField;
 }
 
-type Question = BoolQuestion | DebtQuestion;
+interface SingleQuestion {
+  kind: 'single';
+  id: string;
+  emoji: string;
+  text: string;
+  why: string;
+  note?: string;
+  options: SingleOption[];
+}
+
+interface MultiQuestion {
+  kind: 'multi';
+  id: string;
+  emoji: string;
+  text: string;
+  why: string;
+  note?: string;
+  /** Every field this question owns — all reset to false before the picks are applied. */
+  fields: BoolField[];
+  options: MultiOption[];
+}
+
+type Question = SingleQuestion | MultiQuestion;
+
+interface Group {
+  emoji: string;
+  title: string;
+  questions: Question[];
+}
+
+const GROUPS: Group[] = [
+  {
+    emoji: '💸',
+    title: 'Долги',
+    questions: [
+      {
+        kind: 'single',
+        id: 'debt',
+        emoji: '💰',
+        text: 'Сколько у вас долгов примерно?',
+        why: 'От суммы зависит, подходит ли вам обычная судебная процедура.',
+        options: [
+          { key: 'under', emoji: '🙂', label: 'До 500 000 ₽', patch: { debtRange: 'UNDER_500K' } },
+          {
+            key: 'mid',
+            emoji: '👌',
+            label: '500 000 – 3 000 000 ₽',
+            patch: { debtRange: 'FROM_500K_TO_3M' },
+          },
+          { key: 'over', emoji: '😮', label: 'Больше 3 000 000 ₽', patch: { debtRange: 'OVER_3M' } },
+        ],
+      },
+      {
+        kind: 'single',
+        id: 'debtKind',
+        emoji: '🧾',
+        text: 'Из чего состоят ваши долги?',
+        why: 'Кредиты и займы списываются проще всего. Налоги, штрафы и долги людям — сложнее.',
+        options: [
+          {
+            key: 'consumer',
+            emoji: '💳',
+            label: 'Кредиты, карты, микрозаймы, рассрочки',
+            patch: { onlyConsumerDebts: true },
+          },
+          {
+            key: 'other',
+            emoji: '📄',
+            label: 'Есть ещё другие долги (налоги, долги людям, штрафы и т.д.)',
+            patch: { onlyConsumerDebts: false },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    emoji: '🏠',
+    title: 'Имущество и бизнес',
+    questions: [
+      {
+        kind: 'multi',
+        id: 'property',
+        emoji: '🚗',
+        text: 'Есть ли у вас что-то ценное в собственности?',
+        why: 'Имущество, кроме единственного жилья, могут продать на торгах — это усложняет дело.',
+        note: 'Можно выбрать несколько вариантов',
+        fields: ['hasCar', 'hasExtraRealEstate'],
+        options: [
+          { key: 'car', emoji: '🚗', label: 'Машина или мотоцикл', field: 'hasCar' },
+          {
+            key: 'realEstate',
+            emoji: '🏢',
+            label: 'Недвижимость (кроме единственного жилья)',
+            field: 'hasExtraRealEstate',
+          },
+          { key: 'none', emoji: '✅', label: 'Ничего такого нет' },
+        ],
+      },
+      {
+        kind: 'single',
+        id: 'business',
+        emoji: '💼',
+        text: 'Есть ли у вас бизнес?',
+        why: 'Бизнес или доля в компании требуют отдельного разбора.',
+        options: [
+          { key: 'no', emoji: '🙅', label: 'Нет', patch: { hasBusiness: false } },
+          {
+            key: 'yes',
+            emoji: '💼',
+            label: 'Да, я ИП или владею компанией',
+            patch: { hasBusiness: true },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    emoji: '📋',
+    title: 'Ваша ситуация',
+    questions: [
+      {
+        kind: 'single',
+        id: 'deals',
+        emoji: '🎁',
+        text: 'Были ли за последние 3 года крупные сделки?',
+        note: 'Например: продажа квартиры, машины, дарение имущества.',
+        why: 'Суд проверяет сделки за три года — некоторые из них могут оспорить.',
+        options: [
+          { key: 'no', emoji: '🙅', label: 'Нет', patch: { soldOrGiftedAssetsRecently: false } },
+          { key: 'yes', emoji: '✍️', label: 'Да', patch: { soldOrGiftedAssetsRecently: true } },
+        ],
+      },
+      {
+        kind: 'single',
+        id: 'marriage',
+        emoji: '💍',
+        text: 'Вы состоите в браке или развелись в последние 3 года?',
+        why: 'Брак и развод затрагивают общее имущество супругов.',
+        options: [
+          { key: 'no', emoji: '🙅', label: 'Нет', patch: { marriedOrDivorcing: false } },
+          { key: 'married', emoji: '💍', label: 'Да, состою в браке', patch: { marriedOrDivorcing: true } },
+          {
+            key: 'divorced',
+            emoji: '📑',
+            label: 'Да, развёлся(лась) менее 3 лет назад',
+            patch: { marriedOrDivorcing: true },
+          },
+        ],
+      },
+      {
+        kind: 'multi',
+        id: 'foreign',
+        emoji: '🌍',
+        text: 'Есть ли что-то из этого?',
+        why: 'Заграничные активы и судебные споры делают процедуру сложной.',
+        note: 'Можно выбрать несколько вариантов',
+        fields: ['hasForeignAssetsOrLawsuits'],
+        options: [
+          {
+            key: 'abroad',
+            emoji: '🌍',
+            label: 'Имущество или счета за границей',
+            field: 'hasForeignAssetsOrLawsuits',
+          },
+          {
+            key: 'lawsuits',
+            emoji: '⚖️',
+            label: 'Судебные споры по имуществу или долгам',
+            field: 'hasForeignAssetsOrLawsuits',
+          },
+          { key: 'none', emoji: '✅', label: 'Ничего из этого' },
+        ],
+      },
+    ],
+  },
+  {
+    emoji: '🚀',
+    title: 'Как продолжить',
+    questions: [
+      {
+        kind: 'single',
+        id: 'path',
+        emoji: '🚀',
+        text: 'Как хотите пройти процедуру?',
+        why: 'Подскажем, что делать дальше — сами или вместе с юристом.',
+        options: [
+          {
+            key: 'self',
+            emoji: '🚀',
+            label: 'Хочу всё сделать сам через приложение',
+            patch: { preferredPath: 'SELF_SERVICE' },
+          },
+          {
+            key: 'lawyer',
+            emoji: '🤝',
+            label: 'Хочу помощь юриста',
+            patch: { preferredPath: 'LAWYER' },
+          },
+          {
+            key: 'exploring',
+            emoji: '🔍',
+            label: 'Пока просто хочу разобраться',
+            patch: { preferredPath: 'EXPLORING' },
+          },
+        ],
+      },
+    ],
+  },
+];
 
 /**
  * Consequences of court bankruptcy — each with a plain-language explanation revealed on tap.
@@ -76,86 +296,49 @@ const CONSEQUENCES: { title: string; detail: string }[] = [
   },
 ];
 
-const QUESTIONS: Question[] = [
-  { kind: 'debt', text: 'Сколько вы всего должны?' },
-  {
-    kind: 'bool',
-    field: 'onlyConsumerDebts',
-    text: 'Все долги — это кредиты, карты, микрозаймы или рассрочки?',
-    yesLabel: 'Да, только это',
-    noLabel: 'Есть и другие',
-  },
-  { kind: 'bool', field: 'hasCar', text: 'У вас есть машина?', yesLabel: 'Да', noLabel: 'Нет' },
-  {
-    kind: 'bool',
-    field: 'hasExtraRealEstate',
-    text: 'Есть недвижимость, кроме единственного жилья?',
-    yesLabel: 'Да',
-    noLabel: 'Нет',
-  },
-  {
-    kind: 'bool',
-    field: 'hasBusiness',
-    text: 'Есть свой бизнес или доля в компании?',
-    yesLabel: 'Да',
-    noLabel: 'Нет',
-  },
-  {
-    kind: 'bool',
-    field: 'marriedOrDivorcing',
-    text: 'Состоите в браке или сейчас идёт развод?',
-    yesLabel: 'Да',
-    noLabel: 'Нет',
-  },
-  {
-    kind: 'bool',
-    field: 'soldOrGiftedAssetsRecently',
-    text: 'Продавали или дарили что-то ценное за последние три года?',
-    yesLabel: 'Да',
-    noLabel: 'Нет',
-  },
-  {
-    kind: 'bool',
-    field: 'hasForeignAssetsOrLawsuits',
-    text: 'Есть счета или имущество за границей, или судебные споры?',
-    yesLabel: 'Да',
-    noLabel: 'Нет',
-  },
-  {
-    kind: 'bool',
-    field: 'plansToStartBusiness',
-    text: 'Планируете открыть свой бизнес или руководить компанией в ближайшие три года?',
-    yesLabel: 'Да',
-    noLabel: 'Нет',
-  },
-  {
-    kind: 'bool',
-    field: 'plansMajorBorrowingSoon',
-    text: 'Планируете в ближайшие пять лет брать крупные кредиты или ипотеку?',
-    yesLabel: 'Да',
-    noLabel: 'Нет',
-  },
-];
+/** questionId → chosen option keys (a single-choice question keeps exactly one). */
+type Picked = Record<string, string[]>;
 
-const DEBT_OPTIONS: { value: DebtRange; label: string }[] = [
-  { value: 'UNDER_500K', label: 'До 500 тысяч' },
-  { value: 'FROM_500K_TO_3M', label: 'От 500 тысяч до 3 миллионов' },
-  { value: 'OVER_3M', label: 'Больше 3 миллионов' },
-];
+function buildAnswers(picked: Picked): EligibilityAnswers {
+  let answers: Patch = {};
+  for (const group of GROUPS) {
+    for (const question of group.questions) {
+      const chosen = picked[question.id] ?? [];
+      if (question.kind === 'single') {
+        const option = question.options.find((o) => o.key === chosen[0]);
+        if (option) {
+          answers = { ...answers, ...option.patch };
+        }
+      } else {
+        for (const field of question.fields) {
+          answers = { ...answers, [field]: false };
+        }
+        for (const key of chosen) {
+          const option = question.options.find((o) => o.key === key);
+          if (option?.field) {
+            answers = { ...answers, [option.field]: true };
+          }
+        }
+      }
+    }
+  }
+  return answers as EligibilityAnswers;
+}
 
 export default function EligibilityPage() {
   const [started, setStarted] = useState(false);
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Partial<EligibilityAnswers>>({});
+  const [groupIndex, setGroupIndex] = useState(0);
+  const [picked, setPicked] = useState<Picked>({});
+  const [incomplete, setIncomplete] = useState(false);
   const [result, setResult] = useState<EligibilityResult | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
 
-  const submit = async (complete: EligibilityAnswers) => {
+  const submit = async (answers: EligibilityAnswers) => {
     setPending(true);
     setError(false);
     try {
-      setResult(await checkEligibility(complete));
+      setResult(await checkEligibility(answers));
     } catch {
       setError(true);
     } finally {
@@ -163,14 +346,24 @@ export default function EligibilityPage() {
     }
   };
 
-  const answer = (partial: Partial<EligibilityAnswers>) => {
-    const next = { ...answers, ...partial };
-    setAnswers(next);
-    if (step + 1 < QUESTIONS.length) {
-      setStep(step + 1);
-    } else {
-      void submit(next as EligibilityAnswers);
-    }
+  const choose = (question: Question, key: string) => {
+    setIncomplete(false);
+    setPicked((current) => {
+      if (question.kind === 'single') {
+        return { ...current, [question.id]: [key] };
+      }
+      const chosen = current[question.id] ?? [];
+      const option = question.options.find((o) => o.key === key);
+      // The "nothing of the sort" option is exclusive both ways.
+      if (!option?.field) {
+        return { ...current, [question.id]: [key] };
+      }
+      const withoutNone = chosen.filter((k) => question.options.find((o) => o.key === k)?.field);
+      const next = withoutNone.includes(key)
+        ? withoutNone.filter((k) => k !== key)
+        : [...withoutNone, key];
+      return { ...current, [question.id]: next };
+    });
   };
 
   if (result) {
@@ -186,7 +379,7 @@ export default function EligibilityPage() {
           <>
             <p className="check-question">Что-то пошло не так</p>
             <p className="check-hint">Проверьте интернет и попробуйте ещё раз.</p>
-            <button type="button" className="landing-cta" onClick={() => void submit(answers as EligibilityAnswers)}>
+            <button type="button" className="landing-cta" onClick={() => void submit(buildAnswers(picked))}>
               Повторить
             </button>
           </>
@@ -199,41 +392,82 @@ export default function EligibilityPage() {
     return <ConsequencesScreen onContinue={() => setStarted(true)} />;
   }
 
-  const question = QUESTIONS[step];
+  const group = GROUPS[groupIndex];
+  const isLast = groupIndex === GROUPS.length - 1;
+  const groupAnswered = group.questions.every((q) => (picked[q.id] ?? []).length > 0);
+
+  const goNext = () => {
+    if (!groupAnswered) {
+      setIncomplete(true);
+      return;
+    }
+    setIncomplete(false);
+    if (isLast) {
+      void submit(buildAnswers(picked));
+    } else {
+      setGroupIndex(groupIndex + 1);
+    }
+  };
+
+  const goBack = () => {
+    setIncomplete(false);
+    if (groupIndex === 0) {
+      setStarted(false);
+    } else {
+      setGroupIndex(groupIndex - 1);
+    }
+  };
+
   return (
-    <main className="check">
-      <div className="check-progress" aria-label={`Вопрос ${step + 1} из ${QUESTIONS.length}`}>
-        <div className="check-progress-fill" style={{ width: `${(step / QUESTIONS.length) * 100}%` }} />
+    <main className="check check-intro">
+      <div className="check-progress" aria-label={`Шаг ${groupIndex + 1} из ${GROUPS.length}`}>
+        <div
+          className="check-progress-fill"
+          style={{ width: `${(groupIndex / GROUPS.length) * 100}%` }}
+        />
       </div>
-      <h1 className="check-question">{question.text}</h1>
-      {question.kind === 'debt' ? (
-        <div className="check-options">
-          {DEBT_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className="check-option"
-              onClick={() => answer({ debtRange: option.value })}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <div className="check-options">
-          <button type="button" className="check-option" onClick={() => answer({ [question.field]: true })}>
-            {question.yesLabel}
-          </button>
-          <button type="button" className="check-option" onClick={() => answer({ [question.field]: false })}>
-            {question.noLabel}
-          </button>
-        </div>
+      <p className="check-group">
+        {group.emoji} {group.title} · шаг {groupIndex + 1} из {GROUPS.length}
+      </p>
+
+      {group.questions.map((question) => {
+        const chosen = picked[question.id] ?? [];
+        return (
+          <fieldset key={question.id} className="q">
+            <legend className="q-text">
+              {question.emoji} {question.text}
+            </legend>
+            <p className="q-why">Зачем: {question.why}</p>
+            {question.note && <p className="q-note">{question.note}</p>}
+            <div className="check-options">
+              {question.options.map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  aria-pressed={chosen.includes(option.key)}
+                  className={`check-option${chosen.includes(option.key) ? ' check-option-selected' : ''}`}
+                  onClick={() => choose(question, option.key)}
+                >
+                  {option.emoji} {option.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        );
+      })}
+
+      {incomplete && (
+        <p className="auth-error" role="alert">
+          Ответьте на все вопросы на этом экране.
+        </p>
       )}
-      {step > 0 && (
-        <button type="button" className="check-back" onClick={() => setStep(step - 1)}>
-          ← Назад
-        </button>
-      )}
+
+      <button type="button" className="landing-cta" onClick={goNext}>
+        {isLast ? 'Показать результат' : 'Далее'}
+      </button>
+      <button type="button" className="check-back" onClick={goBack}>
+        ← Назад
+      </button>
     </main>
   );
 }

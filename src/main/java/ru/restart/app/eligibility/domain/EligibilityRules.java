@@ -46,13 +46,9 @@ public final class EligibilityRules {
         if (answers.hasForeignAssetsOrLawsuits()) {
             reasons.add("Активы за границей или судебные споры делают дело сложным.");
         }
-        if (answers.plansToStartBusiness()) {
-            reasons.add("После банкротства три года нельзя руководить компанией — "
-                    + "если планируете своё дело, это стоит обсудить с юристом.");
-        }
-        if (answers.plansMajorBorrowingSoon()) {
-            reasons.add("Пять лет после банкротства о нём нужно предупреждать при новых займах — "
-                    + "с крупными кредитами станет сложнее.");
+        if (answers.preferredPath() == PreferredPath.LAWYER) {
+            reasons.add("Вы сами выбрали пройти процедуру с юристом — это разумно, "
+                    + "если хочется поддержки на каждом шаге.");
         }
 
         return reasons.isEmpty() ? EligibilityResult.fits() : EligibilityResult.needsLawyer(reasons);
