@@ -54,8 +54,7 @@ class EligibilityControllerTest {
                   "soldOrGiftedAssetsRecently": false,
                   "onlyConsumerDebts": true,
                   "hasForeignAssetsOrLawsuits": false,
-                  "plansToStartBusiness": false,
-                  "plansMajorBorrowingSoon": false
+                  "preferredPath": "SELF_SERVICE"
                 }
                 """.formatted(debtRange, anyMarker);
     }

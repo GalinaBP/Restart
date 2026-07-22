@@ -125,7 +125,8 @@ product decision recorded in `../Corrections.xlsx`, 2026-07-21; the constitution
 start of a sentence. Visual style: a dark **"space" theme** — deep canvas (`--bg #0b0b12`), a
 **solid green accent** (`#34d399`, no gradients) on buttons and text, soft green glows behind the
 landing, big friendly type, pill shapes; calm, never loud (the subject matter is heavy). Green
-buttons use dark ink text (`#04231a`) for contrast. Emoji are **removed everywhere except the
-single rocket 🚀** in the landing lead (product decision, 2026-07-21). Design tokens live in
+buttons use dark ink text (`#04231a`) for contrast. Emoji: the landing keeps the single rocket
+🚀, and the **screening questions and their options carry emoji** (2026-07-22 decision); the rest
+of the app (wizard labels, journey, documents) stays emoji-free. Design tokens live in
 `frontend/src/styles.css` `:root`. (Earlier AI-011 experiments with an Adiaphora slate/green, a
 light marketing landing, and a blue→cyan gradient were reverted.)

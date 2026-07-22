@@ -223,6 +223,66 @@ button:disabled {
   border-color: var(--accent-to);
 }
 
+/* Picked answer — also used for the multi-select questions. */
+.check-option-selected {
+  border-color: var(--accent-from);
+  background: rgba(52, 211, 153, 0.16);
+}
+
+/* --- Grouped questions: several per screen, each saying why it is asked ------- */
+
+.check-group {
+  margin: 0;
+  color: var(--accent-from);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.q {
+  width: 100%;
+  max-width: 30rem;
+  margin: 0;
+  padding: 1rem 1.1rem 1.15rem;
+  border: 1px solid var(--pill-border);
+  border-radius: 1rem;
+  background: var(--pill-bg);
+  text-align: left;
+}
+
+.q-text {
+  padding: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.q-why {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.q-note {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.q .check-options {
+  max-width: none;
+  margin-top: 0.8rem;
+}
+
+.q .check-option {
+  padding: 0.75rem 1rem;
+  font-size: 0.98rem;
+  text-align: left;
+}
+
 .check-back {
   background: none;
   border: none;

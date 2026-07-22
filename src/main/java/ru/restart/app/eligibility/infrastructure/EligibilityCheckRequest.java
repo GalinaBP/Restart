@@ -3,6 +3,7 @@ package ru.restart.app.eligibility.infrastructure;
 import jakarta.validation.constraints.NotNull;
 import ru.restart.app.eligibility.domain.DebtRange;
 import ru.restart.app.eligibility.domain.EligibilityAnswers;
+import ru.restart.app.eligibility.domain.PreferredPath;
 
 /**
  * Request body of the eligibility check. Booleans are boxed and {@code @NotNull} so a missing
@@ -17,12 +18,11 @@ public record EligibilityCheckRequest(
         @NotNull Boolean soldOrGiftedAssetsRecently,
         @NotNull Boolean onlyConsumerDebts,
         @NotNull Boolean hasForeignAssetsOrLawsuits,
-        @NotNull Boolean plansToStartBusiness,
-        @NotNull Boolean plansMajorBorrowingSoon) {
+        @NotNull PreferredPath preferredPath) {
 
     EligibilityAnswers toAnswers() {
         return new EligibilityAnswers(debtRange, hasCar, hasExtraRealEstate, hasBusiness,
                 marriedOrDivorcing, soldOrGiftedAssetsRecently, onlyConsumerDebts,
-                hasForeignAssetsOrLawsuits, plansToStartBusiness, plansMajorBorrowingSoon);
+                hasForeignAssetsOrLawsuits, preferredPath);
     }
 }
