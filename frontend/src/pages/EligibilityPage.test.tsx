@@ -45,7 +45,7 @@ describe('EligibilityPage', () => {
 
     expect(screen.getByText('Сначала — что важно знать')).toBeInTheDocument();
     expect(screen.getByText('Черновик — проверяется юристом')).toBeInTheDocument();
-    expect(screen.getByText(/имущество, кроме единственного жилья/i)).toBeInTheDocument();
+    expect(screen.getByText(/Имущество могут продать на торгах/i)).toBeInTheDocument();
     // The question flow has not started yet.
     expect(screen.queryByText('Сколько вы всего должны?')).not.toBeInTheDocument();
   });

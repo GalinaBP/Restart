@@ -299,6 +299,41 @@ button:disabled {
   text-align: left;
 }
 
+/* Expandable consequence: tap the title to reveal its explanation. */
+.check-fact summary {
+  position: relative;
+  list-style: none;
+  cursor: pointer;
+  padding-right: 1.6rem;
+  font-weight: 600;
+}
+
+.check-fact summary::-webkit-details-marker {
+  display: none;
+}
+
+.check-fact summary::after {
+  content: '+';
+  position: absolute;
+  top: -0.1rem;
+  right: 0;
+  color: var(--accent-from);
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.check-fact[open] summary::after {
+  content: '\2013';
+}
+
+.check-fact p {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
 /* --- Auth --------------------------------------------------------------------- */
 
 .auth {
