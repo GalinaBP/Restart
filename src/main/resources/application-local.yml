@@ -19,6 +19,9 @@ app:
 restart:
   seed:
     enabled: true
+  reset:
+    # Where mailed password-reset links point. No SMTP locally — links appear in the app log.
+    link-base-url: ${FRONTEND_BASE_URL:http://localhost:3000}
 
 springdoc:
   api-docs:

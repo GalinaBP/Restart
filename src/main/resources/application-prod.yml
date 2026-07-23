@@ -29,6 +29,12 @@ restart:
     enabled: false
   registration:
     enabled: ${REGISTRATION_ENABLED:true}
+  reset:
+    # Where mailed password-reset links point; when unset the first CORS origin (= the frontend
+    # domain) is used, so no extra variable is needed on Railway. Real email delivery switches on
+    # by setting SPRING_MAIL_HOST/PORT/USERNAME/PASSWORD (+ MAIL_FROM); without SMTP the reset
+    # link is written to the backend log instead — see docs/deploy-railway.md.
+    link-base-url: ${FRONTEND_BASE_URL:}
 
 # API documentation is disabled in production.
 springdoc:
