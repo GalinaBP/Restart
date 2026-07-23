@@ -20,19 +20,21 @@ import { BLOCKED_EXPLANATION, PROCEDURE_LABELS, STATUS_LABELS, stageLabel } from
 /**
  * The stage overview (backlog AI-019): every stage of the court procedure in order, with the
  * current one highlighted and a plain-language description of each. Some stages are derived from
- * the case data itself — screening, document preparation, and since AI-021 the fees stage, which
- * follows what is recorded on the payments step — and cannot be recorded by hand: the backend
- * refuses that with a 409, and this screen never offers the control in the first place.
+ * the case data itself — screening, document preparation, since AI-021 the fees stage (follows
+ * the payments step) and since AI-022 the filing stage (follows the submission step) — and
+ * cannot be recorded by hand: the backend refuses that with a 409, and this screen never offers
+ * the control in the first place.
  */
 
 /**
  * Stages that already have a screen of their own. The later tickets of this epic
- * (AI-022…AI-029) add theirs here as they land; a stage missing from this map simply expands in
+ * (AI-023…AI-029) add theirs here as they land; a stage missing from this map simply expands in
  * place instead of dead-ending on a click.
  */
 const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: string }>> = {
   MANAGER_SELECTION: { route: '/journey/MANAGER_SRO', label: 'Указать организацию' },
   FEES_AND_DEPOSIT: { route: '/journey/PAYMENTS', label: 'Отметить оплату' },
+  FILING: { route: '/journey/FILING_SUBMISSION', label: 'Отметить подачу' },
 };
 
 export default function ProcedurePage() {
@@ -211,7 +213,8 @@ function StageCard({
   }
 
   // Derived stages mirror the case data — nothing here to set by hand — but some still have a
-  // screen that feeds them: «Пошлина и депозит» follows what the payments step records.
+  // screen that feeds them: «Пошлина и депозит» follows the payments step, «Подача в суд»
+  // follows the submission step.
   if (!view.editable) {
     return (
       <li className={cardClass}>

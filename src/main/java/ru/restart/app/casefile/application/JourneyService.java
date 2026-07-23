@@ -139,9 +139,21 @@ public class JourneyService {
             case SCREENING -> StageStatus.DONE;
             case DOCUMENT_PREPARATION -> documentPreparationStatus(caseId);
             case FEES_AND_DEPOSIT -> paymentStatus(caseId);
+            case FILING -> filingStatus(caseId);
             default -> throw new IllegalStateException(
                     "Stage " + stage + " is marked derived but has no derivation rule");
         };
+    }
+
+    /**
+     * A submission date on file → done; nothing recorded → not started (AI-022). Unlike the
+     * fees stage there is no half-way state: the package either reached the court or it didn't.
+     */
+    private StageStatus filingStatus(UUID caseId) {
+        JsonNode submission = sections.findByCaseIdAndKey(caseId, SectionKey.FILING_SUBMISSION)
+                .map(section -> objectMapper.readTree(section.payloadJson()))
+                .orElse(null);
+        return hasText(submission, "submissionDate") ? StageStatus.DONE : StageStatus.NOT_STARTED;
     }
 
     /** Both payments recorded → done; one of them → in progress (AI-021). */

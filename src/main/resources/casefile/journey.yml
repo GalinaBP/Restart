@@ -48,10 +48,14 @@ stages:
     derived: true
     statutoryBasis: "ст. 213.4 127-ФЗ, ст. 333.21 НК РФ — госпошлина и депозит на вознаграждение (ПЛЕЙСХОЛДЕР)"
 
+  # Derived from the FILING_SUBMISSION section (AI-022): a submission date on file → done,
+  # nothing recorded → not started. There is no half-way state — either the package was handed
+  # to the court or it wasn't — so recording it by hand would let the map claim a filing that
+  # never happened.
   - key: FILING
     order: 5
     branch: ALL
-    derived: false
+    derived: true
     statutoryBasis: "ст. 213.4 127-ФЗ — подача заявления в арбитражный суд (ПЛЕЙСХОЛДЕР)"
 
   - key: COURT_DECISION

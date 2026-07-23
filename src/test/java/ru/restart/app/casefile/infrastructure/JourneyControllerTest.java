@@ -114,26 +114,26 @@ class JourneyControllerTest {
     @Test
     void recordingAStageEchoesTheUpdatedMap() throws Exception {
         BankruptcyCase existing = ownCase();
-        when(stages.findByCaseIdAndStage(existing.id(), JourneyStage.FILING))
+        when(stages.findByCaseIdAndStage(existing.id(), JourneyStage.COURT_DECISION))
                 .thenReturn(Optional.empty());
         when(stages.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         // The saved row is what a re-read of the journey must show:
         when(stages.findByCaseId(existing.id())).thenAnswer(invocation ->
-                List.of(CaseJourneyStage.record(existing.id(), JourneyStage.FILING,
+                List.of(CaseJourneyStage.record(existing.id(), JourneyStage.COURT_DECISION,
                         ru.restart.app.casefile.domain.StageStatus.DONE,
-                        java.time.LocalDate.parse("2026-07-23"), null, "Подано через МФЦ",
+                        java.time.LocalDate.parse("2026-07-23"), null, "Заседание прошло",
                         java.time.Instant.parse("2026-07-23T10:00:00Z"))));
 
-        mockMvc.perform(put("/api/v1/cases/" + existing.id() + "/journey/FILING")
+        mockMvc.perform(put("/api/v1/cases/" + existing.id() + "/journey/COURT_DECISION")
                         .with(user(USER_ID))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"status": "DONE", "startedOn": "2026-07-23",
-                                 "note": "Подано через МФЦ"}"""))
+                                 "note": "Заседание прошло"}"""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.stages[4].stage").value("FILING"))
-                .andExpect(jsonPath("$.stages[4].status").value("DONE"))
-                .andExpect(jsonPath("$.stages[4].note").value("Подано через МФЦ"));
+                .andExpect(jsonPath("$.stages[5].stage").value("COURT_DECISION"))
+                .andExpect(jsonPath("$.stages[5].status").value("DONE"))
+                .andExpect(jsonPath("$.stages[5].note").value("Заседание прошло"));
     }
 
     @Test
@@ -152,12 +152,24 @@ class JourneyControllerTest {
     void aMissingStatusIsAValidationError() throws Exception {
         BankruptcyCase existing = ownCase();
 
-        mockMvc.perform(put("/api/v1/cases/" + existing.id() + "/journey/FILING")
+        mockMvc.perform(put("/api/v1/cases/" + existing.id() + "/journey/COURT_DECISION")
                         .with(user(USER_ID))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"note\": \"без статуса\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void recordingTheDerivedFilingStageIsRefused() throws Exception {
+        BankruptcyCase existing = ownCase();
+
+        mockMvc.perform(put("/api/v1/cases/" + existing.id() + "/journey/FILING")
+                        .with(user(USER_ID))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\": \"DONE\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("INVALID_STATE"));
     }
 
     @Test
