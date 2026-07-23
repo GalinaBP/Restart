@@ -11,7 +11,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.context.annotation.Bean;
 import ru.restart.app.auth.application.AuthService;
+import ru.restart.app.auth.application.PasswordResetService;
+import ru.restart.app.auth.application.ResetLinkSender;
+import ru.restart.app.auth.domain.PasswordResetTokenRepository;
 import ru.restart.app.auth.domain.UserAccount;
 import ru.restart.app.auth.domain.UserAccountRepository;
 import ru.restart.app.auth.domain.UserRole;
@@ -38,7 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * filter authenticates {@code /auth/me}.
  */
 @WebMvcTest(AuthController.class)
-@Import({AuthService.class, JwtTokenService.class, AuthSecurityConfig.class,
+@Import({AuthService.class, PasswordResetService.class, JwtTokenService.class,
+        AuthSecurityConfig.class,
         SecurityContextCurrentUser.class, SecurityConfig.class, RestAuthenticationEntryPoint.class,
         RestAccessDeniedHandler.class, GlobalExceptionHandler.class, ClockConfig.class,
         AuthControllerTest.EnableSecurity.class})
@@ -54,6 +59,12 @@ class AuthControllerTest {
     @TestConfiguration
     @EnableWebSecurity
     static class EnableSecurity {
+
+        /** Stands in for the SMTP/logging delivery beans that live outside the slice. */
+        @Bean
+        ResetLinkSender noOpResetLinkSender() {
+            return (email, resetLink) -> { };
+        }
     }
 
     @Autowired
@@ -61,6 +72,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private UserAccountRepository accounts;
+
+    @MockitoBean
+    private PasswordResetTokenRepository resetTokens;
 
     private static String credentials(String email, String password) {
         return """
@@ -113,6 +127,37 @@ class AuthControllerTest {
                         .content(credentials("nobody@mail.ru", "whatever-123")))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("AUTHENTICATION_FAILED"));
+    }
+
+    @Test
+    void forgotPasswordAnswers204EvenForUnknownEmail() throws Exception {
+        when(accounts.findByEmail("nobody@mail.ru")).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/v1/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"nobody@mail.ru\"}"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void resetPasswordRejectsABadTokenWithTheUniformContract() throws Exception {
+        when(resetTokens.findByTokenHash(any())).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/v1/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\": \"made-up\", \"password\": \"new-password-2\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("RESET_LINK_INVALID"));
+    }
+
+    @Test
+    void resetPasswordValidatesThePasswordRules() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\": \"some-token\", \"password\": \"short\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.fieldErrors").isNotEmpty());
     }
 
     @Test

@@ -11,6 +11,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.restart.app.auth.application.AuthService;
+import ru.restart.app.auth.application.PasswordResetService;
 import ru.restart.app.auth.domain.UserAccountRepository;
 import ru.restart.app.common.config.ClockConfig;
 import ru.restart.app.common.error.GlobalExceptionHandler;
@@ -53,6 +54,10 @@ class RegistrationClosedControllerTest {
 
     @MockitoBean
     private UserAccountRepository accounts;
+
+    /** Not exercised here; mocked only so the controller's wiring resolves inside the slice. */
+    @MockitoBean
+    private PasswordResetService passwordReset;
 
     @Test
     void signUpIsRefusedWithThePlainRussianContract() throws Exception {

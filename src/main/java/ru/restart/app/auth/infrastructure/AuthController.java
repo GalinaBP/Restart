@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.restart.app.auth.application.AuthService;
+import ru.restart.app.auth.application.PasswordResetService;
 import ru.restart.app.common.web.ApiPaths;
 
 /**
@@ -24,9 +25,11 @@ import ru.restart.app.common.web.ApiPaths;
 public class AuthController {
 
     private final AuthService service;
+    private final PasswordResetService passwordReset;
 
-    public AuthController(AuthService service) {
+    public AuthController(AuthService service, PasswordResetService passwordReset) {
         this.service = service;
+        this.passwordReset = passwordReset;
     }
 
     @Operation(summary = "Register a new account",
@@ -52,6 +55,24 @@ public class AuthController {
     @PostMapping("/refresh")
     public TokenResponse refresh(@Valid @RequestBody RefreshRequest request) {
         return TokenResponse.from(service.refresh(request.refreshToken()));
+    }
+
+    @Operation(summary = "Request a password reset",
+            description = "Mails a single-use reset link valid for one hour. Always 204 — the "
+                    + "response must not reveal whether the email is registered.")
+    @PostMapping("/forgot-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordReset.requestReset(request.email());
+    }
+
+    @Operation(summary = "Set a new password",
+            description = "Consumes the token from the reset link and stores the new password. "
+                    + "400 with one uniform message when the token is wrong, expired, or spent.")
+    @PostMapping("/reset-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordReset.resetPassword(request.token(), request.password());
     }
 
     @Operation(summary = "Current account",

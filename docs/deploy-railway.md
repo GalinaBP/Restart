@@ -100,6 +100,29 @@ Two independent locks, both toggled by env variables only (no code changes, ~1 m
 > Make sure you already have your own account BEFORE setting `REGISTRATION_ENABLED=false`
 > (register once through the UI if needed, then flip the switch).
 
+## Password-reset emails
+
+`POST /api/v1/auth/forgot-password` mails a single-use link (valid one hour). Where the letter
+actually goes depends on backend variables:
+
+- **No SMTP configured (default)**: the link is written to the backend deploy logs instead —
+  search the logs for `reset link`. Fine for the private beta; the operator passes it on by hand.
+- **Real email**: set standard Spring mail variables on the backend service and redeploy:
+
+  ```
+  SPRING_MAIL_HOST=smtp.example.com
+  SPRING_MAIL_PORT=587
+  SPRING_MAIL_USERNAME=<smtp user>
+  SPRING_MAIL_PASSWORD=<smtp password / app password>
+  SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true
+  SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true
+  MAIL_FROM=<sender address; defaults to SPRING_MAIL_USERNAME>
+  ```
+
+  Any provider with SMTP works (Yandex 360, Mail.ru, Resend, Brevo, …).
+- The link points at the first `CORS_ALLOWED_ORIGINS` entry (= the frontend domain); set
+  `FRONTEND_BASE_URL` only if that ever stops being right.
+
 ## Ongoing
 
 - Every push to `main` redeploys both services (Railway watches the repo). Since GitHub Actions CI

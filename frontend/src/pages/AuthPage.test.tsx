@@ -40,6 +40,24 @@ describe('AuthPage', () => {
     expect(localStorage.getItem('restart.refreshToken')).toBe('refresh-1');
   });
 
+  it('requests a reset link and shows the enumeration-safe confirmation', async () => {
+    const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole('button', { name: 'У меня уже есть аккаунт' }));
+    await user.click(screen.getByRole('button', { name: 'Забыли пароль?' }));
+    await user.type(screen.getByLabelText(/почта/i), 'anna@example.com');
+    await user.click(screen.getByRole('button', { name: 'Отправить ссылку' }));
+
+    expect(await screen.findByText('Проверьте почту')).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe('/api/v1/auth/forgot-password');
+    expect(JSON.parse(init.body as string)).toEqual({ email: 'anna@example.com' });
+  });
+
   it('shows the backend message as-is when login fails', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
       status: 401,

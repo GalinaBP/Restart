@@ -26,6 +26,23 @@ export async function login(email: string, password: string): Promise<void> {
   tokenStore.set(tokens.accessToken, tokens.refreshToken);
 }
 
+/** Always resolves (204) — the backend never reveals whether the email is registered. */
+export async function requestPasswordReset(email: string): Promise<void> {
+  await request<void>('/auth/forgot-password', {
+    method: 'POST',
+    body: { email },
+    auth: false,
+  });
+}
+
+export async function confirmPasswordReset(token: string, password: string): Promise<void> {
+  await request<void>('/auth/reset-password', {
+    method: 'POST',
+    body: { token, password },
+    auth: false,
+  });
+}
+
 export function logout(): void {
   tokenStore.clear();
 }
