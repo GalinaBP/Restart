@@ -44,6 +44,12 @@ public final class SampleModels {
         model.put("otherIncome", List.of(
                 Map.of("index", "1", "source", "сдача комнаты в аренду", "amount", "15 000,00")));
         model.put("totalIncome", "100 000,00");
+        model.put("sro", Map.of(
+                "name", "Ассоциация «СРО арбитражных управляющих «Содействие»»",
+                "address", "г. Москва, ул. Управляющая, д. 5",
+                "inn", "7707083893",
+                "ogrn", "1027700132195",
+                "registryNumber", "0012"));
         return model;
     }
 

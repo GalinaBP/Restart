@@ -93,6 +93,18 @@ function stageRow(container: HTMLElement, index: number): HTMLElement {
 }
 
 describe('ProcedurePage', () => {
+  it('sends the manager stage on to the step that collects the СРО', async () => {
+    stubFetch([
+      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
+      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
+    ]);
+    renderAtProcedure();
+
+    // MANAGER_SELECTION is the current stage, so it opens on load and its data step is right there:
+    const link = await screen.findByRole('link', { name: /Указать организацию/ });
+    expect(link).toHaveAttribute('href', '/journey/MANAGER_SRO');
+  });
+
   it('shows the loading state, then every stage with its status, highlighting the current one', async () => {
     stubFetch([
       { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },

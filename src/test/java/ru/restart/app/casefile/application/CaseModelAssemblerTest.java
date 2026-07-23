@@ -83,6 +83,17 @@ class CaseModelAssemblerTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void theSroReachesTheTemplatesWithBlanksMarkedAbsent() {
+        Map<String, Object> model = model();
+
+        assertThat((Map<String, Object>) model.get("sro"))
+                .containsEntry("name", "Ассоциация «СРО арбитражных управляющих «Содействие»»")
+                .containsEntry("address", "г. Москва, ул. Управляющая, д. 5")
+                .containsEntry("registryNumber", "0012");
+    }
+
+    @Test
     void absentOptionalSectionsBecomeEmptyLists() {
         Map<String, Object> model = model();
 

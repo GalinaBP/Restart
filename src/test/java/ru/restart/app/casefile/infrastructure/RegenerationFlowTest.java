@@ -94,7 +94,7 @@ class RegenerationFlowTest {
                   "address": "г. Москва, ул. Банковская, д. 3",
                   "debtAmount": 1000000, "debtType": "кредитный договор"}]"""));
 
-        assertThat(documents.findByCaseId(existingCase.id())).hasSize(6)
+        assertThat(documents.findByCaseId(existingCase.id())).hasSize(DocumentType.values().length)
                 .allSatisfy(d -> assertThat(d.stale()).isFalse());
         assertThat(creditorListText())
                 .doesNotContain("МФО «Деньги-Быстро»")
@@ -110,7 +110,7 @@ class RegenerationFlowTest {
                 {"series": "4519", "number": "123456",
                  "issuedBy": "ГУ МВД России по г. Москве"}"""));
 
-        assertThat(documents.findByCaseId(existingCase.id())).hasSize(6)
+        assertThat(documents.findByCaseId(existingCase.id())).hasSize(DocumentType.values().length)
                 .allSatisfy(d -> assertThat(d.stale()).isTrue());
         assertThat(creditorListText()).isEqualTo(before);
     }
@@ -127,7 +127,7 @@ class RegenerationFlowTest {
                 {"series": "4519", "number": "123456",
                  "issuedBy": "ГУ МВД России по г. Москве", "issueDate": "2019-06-14"}"""));
 
-        assertThat(documents.findByCaseId(existingCase.id())).hasSize(6)
+        assertThat(documents.findByCaseId(existingCase.id())).hasSize(DocumentType.values().length)
                 .allSatisfy(d -> assertThat(d.stale()).isFalse());
     }
 
