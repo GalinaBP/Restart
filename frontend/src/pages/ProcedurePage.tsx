@@ -1,0 +1,283 @@
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { isSignedIn } from '../api/auth';
+import { currentCase } from '../api/cases';
+import {
+  getJourney,
+  recordStage,
+  type JourneyStageKey,
+  type JourneyStageView,
+  type JourneyView,
+  type RecordStageInput,
+  type StageStatusKey,
+} from '../api/procedure';
+import { BLOCKED_EXPLANATION, STATUS_LABELS, stageLabel } from '../api/labels';
+
+/**
+ * The stage overview (backlog AI-019): every stage of the court procedure in order, with the
+ * current one highlighted and a plain-language description of each. Two stages are derived from
+ * the case data itself (screening, document preparation) and cannot be recorded by hand — the
+ * backend refuses that with a 409, and this screen never offers the control in the first place.
+ * DOCUMENT_PREPARATION already has a screen of its own (the questionnaire at `/journey`) so it
+ * links straight there; every other stage has none yet, so it expands in place instead of
+ * dead-ending: a short description plus one form to record where it stands.
+ */
+export default function ProcedurePage() {
+  const navigate = useNavigate();
+  const [caseId, setCaseId] = useState<string | null>(null);
+  const [journey, setJourney] = useState<JourneyView | null>(null);
+  const [expanded, setExpanded] = useState<JourneyStageKey | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+
+  // Deliberately no synchronous setState here: the effect calls this directly, and the initial
+  // state already is "loading". Retry handlers reset the flags themselves before calling.
+  const load = useCallback(async () => {
+    try {
+      const existing = await currentCase();
+      if (!existing) {
+        navigate('/journey');
+        return;
+      }
+      setCaseId(existing.id);
+      const view = await getJourney(existing.id);
+      setJourney(view);
+      // Open the one stage that needs attention right now, when it has something to fill in.
+      const current = view.stages.find((s) => s.current && s.editable);
+      if (current) setExpanded(current.stage);
+    } catch {
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!isSignedIn()) {
+      navigate('/auth');
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount: state changes only after await
+    void load();
+  }, [navigate, load]);
+
+  const save = async (stage: JourneyStageKey, input: RecordStageInput) => {
+    if (!caseId) return;
+    const updated = await recordStage(caseId, stage, input);
+    setJourney(updated);
+    setExpanded(null);
+  };
+
+  if (loading) {
+    return (
+      <main className="check">
+        <p className="check-question">Секунду…</p>
+      </main>
+    );
+  }
+
+  if (failed) {
+    return (
+      <main className="check">
+        <p className="check-question">Что-то пошло не так</p>
+        <button
+          type="button"
+          className="landing-cta"
+          onClick={() => {
+            setFailed(false);
+            setLoading(true);
+            void load();
+          }}
+        >
+          Повторить
+        </button>
+      </main>
+    );
+  }
+
+  if (!journey) {
+    return null;
+  }
+
+  const currentTitle = journey.currentStage ? stageLabel(journey.currentStage).title : null;
+
+  return (
+    <main className="journey">
+      <header className="journey-header">
+        <h1 className="journey-title">Весь путь</h1>
+        <Link to="/journey" className="check-back">← К шагам</Link>
+      </header>
+      <p className="check-placeholder" role="note">Черновик — проверяется юристом</p>
+      <p className="check-hint">
+        {currentTitle
+          ? `Сейчас вы здесь: «${currentTitle}». Остальные этапы идут дальше по порядку.`
+          : 'Все этапы пройдены.'}
+      </p>
+      <ul className="procedure-list">
+        {journey.stages.map((view) => (
+          <StageCard
+            key={view.stage}
+            view={view}
+            expanded={expanded === view.stage}
+            onToggle={() => setExpanded(expanded === view.stage ? null : view.stage)}
+            onSave={(input) => save(view.stage, input)}
+          />
+        ))}
+      </ul>
+    </main>
+  );
+}
+
+function StageCard({
+  view,
+  expanded,
+  onToggle,
+  onSave,
+}: {
+  view: JourneyStageView;
+  expanded: boolean;
+  onToggle: () => void;
+  onSave: (input: RecordStageInput) => Promise<void>;
+}) {
+  const label = stageLabel(view.stage);
+  const status = STATUS_LABELS[view.status];
+  const cardClass = [
+    'procedure-stage',
+    view.current ? 'procedure-stage-current' : '',
+    view.status === 'DONE' ? 'procedure-stage-done' : '',
+  ].filter(Boolean).join(' ');
+  const statusClass = `procedure-status procedure-status-${view.status.toLowerCase().replace(/_/g, '-')}`;
+
+  const head = (
+    <span className="procedure-stage-head">
+      <span className="procedure-stage-title">
+        {label.title}
+        {view.current && <span className="procedure-current-badge">Сейчас</span>}
+      </span>
+      <span className={statusClass}>{status.title}</span>
+    </span>
+  );
+
+  // DOCUMENT_PREPARATION already has a screen of its own — send the user straight there rather
+  // than offering a dead-end expansion.
+  if (view.stage === 'DOCUMENT_PREPARATION') {
+    return (
+      <li>
+        <Link to="/journey" className={cardClass}>
+          {head}
+          <p className="check-hint procedure-stage-desc">{label.description}</p>
+        </Link>
+      </li>
+    );
+  }
+
+  // Derived stages (screening) mirror the case data — nothing here for the user to set by hand.
+  if (!view.editable) {
+    return (
+      <li className={cardClass}>
+        {head}
+        <p className="check-hint procedure-stage-desc">{label.description}</p>
+      </li>
+    );
+  }
+
+  return (
+    <li className={cardClass}>
+      <button type="button" className="procedure-stage-toggle" aria-expanded={expanded} onClick={onToggle}>
+        {head}
+      </button>
+      {expanded && (
+        <div className="procedure-stage-body">
+          <p className="check-hint procedure-stage-desc">{label.description}</p>
+          {view.status === 'BLOCKED' && <p className="procedure-blocked-note">{BLOCKED_EXPLANATION}</p>}
+          <StageEditor view={view} onSave={onSave} />
+        </div>
+      )}
+    </li>
+  );
+}
+
+function StageEditor({
+  view,
+  onSave,
+}: {
+  view: JourneyStageView;
+  onSave: (input: RecordStageInput) => Promise<void>;
+}) {
+  const [status, setStatus] = useState<StageStatusKey>(view.status);
+  const [startedOn, setStartedOn] = useState(view.startedOn ?? '');
+  const [completedOn, setCompletedOn] = useState(view.completedOn ?? '');
+  const [note, setNote] = useState(view.note ?? '');
+  const [pending, setPending] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setPending(true);
+    setFailed(false);
+    try {
+      await onSave({
+        status,
+        startedOn: startedOn || null,
+        completedOn: completedOn || null,
+        note: note.trim() === '' ? null : note.trim(),
+      });
+    } catch {
+      setFailed(true);
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <form className="procedure-form" onSubmit={(e) => void submit(e)}>
+      <label className="auth-label">
+        Статус
+        <select
+          className="auth-input"
+          value={status}
+          onChange={(e) => setStatus(e.target.value as StageStatusKey)}
+        >
+          <option value="NOT_STARTED">{STATUS_LABELS.NOT_STARTED.title}</option>
+          <option value="IN_PROGRESS">{STATUS_LABELS.IN_PROGRESS.title}</option>
+          <option value="DONE">{STATUS_LABELS.DONE.title}</option>
+          <option value="BLOCKED">{STATUS_LABELS.BLOCKED.title}</option>
+        </select>
+      </label>
+      <label className="auth-label">
+        Начали (не обязательно)
+        <input
+          className="auth-input"
+          type="date"
+          value={startedOn}
+          onChange={(e) => setStartedOn(e.target.value)}
+        />
+      </label>
+      <label className="auth-label">
+        Закончили (не обязательно)
+        <input
+          className="auth-input"
+          type="date"
+          value={completedOn}
+          onChange={(e) => setCompletedOn(e.target.value)}
+        />
+      </label>
+      <label className="auth-label">
+        Заметка (не обязательно)
+        <textarea
+          className="auth-input procedure-note"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </label>
+      {failed && (
+        <p className="auth-error" role="alert">
+          Не получилось сохранить — проверьте интернет и попробуйте ещё раз.
+        </p>
+      )}
+      <button type="submit" className="landing-cta procedure-save" disabled={pending}>
+        {pending ? 'Сохраняем…' : 'Записать'}
+      </button>
+    </form>
+  );
+}

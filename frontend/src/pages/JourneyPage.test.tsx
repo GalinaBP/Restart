@@ -69,4 +69,14 @@ describe('JourneyPage', () => {
       .toHaveAttribute('href', '/journey/PASSPORT');
     expect(screen.getByText('Кому и сколько вы должны')).toBeInTheDocument();
   });
+
+  it('links up to the stage overview (AI-019)', async () => {
+    stubFetch({
+      '/cases/current': { status: 200, body: CASE },
+      '/cases/case-1/sections': { status: 200, body: STEPS },
+    });
+    renderSignedIn();
+
+    expect(await screen.findByRole('link', { name: 'Весь путь' })).toHaveAttribute('href', '/procedure');
+  });
 });
