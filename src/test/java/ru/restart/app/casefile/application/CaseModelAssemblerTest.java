@@ -52,22 +52,40 @@ class CaseModelAssemblerTest {
         assertThat(creditors).hasSize(2);
         assertThat(creditors.get(0))
                 .containsEntry("index", "1")
-                .containsEntry("debtAmount", "1 000 000,00");
-        // The second creditor has no INN and no debt type — rendered as "—", never blank:
+                .containsEntry("debtAmount", "1 000 000,00")
+                .containsEntry("overdueSinceDate", "01.02.2026");
+        // The second creditor has no INN, no debt type and no overdue date — "—", never blank:
         assertThat(creditors.get(1))
                 .containsEntry("index", "2")
                 .containsEntry("inn", "—")
                 .containsEntry("debtType", "—")
+                .containsEntry("overdueSinceDate", "—")
                 .containsEntry("debtAmount", "250 000,50");
         assertThat(model.get("creditorCount")).isEqualTo("2");
         assertThat(model.get("totalDebt")).isEqualTo("1 250 000,50");
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void otherIncomeIsListedAndAddedToTheMainIncome() {
+        Map<String, Object> model = model();
+
+        assertThat((Map<String, Object>) model.get("monthlyIncome"))
+                .containsEntry("amount", "85 000,50")
+                .containsEntry("source", "заработная плата");
+        assertThat((List<Map<String, Object>>) model.get("otherIncome"))
+                .singleElement()
+                .satisfies(entry -> assertThat(entry)
+                        .containsEntry("index", "1")
+                        .containsEntry("source", "сдача комнаты в аренду")
+                        .containsEntry("amount", "15 000,00"));
+        assertThat(model.get("totalIncome")).isEqualTo("100 000,50");
+    }
+
+    @Test
     void absentOptionalSectionsBecomeEmptyLists() {
         Map<String, Object> model = model();
 
-        assertThat((List<?>) model.get("propertyItems")).isEmpty();
         assertThat((List<?>) model.get("realEstate")).isEmpty();
         assertThat((List<?>) model.get("vehicles")).isEmpty();
         assertThat((List<?>) model.get("bankAccounts")).isEmpty();

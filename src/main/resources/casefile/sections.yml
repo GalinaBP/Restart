@@ -91,17 +91,29 @@ sections:
       - { name: amount, type: MONEY,  required: true }
       - { name: source, type: STRING, required: true }
 
-  - key: MARITAL_STATUS
+  # Income beyond the main one (аренда, подработка, алименты…). Optional and repeatable, because
+  # a debtor may have several such sources or none; the main income stays in MONTHLY_INCOME.
+  - key: OTHER_INCOME
     order: 7
+    repeatable: true
+    mandatory: false
+    statutoryBasis: "ст. 213.4 127-ФЗ — иные источники дохода (ПЛЕЙСХОЛДЕР)"
+    fields:
+      - { name: source, type: STRING, required: true }
+      - { name: amount, type: MONEY,  required: true }
+
+  # hasMarriageContract deliberately absent: the ICP is unmarried debtors, and a marriage
+  # contract signals a case this app must not handle on its own (routed to a lawyer instead).
+  - key: MARITAL_STATUS
+    order: 8
     repeatable: false
     mandatory: true
     statutoryBasis: "ст. 213.4, 213.25 127-ФЗ — семейное положение (ПЛЕЙСХОЛДЕР)"
     fields:
-      - { name: status,              type: STRING,  required: true }
-      - { name: hasMarriageContract, type: BOOLEAN, required: false }
+      - { name: status, type: STRING, required: true }
 
   - key: DEPENDENTS
-    order: 8
+    order: 9
     repeatable: true
     mandatory: false
     statutoryBasis: "ст. 213.4 127-ФЗ — иждивенцы (ПЛЕЙСХОЛДЕР)"
@@ -110,29 +122,22 @@ sections:
       - { name: birthDate, type: DATE,   required: true }
       - { name: relation,  type: STRING, required: true }
 
+  # One entry per debt: who is owed, how much, and since when it stopped being paid. Formerly two
+  # separate steps (CREDITORS + DEBTS) that asked for the same facts twice — merged so the debtor
+  # names each creditor once. `uniqueBy` still catches the same creditor entered twice.
   - key: CREDITORS
-    order: 9
-    repeatable: true
-    mandatory: true
-    statutoryBasis: "ст. 213.4 127-ФЗ — список кредиторов (форма утв. Минэкономразвития; ПЛЕЙСХОЛДЕР)"
-    uniqueBy: [name, inn]
-    fields:
-      - { name: name,       type: STRING, required: true }
-      - { name: inn,        type: INN,    required: false }
-      - { name: address,    type: STRING, required: true }
-      - { name: debtAmount, type: MONEY,  required: true }
-      - { name: debtType,   type: STRING, required: false }
-
-  - key: DEBTS
     order: 10
     repeatable: true
     mandatory: true
-    statutoryBasis: "ст. 213.4 127-ФЗ — сведения о задолженности (ПЛЕЙСХОЛДЕР)"
+    statutoryBasis: "ст. 213.4 127-ФЗ — список кредиторов и размер задолженности (форма утв. Минэкономразвития; ПЛЕЙСХОЛДЕР)"
+    uniqueBy: [name, inn]
     fields:
-      - { name: creditorName,     type: STRING, required: true }
-      - { name: amount,           type: MONEY,  required: true }
+      - { name: name,             type: STRING, required: true }
+      - { name: inn,              type: INN,    required: false }
+      - { name: address,          type: STRING, required: true }
+      - { name: debtAmount,       type: MONEY,  required: true }
+      - { name: debtType,         type: STRING, required: false }
       - { name: overdueSinceDate, type: DATE,   required: false }
-      - { name: type,             type: STRING, required: false }
 
   - key: BANK_ACCOUNTS
     order: 11
@@ -144,17 +149,8 @@ sections:
       - { name: accountNumber, type: STRING, required: true }
       - { name: balance,       type: MONEY,  required: false }
 
-  - key: PROPERTY
-    order: 12
-    repeatable: true
-    mandatory: false
-    statutoryBasis: "ст. 213.4 127-ФЗ — опись имущества (форма утв. Минэкономразвития; ПЛЕЙСХОЛДЕР)"
-    fields:
-      - { name: description,    type: STRING, required: true }
-      - { name: estimatedValue, type: MONEY,  required: false }
-
   - key: REAL_ESTATE
-    order: 13
+    order: 12
     repeatable: true
     mandatory: false
     statutoryBasis: "ст. 213.4 127-ФЗ — недвижимое имущество (ПЛЕЙСХОЛДЕР)"
@@ -165,7 +161,7 @@ sections:
       - { name: ownershipShare, type: STRING, required: false }
 
   - key: VEHICLES
-    order: 14
+    order: 13
     repeatable: true
     mandatory: false
     statutoryBasis: "ст. 213.4 127-ФЗ — транспортные средства (ПЛЕЙСХОЛДЕР)"
@@ -177,7 +173,7 @@ sections:
       - { name: regNumber, type: STRING,  required: false }
 
   - key: COURT_PROCEEDINGS
-    order: 15
+    order: 14
     repeatable: true
     mandatory: false
     statutoryBasis: "ст. 213.4 127-ФЗ — судебные производства (ПЛЕЙСХОЛДЕР)"
@@ -188,7 +184,7 @@ sections:
       - { name: status,     type: STRING, required: false }
 
   - key: ENFORCEMENT_PROCEEDINGS
-    order: 16
+    order: 15
     repeatable: true
     mandatory: false
     statutoryBasis: "ст. 69.1 229-ФЗ, ст. 213.4 127-ФЗ — исполнительные производства (ПЛЕЙСХОЛДЕР)"

@@ -590,6 +590,43 @@ button:disabled {
   max-width: 24rem;
 }
 
+/* Honest heads-up when a step's answers can put the case outside what the app handles alone. */
+.section-caution {
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  border-radius: 1rem;
+  padding: 0.7rem 1rem;
+  margin: 0;
+  max-width: 26rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  text-align: left;
+}
+
+/* Collapsed how-to on a step (e.g. pulling your debts from the credit bureaus). */
+.section-help {
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 1rem;
+  padding: 0.8rem 1rem;
+  max-width: 26rem;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.section-help-steps {
+  margin: 0.6rem 0 0;
+  padding-left: 1.2rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.section-help-steps li + li {
+  margin-top: 0.45rem;
+}
+
 /* --- Documents ------------------------------------------------------------------ */
 
 .docs-missing {

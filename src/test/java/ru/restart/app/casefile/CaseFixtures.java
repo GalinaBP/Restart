@@ -41,17 +41,17 @@ public final class CaseFixtures {
                  "position": "менеджер"}""");
         sections.put(SectionKey.MONTHLY_INCOME, """
                 {"amount": 85000.50, "source": "заработная плата"}""");
+        sections.put(SectionKey.OTHER_INCOME, """
+                [{"source": "сдача комнаты в аренду", "amount": 15000}]""");
         sections.put(SectionKey.MARITAL_STATUS, """
-                {"status": "не замужем", "hasMarriageContract": false}""");
+                {"status": "не замужем"}""");
         sections.put(SectionKey.CREDITORS, """
                 [{"name": "ПАО «Банк Восход»", "inn": "7707083893",
                   "address": "г. Москва, ул. Банковская, д. 3",
-                  "debtAmount": 1000000, "debtType": "кредитный договор"},
+                  "debtAmount": 1000000, "debtType": "потребительский кредит",
+                  "overdueSinceDate": "2026-02-01"},
                  {"name": "МФО «Деньги-Быстро»",
                   "address": "г. Тверь, пр-т Займов, д. 7", "debtAmount": 250000.50}]""");
-        sections.put(SectionKey.DEBTS, """
-                [{"creditorName": "ПАО «Банк Восход»", "amount": 1000000,
-                  "overdueSinceDate": "2026-02-01", "type": "потребительский кредит"}]""");
         return sections;
     }
 

@@ -63,7 +63,7 @@ describe('DocumentsPage', () => {
     expect(await screen.findByText('Почти готово! Осталось дозаполнить:')).toBeInTheDocument();
     const passportLink = screen.getByRole('link', { name: /Паспорт — Дата выдачи/ });
     expect(passportLink).toHaveAttribute('href', '/journey/PASSPORT');
-    expect(screen.getByRole('link', { name: /Кому вы должны.*запись № 2/ }))
+    expect(screen.getByRole('link', { name: /Кому и сколько вы должны.*запись № 2/ }))
       .toHaveAttribute('href', '/journey/CREDITORS');
 
     // The link leads straight to the step screen:

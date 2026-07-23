@@ -204,6 +204,16 @@ export default function SectionPage() {
       <Link to="/journey" className="check-back">← К списку шагов</Link>
       <h1 className="check-question">{label.title}</h1>
       {label.hint && <p className="check-hint">{label.hint}</p>}
+      {label.caution && <p className="section-caution" role="note">{label.caution}</p>}
+      {label.help && (
+        <details className="check-fact section-help">
+          <summary>{label.help.summary}</summary>
+          <ol className="section-help-steps">
+            {label.help.steps.map((step) => <li key={step}>{step}</li>)}
+          </ol>
+          {label.help.note && <p>{label.help.note}</p>}
+        </details>
+      )}
       {saved && issues.length > 0 && (
         <p className="section-saved-note" role="status">
           Сохранили! Осталось поправить пару мест — они подсвечены ниже.
