@@ -22,23 +22,17 @@ public final class SampleModels {
         model.put("applicant", applicant());
         model.put("creditorCount", "2");
         model.put("totalDebt", "1 250 000,00");
+        // One entry per debt: who is owed, how much, and since when it went unpaid — the merged
+        // CREDITORS step (formerly CREDITORS + DEBTS, which asked for the same facts twice).
         model.put("creditors", List.of(
                 Map.of("index", "1", "name", "ПАО «Банк Восход»", "inn", "7707083893",
                         "address", "г. Москва, ул. Банковская, д. 3",
-                        "debtAmount", "1 000 000,00", "debtType", "кредитный договор"),
+                        "debtAmount", "1 000 000,00", "debtType", "потребительский кредит",
+                        "overdueSinceDate", "01.02.2026"),
                 Map.of("index", "2", "name", "МФО «Деньги-Быстро»", "inn", "500100732259",
                         "address", "г. Тверь, пр-т Займов, д. 7",
-                        "debtAmount", "250 000,00", "debtType", "договор микрозайма")));
-        model.put("debts", List.of(
-                Map.of("index", "1", "creditorName", "ПАО «Банк Восход»",
-                        "amount", "1 000 000,00", "overdueSinceDate", "01.02.2026",
-                        "type", "потребительский кредит"),
-                Map.of("index", "2", "creditorName", "МФО «Деньги-Быстро»",
-                        "amount", "250 000,00", "overdueSinceDate", "15.03.2026",
-                        "type", "микрозаём")));
-        model.put("propertyItems", List.of(
-                Map.of("index", "1", "description", "Ноутбук Apple MacBook Air 13",
-                        "estimatedValue", "60 000,00")));
+                        "debtAmount", "250 000,00", "debtType", "договор микрозайма",
+                        "overdueSinceDate", "15.03.2026")));
         // The narrow ICP has neither real estate nor vehicles — templates must render the
         // "отсутствует" branches, so the reference case keeps these lists empty on purpose.
         model.put("realEstate", List.of());
@@ -47,6 +41,9 @@ public final class SampleModels {
                 Map.of("index", "1", "bankName", "ПАО «Банк Восход»",
                         "accountNumber", "40817•••1234", "balance", "3 500,00")));
         model.put("monthlyIncome", Map.of("amount", "85 000,00", "source", "заработная плата"));
+        model.put("otherIncome", List.of(
+                Map.of("index", "1", "source", "сдача комнаты в аренду", "amount", "15 000,00")));
+        model.put("totalIncome", "100 000,00");
         return model;
     }
 

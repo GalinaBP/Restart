@@ -5,14 +5,20 @@
 Должник: {{> partials/applicant}}
 
 Обязательства:
-{{#debts}}
-   {{index}}. {{creditorName}} — {{amount}} руб.
-      Вид обязательства: {{type}}; просрочка с: {{overdueSinceDate}}
-{{/debts}}
-{{^debts}}
+{{#creditors}}
+   {{index}}. {{name}} — {{debtAmount}} руб.
+      Вид обязательства: {{debtType}}; просрочка с: {{overdueSinceDate}}
+{{/creditors}}
+{{^creditors}}
    Сведения о задолженности не заполнены.
-{{/debts}}
+{{/creditors}}
 
 Итого: {{totalDebt}} руб.
-Ежемесячный доход должника: {{monthlyIncome.amount}} руб. ({{monthlyIncome.source}}).
+
+Доходы должника:
+   Основной доход: {{monthlyIncome.amount}} руб. ({{monthlyIncome.source}}).
+{{#otherIncome}}
+   Иной доход: {{amount}} руб. ({{source}}).
+{{/otherIncome}}
+   Всего в месяц: {{totalIncome}} руб.
 {{> partials/signature}}

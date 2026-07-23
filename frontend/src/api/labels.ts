@@ -10,6 +10,14 @@ export interface SectionLabel {
   hint?: string;
   /** What one entry is called in a repeatable section: «Добавить кредитора». */
   entryName?: string;
+  /**
+   * Honest heads-up on a step where some answers put the case outside what this app can handle
+   * on its own (the ICP is an unmarried debtor with no property or business). Always visible —
+   * the user should see it before answering, not after.
+   */
+  caution?: string;
+  /** Collapsed how-to, opened on tap: title, numbered steps, and a closing note. */
+  help?: { summary: string; steps: string[]; note?: string };
 }
 
 export const SECTION_LABELS: Record<string, SectionLabel> = {
@@ -18,42 +26,53 @@ export const SECTION_LABELS: Record<string, SectionLabel> = {
   REGISTRATION_ADDRESS: { title: 'Где вы прописаны' },
   CONTACT_INFO: { title: 'Как с вами связаться' },
   EMPLOYMENT: { title: 'Работа' },
-  MONTHLY_INCOME: { title: 'Доход в месяц' },
-  MARITAL_STATUS: { title: 'Семейное положение' },
+  MONTHLY_INCOME: {
+    title: 'Доход в месяц',
+    hint: 'Ваш основной доход. Другие доходы — на следующем шаге.',
+  },
+  OTHER_INCOME: {
+    title: 'Другие доходы',
+    hint: 'Всё, что приходит помимо основного дохода: аренда, подработка, алименты, пособия. Если таких доходов нет — просто сохраните пустой список.',
+    entryName: 'Добавить доход',
+  },
+  MARITAL_STATUS: {
+    title: 'Семейное положение',
+    caution: 'Сервис рассчитан на тех, кто не состоит в браке. Если вы замужем или женаты, часть имущества считается общей — такое дело почти всегда требует юриста, и мы честно об этом скажем.',
+  },
   DEPENDENTS: {
     title: 'Кто на вашем обеспечении',
     hint: 'Дети или другие близкие, которых вы содержите. Если таких нет — просто сохраните пустой список.',
     entryName: 'Добавить человека',
   },
   CREDITORS: {
-    title: 'Кому вы должны',
-    hint: 'Каждый банк, МФО или человек, которому вы должны. Ничего не пропускайте — это важно.',
-    entryName: 'Добавить кредитора',
-  },
-  DEBTS: {
-    title: 'Ваши долги',
-    hint: 'По каждому долгу — сумма и с какого момента не получается платить.',
+    title: 'Кому и сколько вы должны',
+    hint: 'Каждый банк, МФО или человек, которому вы должны, — с суммой и датой, с которой платить не получается. Ничего не пропускайте: долг, о котором вы не сказали, не спишется.',
     entryName: 'Добавить долг',
+    help: {
+      summary: 'Как узнать, какие кредиты оформлены на ваше имя?',
+      steps: [
+        'Зайдите на Госуслуги и запросите перечень бюро кредитных историй (БКИ), где хранятся ваши данные.',
+        'Откройте официальный сайт каждого указанного БКИ, войдите через Госуслуги и закажите кредитный отчёт.',
+      ],
+      note: 'В отчёте будут действующие кредиты, займы, кредитные карты, остатки задолженности и просрочки. Проверьте все БКИ из списка — данные могут храниться в разных бюро. В каждом БКИ отчёт бесплатный два раза в год, дальше может быть платно.',
+    },
   },
   BANK_ACCOUNTS: {
     title: 'Счета и карты',
     hint: 'Все счета в банках, даже пустые.',
     entryName: 'Добавить счёт',
   },
-  PROPERTY: {
-    title: 'Ценные вещи',
-    hint: 'Техника, украшения и другое ценное. Обычные личные вещи указывать не нужно.',
-    entryName: 'Добавить вещь',
-  },
   REAL_ESTATE: {
     title: 'Недвижимость',
     hint: 'Если недвижимости нет — просто сохраните пустой список.',
     entryName: 'Добавить объект',
+    caution: 'Сервис рассчитан на тех, у кого нет недвижимости, кроме единственного жилья. Если объект здесь появится, дело, скорее всего, придётся вести с юристом.',
   },
   VEHICLES: {
     title: 'Транспорт',
     hint: 'Если транспорта нет — просто сохраните пустой список.',
     entryName: 'Добавить транспорт',
+    caution: 'Сервис рассчитан на тех, у кого нет машины или другого транспорта: его почти всегда включают в конкурсную массу и продают. Если транспорт есть — лучше обсудить дело с юристом.',
   },
   COURT_PROCEEDINGS: {
     title: 'Суды',
@@ -94,8 +113,9 @@ const FIELD_LABELS: Record<string, string> = {
   'EMPLOYMENT.position': 'Кем (если работаете)',
   'MONTHLY_INCOME.amount': 'Сколько получаете в месяц, ₽',
   'MONTHLY_INCOME.source': 'Откуда этот доход — зарплата, пособие…',
+  'OTHER_INCOME.source': 'Откуда доход — аренда, подработка…',
+  'OTHER_INCOME.amount': 'Сколько в месяц, ₽',
   'MARITAL_STATUS.status': 'Ваше семейное положение',
-  'MARITAL_STATUS.hasMarriageContract': 'Есть брачный договор',
   'DEPENDENTS.fullName': 'ФИО',
   'DEPENDENTS.birthDate': 'Дата рождения',
   'DEPENDENTS.relation': 'Кем приходится — сын, дочь…',
@@ -104,15 +124,10 @@ const FIELD_LABELS: Record<string, string> = {
   'CREDITORS.address': 'Адрес кредитора (есть в договоре)',
   'CREDITORS.debtAmount': 'Сколько должны, ₽',
   'CREDITORS.debtType': 'Что это — кредит, карта, микрозаём…',
-  'DEBTS.creditorName': 'Кому должны',
-  'DEBTS.amount': 'Сумма, ₽',
-  'DEBTS.overdueSinceDate': 'С какого числа не получается платить',
-  'DEBTS.type': 'Что это за долг',
+  'CREDITORS.overdueSinceDate': 'С какого числа не получается платить',
   'BANK_ACCOUNTS.bankName': 'Банк',
   'BANK_ACCOUNTS.accountNumber': 'Номер счёта',
   'BANK_ACCOUNTS.balance': 'Сколько на счёте, ₽',
-  'PROPERTY.description': 'Что это',
-  'PROPERTY.estimatedValue': 'Сколько примерно стоит, ₽',
   'REAL_ESTATE.type': 'Что это — квартира, дом, участок…',
   'REAL_ESTATE.address': 'Адрес',
   'REAL_ESTATE.area': 'Площадь, м²',

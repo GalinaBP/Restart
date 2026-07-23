@@ -67,6 +67,6 @@ describe('JourneyPage', () => {
       .toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Продолжить' }))
       .toHaveAttribute('href', '/journey/PASSPORT');
-    expect(screen.getByText('Кому вы должны')).toBeInTheDocument();
+    expect(screen.getByText('Кому и сколько вы должны')).toBeInTheDocument();
   });
 });

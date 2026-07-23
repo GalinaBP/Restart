@@ -56,12 +56,10 @@ public class CaseModelAssembler {
         model.put("court", Map.of("name", courts.courtFor(regionText).orElse(COURT_PLACEHOLDER)));
         model.put("applicant", applicant(data));
         creditors(data.get(SectionKey.CREDITORS), model);
-        model.put("debts", debts(data.get(SectionKey.DEBTS)));
-        model.put("propertyItems", propertyItems(data.get(SectionKey.PROPERTY)));
         model.put("realEstate", realEstate(data.get(SectionKey.REAL_ESTATE)));
         model.put("vehicles", vehicles(data.get(SectionKey.VEHICLES)));
         model.put("bankAccounts", bankAccounts(data.get(SectionKey.BANK_ACCOUNTS)));
-        model.put("monthlyIncome", monthlyIncome(data.get(SectionKey.MONTHLY_INCOME)));
+        income(data.get(SectionKey.MONTHLY_INCOME), data.get(SectionKey.OTHER_INCOME), model);
         return model;
     }
 
@@ -126,37 +124,13 @@ public class CaseModelAssembler {
             creditor.put("address", text(entry, "address"));
             creditor.put("debtAmount", money(entry.get("debtAmount")));
             creditor.put("debtType", orAbsent(text(entry, "debtType")));
+            creditor.put("overdueSinceDate", ruDateOrAbsent(text(entry, "overdueSinceDate")));
             creditors.add(creditor);
             total = total.add(entry.get("debtAmount").decimalValue());
         }
         model.put("creditors", creditors);
         model.put("creditorCount", String.valueOf(creditors.size()));
         model.put("totalDebt", formatMoney(total));
-    }
-
-    private List<Map<String, Object>> debts(JsonNode entries) {
-        List<Map<String, Object>> debts = new ArrayList<>();
-        for (JsonNode entry : iterate(entries)) {
-            Map<String, Object> debt = new HashMap<>();
-            debt.put("index", String.valueOf(debts.size() + 1));
-            debt.put("creditorName", text(entry, "creditorName"));
-            debt.put("amount", money(entry.get("amount")));
-            debt.put("overdueSinceDate", ruDateOrAbsent(text(entry, "overdueSinceDate")));
-            debt.put("type", orAbsent(text(entry, "type")));
-            debts.add(debt);
-        }
-        return debts;
-    }
-
-    private List<Map<String, Object>> propertyItems(JsonNode entries) {
-        List<Map<String, Object>> items = new ArrayList<>();
-        for (JsonNode entry : iterate(entries)) {
-            items.add(Map.of(
-                    "index", String.valueOf(items.size() + 1),
-                    "description", text(entry, "description"),
-                    "estimatedValue", moneyOrAbsent(entry.get("estimatedValue"))));
-        }
-        return items;
     }
 
     private List<Map<String, Object>> realEstate(JsonNode entries) {
@@ -198,10 +172,25 @@ public class CaseModelAssembler {
         return items;
     }
 
-    private Map<String, Object> monthlyIncome(JsonNode income) {
-        return Map.of(
-                "amount", money(income.get("amount")),
-                "source", text(income, "source"));
+    /**
+     * The main income plus any further sources (rent, side work, alimony…). {@code totalIncome} is
+     * their sum, so a document never asks the reader to add the figures up.
+     */
+    private void income(JsonNode monthly, JsonNode other, Map<String, Object> model) {
+        BigDecimal total = monthly.get("amount").decimalValue();
+        List<Map<String, Object>> otherIncome = new ArrayList<>();
+        for (JsonNode entry : iterate(other)) {
+            otherIncome.add(Map.of(
+                    "index", String.valueOf(otherIncome.size() + 1),
+                    "source", text(entry, "source"),
+                    "amount", money(entry.get("amount"))));
+            total = total.add(entry.get("amount").decimalValue());
+        }
+        model.put("monthlyIncome", Map.of(
+                "amount", money(monthly.get("amount")),
+                "source", text(monthly, "source")));
+        model.put("otherIncome", otherIncome);
+        model.put("totalIncome", formatMoney(total));
     }
 
     // --- value helpers ------------------------------------------------------------

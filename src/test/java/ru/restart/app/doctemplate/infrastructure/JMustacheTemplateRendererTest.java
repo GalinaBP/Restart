@@ -71,9 +71,9 @@ class JMustacheTemplateRendererTest {
 
         // The sample case (per ICP) has no real estate and no vehicles:
         assertThat(text)
-                .contains("Ноутбук Apple MacBook Air 13")
                 .contains("Отсутствует.")
-                .contains("Отсутствуют.");
+                .contains("Отсутствуют.")
+                .contains("ПАО «Банк Восход»");
     }
 
     @Test

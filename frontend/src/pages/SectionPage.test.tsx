@@ -33,6 +33,15 @@ const CREDITORS_SECTION = {
   issues: [],
 };
 
+const MARITAL_SECTION = {
+  key: 'MARITAL_STATUS',
+  order: 8,
+  repeatable: false,
+  fields: [{ name: 'status', type: 'STRING', required: true }],
+  data: null,
+  issues: [],
+};
+
 afterEach(() => {
   vi.unstubAllGlobals();
   localStorage.clear();
@@ -141,10 +150,40 @@ describe('SectionPage', () => {
     // The saved entry is prefilled:
     expect(await screen.findByDisplayValue('ПАО «Банк Восход»')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '+ Добавить кредитора' }));
+    await user.click(screen.getByRole('button', { name: '+ Добавить долг' }));
     expect(screen.getByText('№ 2')).toBeInTheDocument();
 
     await user.click(screen.getAllByRole('button', { name: 'Убрать' })[0]);
     expect(screen.queryByDisplayValue('ПАО «Банк Восход»')).not.toBeInTheDocument();
+  });
+
+  it('offers the credit-bureau how-to on the debts step', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/cases/current')) {
+        return new Response(JSON.stringify(CASE), { status: 200 });
+      }
+      return new Response(JSON.stringify(CREDITORS_SECTION), { status: 200 });
+    }));
+    renderAt('CREDITORS');
+
+    expect(await screen.findByText('Как узнать, какие кредиты оформлены на ваше имя?'))
+      .toBeInTheDocument();
+    expect(screen.getByText(/перечень бюро кредитных историй/)).toBeInTheDocument();
+    expect(screen.getByText(/бесплатный два раза в год/)).toBeInTheDocument();
+  });
+
+  it('warns on a step where the answer can put the case outside the service', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith('/cases/current')) {
+        return new Response(JSON.stringify(CASE), { status: 200 });
+      }
+      return new Response(JSON.stringify(MARITAL_SECTION), { status: 200 });
+    }));
+    renderAt('MARITAL_STATUS');
+
+    expect(await screen.findByRole('note'))
+      .toHaveTextContent('рассчитан на тех, кто не состоит в браке');
   });
 });

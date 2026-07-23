@@ -103,7 +103,7 @@ class SectionControllerTest {
     }
 
     @Test
-    void overviewListsAllSixteenSectionsInOrder() throws Exception {
+    void overviewListsEverySectionInOrder() throws Exception {
         BankruptcyCase existing = ownCase();
         when(sections.findByCaseId(existing.id())).thenReturn(java.util.List.of());
 
@@ -112,8 +112,8 @@ class SectionControllerTest {
                 .andExpect(jsonPath("$.length()").value(SectionKey.values().length))
                 .andExpect(jsonPath("$[0].key").value("PERSONAL_DETAILS"))
                 .andExpect(jsonPath("$[0].filled").value(false))
-                .andExpect(jsonPath("$[8].key").value("CREDITORS"))
-                .andExpect(jsonPath("$[8].repeatable").value(true));
+                .andExpect(jsonPath("$[9].key").value("CREDITORS"))
+                .andExpect(jsonPath("$[9].repeatable").value(true));
     }
 
     @Test
