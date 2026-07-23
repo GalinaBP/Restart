@@ -193,15 +193,19 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
 
         Map<String, Object> journey = journey();
         assertThat(journey.get("procedureType")).isEqualTo("REALIZATION");
-        assertThat((List<?>) journey.get("stages")).hasSize(9);
+        // 6 common + 3 realization branch + 2 common tail (AI-024); the other branches hidden:
+        assertThat((List<?>) journey.get("stages")).hasSize(11);
         assertThat(stage(journey, "PROPERTY_REALIZATION")).containsEntry("branch", "REALIZATION");
+        assertThat(stage(journey, "PROPERTY_INVENTORY")).containsEntry("branch", "REALIZATION");
     }
 
     @Test
     @Order(10)
     void finishingEveryStageLeavesNoCurrentStage() {
         put("/api/v1/cases/" + caseId + "/journey/COURT_DECISION", "{\"status\": \"DONE\"}");
+        put("/api/v1/cases/" + caseId + "/journey/PROPERTY_INVENTORY", "{\"status\": \"DONE\"}");
         put("/api/v1/cases/" + caseId + "/journey/PROPERTY_REALIZATION", "{\"status\": \"DONE\"}");
+        put("/api/v1/cases/" + caseId + "/journey/CREDITOR_PAYOUTS", "{\"status\": \"DONE\"}");
         put("/api/v1/cases/" + caseId + "/journey/CREDITOR_CLAIMS", "{\"status\": \"DONE\"}");
         ResponseEntity<Map> last = put("/api/v1/cases/" + caseId + "/journey/COMPLETION",
                 "{\"status\": \"DONE\", \"completedOn\": \"2026-12-01\"}");

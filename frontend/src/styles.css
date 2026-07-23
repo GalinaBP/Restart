@@ -650,6 +650,52 @@ a.procedure-stage:hover {
   line-height: 1.5;
 }
 
+/* Recording which procedure the court applied (AI-024). */
+.procedure-picker {
+  margin-top: 0.7rem;
+}
+
+.procedure-picker-lead {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.procedure-picker-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.procedure-picker-options .check-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+  text-align: left;
+}
+
+.procedure-picker-title {
+  font-weight: 600;
+}
+
+.procedure-picker-hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+/* Which procedure the journey is currently following. */
+.procedure-branch-note {
+  margin: 0;
+  color: var(--accent-from);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 /* What the filing costs, shown on the fees stage. */
 .procedure-fees {
   margin-top: 0.7rem;

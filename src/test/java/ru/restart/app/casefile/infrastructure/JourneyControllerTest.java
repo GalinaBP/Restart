@@ -184,9 +184,16 @@ class JourneyControllerTest {
                         .content("{\"procedureType\": \"REALIZATION\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.procedureType").value("REALIZATION"))
-                .andExpect(jsonPath("$.stages.length()").value(9))
-                .andExpect(jsonPath("$.stages[6].stage").value("PROPERTY_REALIZATION"))
-                .andExpect(jsonPath("$.stages[6].branch").value("REALIZATION"));
+                // 6 common + 3 realization branch + 2 common tail (AI-024):
+                .andExpect(jsonPath("$.stages.length()").value(11))
+                .andExpect(jsonPath("$.stages[*].stage")
+                        .value(org.hamcrest.Matchers.hasItems("PROPERTY_INVENTORY",
+                                "PROPERTY_REALIZATION", "CREDITOR_PAYOUTS")))
+                // ...and none of the other two branches leaks in:
+                .andExpect(jsonPath("$.stages[?(@.stage == 'RESTRUCTURING_PLAN')]").isEmpty())
+                .andExpect(jsonPath("$.stages[?(@.stage == 'SETTLEMENT_AGREEMENT')]").isEmpty())
+                .andExpect(jsonPath("$.stages[?(@.branch == 'REALIZATION')].stage")
+                        .value(org.hamcrest.Matchers.hasItem("PROPERTY_REALIZATION")));
     }
 
     @Test

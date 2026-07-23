@@ -42,16 +42,23 @@ const JOURNEY_COMMON = {
 /** The court chose REALIZATION — its branch stage appears, the other two branches don't. */
 const JOURNEY_REALIZATION = {
   procedureType: 'REALIZATION',
-  currentStage: 'PROPERTY_REALIZATION',
+  currentStage: 'PROPERTY_INVENTORY',
   stages: [
     ...JOURNEY_COMMON.stages.slice(0, 6).map((s) => ({ ...s, status: 'DONE', current: false })),
-    { stage: 'PROPERTY_REALIZATION', order: 7, branch: 'REALIZATION', status: 'IN_PROGRESS',
+    // The realization branch is its own three-stage sequence (AI-024):
+    { stage: 'PROPERTY_INVENTORY', order: 10, branch: 'REALIZATION', status: 'IN_PROGRESS',
       startedOn: null, completedOn: null, note: null,
-      current: true, editable: true, statutoryBasis: 'ст. 213.24–213.27 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'CREDITOR_CLAIMS', order: 8, branch: null, status: 'NOT_STARTED',
+      current: true, editable: true, statutoryBasis: 'ст. 213.26 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
+    { stage: 'PROPERTY_REALIZATION', order: 11, branch: 'REALIZATION', status: 'NOT_STARTED',
+      startedOn: null, completedOn: null, note: null,
+      current: false, editable: true, statutoryBasis: 'ст. 213.26 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
+    { stage: 'CREDITOR_PAYOUTS', order: 12, branch: 'REALIZATION', status: 'NOT_STARTED',
+      startedOn: null, completedOn: null, note: null,
+      current: false, editable: true, statutoryBasis: 'ст. 213.27 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
+    { stage: 'CREDITOR_CLAIMS', order: 20, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
       current: false, editable: true, statutoryBasis: 'ст. 213.7, 213.8 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'COMPLETION', order: 9, branch: null, status: 'NOT_STARTED',
+    { stage: 'COMPLETION', order: 21, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
       current: false, editable: true, statutoryBasis: 'ст. 213.28, 213.30 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
   ],
@@ -270,9 +277,37 @@ describe('ProcedurePage', () => {
     ]);
     renderAtProcedure();
 
-    expect(await screen.findByText('Продажа имущества')).toBeInTheDocument();
+    // The realization branch's own stages appear...
+    expect(await screen.findByText('Опись имущества')).toBeInTheDocument();
+    expect(screen.getByText('Продажа имущества')).toBeInTheDocument();
+    expect(screen.getByText('Расчёты с кредиторами')).toBeInTheDocument();
+    // ...and neither of the other two branches leaks in:
     expect(screen.queryByText('План выплат')).not.toBeInTheDocument();
-    expect(screen.queryByText('Договорённость с кредиторами')).not.toBeInTheDocument();
+    expect(screen.queryByText('Утверждение соглашения')).not.toBeInTheDocument();
+    // The chosen procedure is named at the top:
+    expect(screen.getByText(/Ваша процедура: Реализация имущества/)).toBeInTheDocument();
+  });
+
+  it('records the court procedure from the decision stage and reveals that branch', async () => {
+    const calls = stubFetch([
+      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
+      { match: (url, init) => url.endsWith('/procedure-type') && init?.method === 'PUT',
+        status: 200, body: JOURNEY_REALIZATION },
+      // First load: common path, court not yet decided. After the PUT the page re-renders from
+      // the response, so this only needs to answer the initial GET.
+      { match: (url) => url.endsWith('/case-1/journey'), status: 200, body: JOURNEY_COMMON },
+    ]);
+    const user = userEvent.setup();
+    renderAtProcedure();
+
+    await user.click(await screen.findByRole('button', { name: /Решение суда/ }));
+    await user.click(screen.getByRole('button', { name: /Реализация имущества/ }));
+
+    const put = calls.find((c) => c.method === 'PUT' && c.url.endsWith('/procedure-type'));
+    expect(put).toBeDefined();
+    expect(JSON.parse(put!.body as string)).toEqual({ procedureType: 'REALIZATION' });
+    // The response's branch is now on screen:
+    expect(await screen.findByText('Опись имущества')).toBeInTheDocument();
   });
 
   it('explains a BLOCKED stage without it reading like an error', async () => {

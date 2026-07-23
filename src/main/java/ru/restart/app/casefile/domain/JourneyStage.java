@@ -16,8 +16,14 @@ public enum JourneyStage {
     FEES_AND_DEPOSIT,
     FILING,
     COURT_DECISION,
+    // One branch per procedure the court can apply (AI-024); only one is ever visible at a time.
     RESTRUCTURING_PLAN,
+    RESTRUCTURING_PLAN_APPROVAL,
+    RESTRUCTURING_EXECUTION,
+    PROPERTY_INVENTORY,
     PROPERTY_REALIZATION,
+    CREDITOR_PAYOUTS,
+    SETTLEMENT_TERMS,
     SETTLEMENT_AGREEMENT,
     CREDITOR_CLAIMS,
     COMPLETION
