@@ -11,8 +11,11 @@ import ru.restart.app.casefile.domain.CaseSectionRepository;
 import ru.restart.app.casefile.domain.JourneyRegistry;
 import ru.restart.app.casefile.domain.JourneyStage;
 import ru.restart.app.casefile.domain.ProcedureType;
+import ru.restart.app.casefile.domain.SectionKey;
 import ru.restart.app.casefile.domain.StageDefinition;
 import ru.restart.app.casefile.domain.StageStatus;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -45,17 +48,20 @@ public class JourneyService {
     private final CaseSectionRepository sections;
     private final CaseDocumentRepository documents;
     private final JourneyRegistry registry;
+    private final ObjectMapper objectMapper;
     private final Clock clock;
 
     public JourneyService(CaseService cases, CaseRepository caseRepository,
                           CaseJourneyStageRepository stages, CaseSectionRepository sections,
-                          CaseDocumentRepository documents, JourneyRegistry registry, Clock clock) {
+                          CaseDocumentRepository documents, JourneyRegistry registry,
+                          ObjectMapper objectMapper, Clock clock) {
         this.cases = cases;
         this.caseRepository = caseRepository;
         this.stages = stages;
         this.sections = sections;
         this.documents = documents;
         this.registry = registry;
+        this.objectMapper = objectMapper;
         this.clock = clock;
     }
 
@@ -132,9 +138,28 @@ public class JourneyService {
         return switch (stage) {
             case SCREENING -> StageStatus.DONE;
             case DOCUMENT_PREPARATION -> documentPreparationStatus(caseId);
+            case FEES_AND_DEPOSIT -> paymentStatus(caseId);
             default -> throw new IllegalStateException(
                     "Stage " + stage + " is marked derived but has no derivation rule");
         };
+    }
+
+    /** Both payments recorded → done; one of them → in progress (AI-021). */
+    private StageStatus paymentStatus(UUID caseId) {
+        JsonNode payments = sections.findByCaseIdAndKey(caseId, SectionKey.PAYMENTS)
+                .map(section -> objectMapper.readTree(section.payloadJson()))
+                .orElse(null);
+        boolean duty = hasText(payments, "stateDutyPaidOn");
+        boolean deposit = hasText(payments, "depositPaidOn");
+        if (duty && deposit) {
+            return StageStatus.DONE;
+        }
+        return duty || deposit ? StageStatus.IN_PROGRESS : StageStatus.NOT_STARTED;
+    }
+
+    private static boolean hasText(JsonNode node, String field) {
+        JsonNode value = node == null ? null : node.get(field);
+        return value != null && !value.isNull() && !value.asString().isBlank();
     }
 
     /** Done once the filing documents exist and none of them is outdated (AI-008). */

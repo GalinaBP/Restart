@@ -64,7 +64,7 @@ class DocumentGenerationServiceTest {
                 new YamlSectionRegistry(), objectMapper);
         CaseModelAssembler assembler = new CaseModelAssembler(objectMapper,
                 Clock.fixed(Instant.parse("2026-07-17T10:00:00Z"), ZoneOffset.UTC),
-                new YamlCourtDirectory());
+                new YamlCourtDirectory(), FeeScheduleFixture.real());
         service = new DocumentGenerationService(caseService, validationService, sections,
                 documents, assembler, templates,
                 List.of(new TxtDocumentWriter(), new DocxDocumentWriter(), new PdfDocumentWriter()));
@@ -153,7 +153,7 @@ class DocumentGenerationServiceTest {
 
         List<CaseDocument> second = service.generate(existingCase.id());
 
-        assertThat(documents.findByCaseId(existingCase.id())).hasSize(21);
+        assertThat(documents.findByCaseId(existingCase.id())).hasSize(DocumentType.values().length * 3);
         assertThat(second).extracting(CaseDocument::id)
                 .containsExactlyInAnyOrderElementsOf(first.stream().map(CaseDocument::id).toList());
         CaseDocument regeneratedTxt = second.stream()
@@ -176,7 +176,7 @@ class DocumentGenerationServiceTest {
                 entries.put(entry.getName(), in.readAllBytes());
             }
         }
-        assertThat(entries).hasSize(21);
+        assertThat(entries).hasSize(DocumentType.values().length * 3);
         assertThat(entries.keySet())
                 .contains("bankruptcy_application.docx", "bankruptcy_application.txt",
                         "creditor_list.docx", "filing_checklist.txt");

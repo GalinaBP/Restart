@@ -20,9 +20,10 @@ const JOURNEY_COMMON = {
     { stage: 'MANAGER_SELECTION', order: 3, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
       current: true, editable: true, statutoryBasis: 'ст. 213.4, 213.9 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
+    // Derived from the payments step since AI-021, so the backend sends editable: false.
     { stage: 'FEES_AND_DEPOSIT', order: 4, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
-      current: false, editable: true, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
+      current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
     { stage: 'FILING', order: 5, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
       current: false, editable: true, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
@@ -56,12 +57,38 @@ const JOURNEY_REALIZATION = {
   ],
 };
 
+/** Amounts are unreviewed placeholders in fees.yml, so allConfirmed is false (AI-021). */
+const FEES = {
+  lines: [
+    { item: 'STATE_DUTY', amount: 300, confirmed: false, statutoryBasis: 'ст. 333.21 НК РФ (ПЛЕЙСХОЛДЕР)' },
+    { item: 'MANAGER_DEPOSIT', amount: 25000, confirmed: false, statutoryBasis: 'ст. 20.6 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
+  ],
+  total: 25300,
+  allConfirmed: false,
+  effectiveFrom: '2026-06-21',
+};
+
+/**
+ * Formats money the way the component does. ru-RU groups thousands with a non-breaking space,
+ * which Testing Library collapses to an ordinary one in the DOM text but NOT in the string it is
+ * matched against — so the expectation has to be normalised here or nothing ever matches.
+ */
+function money(value: number): string {
+  const formatted = value.toLocaleString('ru-RU',
+    { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return `${formatted} ₽`.replace(/[\u00a0\u202f]/g, ' ');
+}
+
 function stubFetch(routes: { match: (url: string, init?: RequestInit) => boolean; status: number; body: unknown }[]) {
   const calls: { url: string; method: string; body?: string }[] = [];
+  // The page loads the journey and the fees together; tests that don't care about money get the
+  // fee route for free, and can still override it by declaring their own first.
+  const withFees = [...routes,
+    { match: (url: string) => url.endsWith('/fees'), status: 200, body: FEES }];
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     calls.push({ url, method: init?.method ?? 'GET', body: init?.body as string | undefined });
-    const match = routes.find((r) => r.match(url, init));
+    const match = withFees.find((r) => r.match(url, init));
     if (!match) throw new Error(`Unexpected fetch: ${init?.method ?? 'GET'} ${url}`);
     return new Response(JSON.stringify(match.body), { status: match.status });
   }));
@@ -93,6 +120,39 @@ function stageRow(container: HTMLElement, index: number): HTMLElement {
 }
 
 describe('ProcedurePage', () => {
+  it('shows what the filing costs, flagged as a draft while amounts are unreviewed', async () => {
+    stubFetch([
+      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
+      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
+    ]);
+    renderAtProcedure();
+
+    expect(await screen.findByText(money(300))).toBeInTheDocument();
+    expect(screen.getByText(money(25000))).toBeInTheDocument();
+    expect(screen.getByText(money(25300))).toBeInTheDocument();
+    // Unconfirmed figures must never look authoritative — the user might go and pay them.
+    // (Queried by text, not role: the page-level «Черновик» badge is a note too.)
+    expect(screen.getByText(/Суммы черновые/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Отметить оплату/ }))
+      .toHaveAttribute('href', '/journey/PAYMENTS');
+  });
+
+  it('drops the draft warning once the amounts are confirmed', async () => {
+    stubFetch([
+      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
+      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
+      { match: (url) => url.endsWith('/fees'), status: 200, body: {
+        ...FEES,
+        lines: FEES.lines.map((l) => ({ ...l, confirmed: true })),
+        allConfirmed: true,
+      } },
+    ]);
+    renderAtProcedure();
+
+    expect(await screen.findByText(money(25300))).toBeInTheDocument();
+    expect(screen.queryByText(/Суммы черновые/)).not.toBeInTheDocument();
+  });
+
   it('sends the manager stage on to the step that collects the СРО', async () => {
     stubFetch([
       { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },

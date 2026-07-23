@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
 import { currentCase } from '../api/cases';
 import {
+  getFees,
   getJourney,
   recordStage,
+  type FeeScheduleView,
   type JourneyStageKey,
   type JourneyStageView,
   type JourneyView,
@@ -15,26 +17,27 @@ import { BLOCKED_EXPLANATION, STATUS_LABELS, stageLabel } from '../api/labels';
 
 /**
  * The stage overview (backlog AI-019): every stage of the court procedure in order, with the
- * current one highlighted and a plain-language description of each. Two stages are derived from
- * the case data itself (screening, document preparation) and cannot be recorded by hand — the
- * backend refuses that with a 409, and this screen never offers the control in the first place.
- * DOCUMENT_PREPARATION already has a screen of its own (the questionnaire at `/journey`) so it
- * links straight there; every other stage has none yet, so it expands in place instead of
- * dead-ending: a short description plus one form to record where it stands.
+ * current one highlighted and a plain-language description of each. Some stages are derived from
+ * the case data itself — screening, document preparation, and since AI-021 the fees stage, which
+ * follows what is recorded on the payments step — and cannot be recorded by hand: the backend
+ * refuses that with a 409, and this screen never offers the control in the first place.
  */
+
 /**
  * Stages that already have a screen of their own. The later tickets of this epic
- * (AI-021…AI-029) add theirs here as they land; a stage missing from this map simply expands in
+ * (AI-022…AI-029) add theirs here as they land; a stage missing from this map simply expands in
  * place instead of dead-ending on a click.
  */
 const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: string }>> = {
   MANAGER_SELECTION: { route: '/journey/MANAGER_SRO', label: 'Указать организацию' },
+  FEES_AND_DEPOSIT: { route: '/journey/PAYMENTS', label: 'Отметить оплату' },
 };
 
 export default function ProcedurePage() {
   const navigate = useNavigate();
   const [caseId, setCaseId] = useState<string | null>(null);
   const [journey, setJourney] = useState<JourneyView | null>(null);
+  const [fees, setFees] = useState<FeeScheduleView | null>(null);
   const [expanded, setExpanded] = useState<JourneyStageKey | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -49,8 +52,12 @@ export default function ProcedurePage() {
         return;
       }
       setCaseId(existing.id);
-      const view = await getJourney(existing.id);
+      const [view, feeSchedule] = await Promise.all([
+        getJourney(existing.id),
+        getFees(existing.id),
+      ]);
       setJourney(view);
+      setFees(feeSchedule);
       // Open the one stage that needs attention right now, when it has something to fill in.
       const current = view.stages.find((s) => s.current && s.editable);
       if (current) setExpanded(current.stage);
@@ -130,6 +137,7 @@ export default function ProcedurePage() {
             expanded={expanded === view.stage}
             onToggle={() => setExpanded(expanded === view.stage ? null : view.stage)}
             onSave={(input) => save(view.stage, input)}
+            fees={fees}
           />
         ))}
       </ul>
@@ -142,11 +150,13 @@ function StageCard({
   expanded,
   onToggle,
   onSave,
+  fees,
 }: {
   view: JourneyStageView;
   expanded: boolean;
   onToggle: () => void;
   onSave: (input: RecordStageInput) => Promise<void>;
+  fees: FeeScheduleView | null;
 }) {
   const label = stageLabel(view.stage);
   const status = STATUS_LABELS[view.status];
@@ -181,12 +191,17 @@ function StageCard({
     );
   }
 
-  // Derived stages (screening) mirror the case data — nothing here for the user to set by hand.
+  // Derived stages mirror the case data — nothing here to set by hand — but some still have a
+  // screen that feeds them: «Пошлина и депозит» follows what the payments step records.
   if (!view.editable) {
     return (
       <li className={cardClass}>
         {head}
         <p className="check-hint procedure-stage-desc">{label.description}</p>
+        {view.stage === 'FEES_AND_DEPOSIT' && fees && <FeeBreakdown fees={fees} />}
+        {detail && (
+          <Link to={detail.route} className="procedure-detail-link">{detail.label} →</Link>
+        )}
       </li>
     );
   }
@@ -207,6 +222,47 @@ function StageCard({
         </div>
       )}
     </li>
+  );
+}
+
+/**
+ * What the filing costs (backlog AI-021). While any amount is still an unreviewed placeholder the
+ * figures are labelled a draft and the user is sent to the court's own site — this is the one
+ * screen where a wrong number costs real money.
+ */
+function FeeBreakdown({ fees }: { fees: FeeScheduleView }) {
+  const money = (value: number) =>
+    value.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const line = (item: 'STATE_DUTY' | 'MANAGER_DEPOSIT') =>
+    fees.lines.find((l) => l.item === item);
+  const duty = line('STATE_DUTY');
+  const deposit = line('MANAGER_DEPOSIT');
+
+  return (
+    <div className="procedure-fees">
+      <dl className="procedure-fees-list">
+        {duty && (
+          <>
+            <dt>Пошлина</dt>
+            <dd>{money(duty.amount)} ₽</dd>
+          </>
+        )}
+        {deposit && (
+          <>
+            <dt>Депозит на управляющего</dt>
+            <dd>{money(deposit.amount)} ₽</dd>
+          </>
+        )}
+        <dt className="procedure-fees-total">Всего</dt>
+        <dd className="procedure-fees-total">{money(fees.total)} ₽</dd>
+      </dl>
+      {!fees.allConfirmed && (
+        <p className="procedure-fees-draft" role="note">
+          Суммы черновые — их ещё проверяет юрист. Перед оплатой сверьте суммы и реквизиты
+          на сайте вашего суда.
+        </p>
+      )}
+    </div>
   );
 }
 

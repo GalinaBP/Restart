@@ -58,8 +58,29 @@ export interface RecordStageInput {
   note: string | null;
 }
 
+/** What the filing costs (backlog AI-021); amounts come from the backend's fees.yml. */
+export interface FeeLineView {
+  item: 'STATE_DUTY' | 'MANAGER_DEPOSIT';
+  amount: number;
+  /** false while the amount is an unreviewed placeholder — must be shown as a draft. */
+  confirmed: boolean;
+  /** For the lawyer review only — never shown to the user. */
+  statutoryBasis: string;
+}
+
+export interface FeeScheduleView {
+  lines: FeeLineView[];
+  total: number;
+  allConfirmed: boolean;
+  effectiveFrom: string;
+}
+
 export function getJourney(caseId: string): Promise<JourneyView> {
   return request<JourneyView>(`/cases/${caseId}/journey`);
+}
+
+export function getFees(caseId: string): Promise<FeeScheduleView> {
+  return request<FeeScheduleView>(`/cases/${caseId}/fees`);
 }
 
 /** Records where an editable stage stands. 409s if the stage is derived. */

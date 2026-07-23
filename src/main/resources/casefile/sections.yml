@@ -201,6 +201,21 @@ sections:
   # ##  ПЛЕЙСХОЛДЕР: сам механизм (выбирает должник или суд назначает СРО случайным образом),
   # ##  обязательный состав сведений и необходимость отдельного ходатайства — вопросы юристу,
   # ##  см. docs/lawyer-review.md, раздел 2а.
+  # Proof that the duty and the deposit were paid (backlog AI-021). Optional on purpose: the
+  # documents are prepared BEFORE paying, so a missing payment must not block generation — it
+  # only holds up filing. The journey's FEES_AND_DEPOSIT stage reads its status from this
+  # section, which is why nothing else records payment state.
+  - key: PAYMENTS
+    order: 17
+    repeatable: false
+    mandatory: false
+    statutoryBasis: "ст. 213.4 127-ФЗ, ст. 333.21 НК РФ — уплата госпошлины и внесение депозита (ПЛЕЙСХОЛДЕР)"
+    fields:
+      - { name: stateDutyPaidOn,     type: DATE,   required: false }
+      - { name: stateDutyReference,  type: STRING, required: false }
+      - { name: depositPaidOn,       type: DATE,   required: false }
+      - { name: depositReference,    type: STRING, required: false }
+
   - key: MANAGER_SRO
     order: 16
     repeatable: false

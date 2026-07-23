@@ -22,5 +22,6 @@ public enum SectionKey {
     VEHICLES,
     COURT_PROCEEDINGS,
     ENFORCEMENT_PROCEEDINGS,
-    MANAGER_SRO
+    MANAGER_SRO,
+    PAYMENTS
 }

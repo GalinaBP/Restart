@@ -132,22 +132,48 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @Order(5)
+    void payingIsRecordedAsDataAndTheFeesStageFollowsIt() {
+        // The fixture pays only the duty, so the stage sits half-done until the deposit lands:
+        assertThat(stage(journey(), "FEES_AND_DEPOSIT")).containsEntry("status", "IN_PROGRESS");
+
+        put("/api/v1/cases/" + caseId + "/sections/PAYMENTS", """
+                {"stateDutyPaidOn": "2026-07-20", "stateDutyReference": "чек № 4417",
+                 "depositPaidOn": "2026-07-22", "depositReference": "платёжное поручение № 12"}""");
+
+        assertThat(stage(journey(), "FEES_AND_DEPOSIT"))
+                .containsEntry("status", "DONE")
+                .containsEntry("editable", false);
+    }
+
+    @Test
+    @Order(6)
     void walkTheRealWorldStagesUpToTheCourtDecision() {
         put("/api/v1/cases/" + caseId + "/journey/MANAGER_SELECTION",
                 "{\"status\": \"DONE\", \"note\": \"СРО выбрана\"}");
-        put("/api/v1/cases/" + caseId + "/journey/FEES_AND_DEPOSIT",
-                "{\"status\": \"DONE\", \"completedOn\": \"2026-07-22\"}");
         put("/api/v1/cases/" + caseId + "/journey/FILING",
                 "{\"status\": \"DONE\", \"completedOn\": \"2026-07-23\"}");
 
         Map<String, Object> journey = journey();
         assertThat(journey.get("currentStage")).isEqualTo("COURT_DECISION");
-        assertThat(stage(journey, "FEES_AND_DEPOSIT")).containsEntry("completedOn", "2026-07-22");
+        assertThat(stage(journey, "FILING")).containsEntry("completedOn", "2026-07-23");
         assertThat(stage(journey, "MANAGER_SELECTION")).containsEntry("note", "СРО выбрана");
     }
 
     @Test
-    @Order(6)
+    @Order(7)
+    void theFeesEndpointExposesTheConfiguredAmounts() {
+        ResponseEntity<Map> response = rest.get().uri("/api/v1/cases/" + caseId + "/fees")
+                .header("Authorization", "Bearer " + token)
+                .retrieve().toEntity(Map.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).containsKeys("lines", "total", "allConfirmed");
+        // Placeholder figures must announce themselves all the way to the client:
+        assertThat(response.getBody().get("allConfirmed")).isEqualTo(false);
+    }
+
+    @Test
+    @Order(8)
     void waitingOnTheCourtIsBlockedNotFailed() {
         put("/api/v1/cases/" + caseId + "/journey/COURT_DECISION",
                 "{\"status\": \"BLOCKED\", \"note\": \"Заседание 12.08.2026\"}");
@@ -158,7 +184,7 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Order(7)
+    @Order(9)
     void recordingTheCourtsProcedureOpensThatBranch() {
         ResponseEntity<Map> response = put(
                 "/api/v1/cases/" + caseId + "/journey/procedure-type",
@@ -172,7 +198,7 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Order(8)
+    @Order(10)
     void finishingEveryStageLeavesNoCurrentStage() {
         put("/api/v1/cases/" + caseId + "/journey/COURT_DECISION", "{\"status\": \"DONE\"}");
         put("/api/v1/cases/" + caseId + "/journey/PROPERTY_REALIZATION", "{\"status\": \"DONE\"}");
@@ -185,7 +211,7 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Order(9)
+    @Order(11)
     void theRecordedJourneySurvivesAReRead() {
         Map<String, Object> journey = journey();
 

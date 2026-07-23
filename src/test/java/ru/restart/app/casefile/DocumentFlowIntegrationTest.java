@@ -28,6 +28,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
 
+    /** Every document, in every format — derived so a new document type doesn't break this. */
+    private static final int EXPECTED_FILES =
+            ru.restart.app.doctemplate.api.DocumentType.values().length * 3;
+
     private static String token;
     private static String caseId;
     private static String docxDocumentId;
@@ -71,7 +75,7 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @Order(2)
-    void aCompletedCaseGeneratesTheTwelveFilePackage() {
+    void aCompletedCaseGeneratesTheWholePackage() {
         for (Map.Entry<SectionKey, String> section : CaseFixtures.VALID_SECTIONS.entrySet()) {
             ResponseEntity<Map> saved = rest.put()
                     .uri("/api/v1/cases/" + caseId + "/sections/" + section.getKey())
@@ -88,7 +92,7 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(generated.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         List<Map<String, Object>> body = (List<Map<String, Object>>) generated.getBody();
-        assertThat(body).hasSize(21);
+        assertThat(body).hasSize(EXPECTED_FILES);
         docxDocumentId = body.stream()
                 .filter(d -> "DOCX".equals(d.get("format"))
                         && "BANKRUPTCY_APPLICATION".equals(d.get("type")))
@@ -127,7 +131,7 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
         List<Map<String, Object>> docs = rest.get().uri("/api/v1/cases/" + caseId + "/documents")
                 .header("Authorization", "Bearer " + token)
                 .retrieve().toEntity(List.class).getBody();
-        assertThat(docs).hasSize(21).allSatisfy(d -> assertThat(d.get("stale")).isEqualTo(false));
+        assertThat(docs).hasSize(EXPECTED_FILES).allSatisfy(d -> assertThat(d.get("stale")).isEqualTo(false));
 
         String creditorListId = docs.stream()
                 .filter(d -> "CREDITOR_LIST".equals(d.get("type")) && "TXT".equals(d.get("format")))
@@ -152,7 +156,7 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
         List<Map<String, Object>> docs = rest.get().uri("/api/v1/cases/" + caseId + "/documents")
                 .header("Authorization", "Bearer " + token)
                 .retrieve().toEntity(List.class).getBody();
-        assertThat(docs).hasSize(21).allSatisfy(d -> assertThat(d.get("stale")).isEqualTo(true));
+        assertThat(docs).hasSize(EXPECTED_FILES).allSatisfy(d -> assertThat(d.get("stale")).isEqualTo(true));
     }
 
     @Test
@@ -191,7 +195,7 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
                 entries.add(entry.getName());
             }
         }
-        assertThat(entries).hasSize(21)
+        assertThat(entries).hasSize(EXPECTED_FILES)
                 .contains("bankruptcy_application.docx", "creditor_list.docx",
                         "property_information.docx", "debt_summary.docx",
                         "attachments_checklist.docx", "filing_checklist.docx");

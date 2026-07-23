@@ -650,6 +650,43 @@ a.procedure-stage:hover {
   line-height: 1.5;
 }
 
+/* What the filing costs, shown on the fees stage. */
+.procedure-fees {
+  margin-top: 0.7rem;
+}
+
+.procedure-fees-list {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem 1rem;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.procedure-fees-list dt {
+  color: var(--muted);
+}
+
+.procedure-fees-list dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.procedure-fees-list .procedure-fees-total {
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--pill-border);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.procedure-fees-draft {
+  margin: 0.6rem 0 0;
+  color: #eab308;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 /* Link from a stage to the screen that actually collects its data. */
 .procedure-detail-link {
   display: inline-block;

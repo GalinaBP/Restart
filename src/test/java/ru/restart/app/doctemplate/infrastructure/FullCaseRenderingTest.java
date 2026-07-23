@@ -27,7 +27,8 @@ class FullCaseRenderingTest {
     private final JMustacheTemplateRenderer renderer = new JMustacheTemplateRenderer();
     private final CaseModelAssembler assembler = new CaseModelAssembler(new ObjectMapper(),
             Clock.fixed(Instant.parse("2026-07-17T10:00:00Z"), ZoneOffset.UTC),
-            region -> java.util.Optional.empty());
+            region -> java.util.Optional.empty(),
+            ru.restart.app.casefile.infrastructure.FeeScheduleFixture.real());
 
     private Map<String, Object> assembledModel() {
         return assembler.assemble(CaseFixtures.validCaseSections(UUID.randomUUID()));

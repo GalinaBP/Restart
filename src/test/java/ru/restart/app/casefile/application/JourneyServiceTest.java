@@ -54,7 +54,7 @@ class JourneyServiceTest {
     void setUp() {
         CaseService caseService = new CaseService(cases, currentUser);
         service = new JourneyService(caseService, cases, stages, sections, documents,
-                JourneyRegistryFixture.real(), clock);
+                JourneyRegistryFixture.real(), new tools.jackson.databind.ObjectMapper(), clock);
         UUID userId = UUID.randomUUID();
         currentUser.actAs(userId);
         caseId = cases.save(BankruptcyCase.startDraft(userId)).id();
@@ -120,15 +120,40 @@ class JourneyServiceTest {
 
     @Test
     void recordingAStageKeepsItsDatesAndNote() {
-        JourneyView journey = service.recordStage(caseId, JourneyStage.FEES_AND_DEPOSIT,
+        JourneyView journey = service.recordStage(caseId, JourneyStage.FILING,
                 StageStatus.DONE, LocalDate.parse("2026-07-20"), LocalDate.parse("2026-07-22"),
-                "Депозит внесён, квитанция сохранена");
+                "Подано через канцелярию, отметка на копии");
 
-        StageView fees = stage(journey, JourneyStage.FEES_AND_DEPOSIT);
-        assertThat(fees.status()).isEqualTo(StageStatus.DONE);
-        assertThat(fees.startedOn()).isEqualTo(LocalDate.parse("2026-07-20"));
-        assertThat(fees.completedOn()).isEqualTo(LocalDate.parse("2026-07-22"));
-        assertThat(fees.note()).isEqualTo("Депозит внесён, квитанция сохранена");
+        StageView filing = stage(journey, JourneyStage.FILING);
+        assertThat(filing.status()).isEqualTo(StageStatus.DONE);
+        assertThat(filing.startedOn()).isEqualTo(LocalDate.parse("2026-07-20"));
+        assertThat(filing.completedOn()).isEqualTo(LocalDate.parse("2026-07-22"));
+        assertThat(filing.note()).isEqualTo("Подано через канцелярию, отметка на копии");
+    }
+
+    @Test
+    void theFeesStageFollowsThePaymentsSectionRatherThanBeingRecorded() {
+        assertThat(stage(service.journeyOf(caseId), JourneyStage.FEES_AND_DEPOSIT).status())
+                .isEqualTo(StageStatus.NOT_STARTED);
+
+        // Only the duty paid so far — half done is not done:
+        sections.save(CaseSection.of(caseId, SectionKey.PAYMENTS,
+                "{\"stateDutyPaidOn\": \"2026-07-20\"}"));
+        assertThat(stage(service.journeyOf(caseId), JourneyStage.FEES_AND_DEPOSIT).status())
+                .isEqualTo(StageStatus.IN_PROGRESS);
+
+        sections.save(CaseSection.of(caseId, SectionKey.PAYMENTS,
+                "{\"stateDutyPaidOn\": \"2026-07-20\", \"depositPaidOn\": \"2026-07-21\"}"));
+        assertThat(stage(service.journeyOf(caseId), JourneyStage.FEES_AND_DEPOSIT).status())
+                .isEqualTo(StageStatus.DONE);
+    }
+
+    @Test
+    void theFeesStageCannotBeTickedByHand() {
+        // Otherwise the map could claim the filing is paid for with no payment on file.
+        assertThatExceptionOfType(DerivedStageException.class).isThrownBy(() ->
+                service.recordStage(caseId, JourneyStage.FEES_AND_DEPOSIT, StageStatus.DONE,
+                        null, null, null));
     }
 
     @Test
@@ -262,8 +287,10 @@ class JourneyServiceTest {
     private static final class InMemorySections implements CaseSectionRepository {
         private final List<CaseSection> all = new ArrayList<>();
 
+        /** Upsert on (case, key), like the real repository — re-saving a step replaces it. */
         @Override
         public CaseSection save(CaseSection section) {
+            all.removeIf(s -> s.caseId().equals(section.caseId()) && s.key() == section.key());
             all.add(section);
             return section;
         }
