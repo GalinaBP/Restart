@@ -24,9 +24,10 @@ const JOURNEY_COMMON = {
     { stage: 'FEES_AND_DEPOSIT', order: 4, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
       current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
+    // Derived from the submission step since AI-022, so the backend sends editable: false.
     { stage: 'FILING', order: 5, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
-      current: false, editable: true, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
+      current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
     { stage: 'COURT_DECISION', order: 6, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
       current: false, editable: true, statutoryBasis: 'ст. 213.6 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
@@ -170,6 +171,18 @@ describe('ProcedurePage', () => {
     // MANAGER_SELECTION is the current stage, so it opens on load and its data step is right there:
     const link = await screen.findByRole('link', { name: /Указать организацию/ });
     expect(link).toHaveAttribute('href', '/journey/MANAGER_SRO');
+  });
+
+  it('sends the filing stage on to the step that records submission', async () => {
+    stubFetch([
+      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
+      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
+    ]);
+    renderAtProcedure();
+
+    // FILING is derived (not current, not editable), so its link is on screen without a click.
+    const link = await screen.findByRole('link', { name: /Отметить подачу/ });
+    expect(link).toHaveAttribute('href', '/journey/FILING_SUBMISSION');
   });
 
   it('shows the loading state, then every stage with its status, highlighting the current one', async () => {

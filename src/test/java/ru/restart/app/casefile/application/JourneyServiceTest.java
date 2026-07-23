@@ -120,15 +120,15 @@ class JourneyServiceTest {
 
     @Test
     void recordingAStageKeepsItsDatesAndNote() {
-        JourneyView journey = service.recordStage(caseId, JourneyStage.FILING,
+        JourneyView journey = service.recordStage(caseId, JourneyStage.COURT_DECISION,
                 StageStatus.DONE, LocalDate.parse("2026-07-20"), LocalDate.parse("2026-07-22"),
-                "Подано через канцелярию, отметка на копии");
+                "Заседание прошло, определение вынесено");
 
-        StageView filing = stage(journey, JourneyStage.FILING);
-        assertThat(filing.status()).isEqualTo(StageStatus.DONE);
-        assertThat(filing.startedOn()).isEqualTo(LocalDate.parse("2026-07-20"));
-        assertThat(filing.completedOn()).isEqualTo(LocalDate.parse("2026-07-22"));
-        assertThat(filing.note()).isEqualTo("Подано через канцелярию, отметка на копии");
+        StageView decision = stage(journey, JourneyStage.COURT_DECISION);
+        assertThat(decision.status()).isEqualTo(StageStatus.DONE);
+        assertThat(decision.startedOn()).isEqualTo(LocalDate.parse("2026-07-20"));
+        assertThat(decision.completedOn()).isEqualTo(LocalDate.parse("2026-07-22"));
+        assertThat(decision.note()).isEqualTo("Заседание прошло, определение вынесено");
     }
 
     @Test
@@ -157,13 +157,34 @@ class JourneyServiceTest {
     }
 
     @Test
+    void theFilingStageFollowsTheSubmissionSection() {
+        assertThat(stage(service.journeyOf(caseId), JourneyStage.FILING).status())
+                .isEqualTo(StageStatus.NOT_STARTED);
+
+        sections.save(CaseSection.of(caseId, SectionKey.FILING_SUBMISSION,
+                "{\"submissionDate\": \"2026-07-23\", \"courtName\": \"Арбитражный суд г. Москвы\"}"));
+
+        assertThat(stage(service.journeyOf(caseId), JourneyStage.FILING).status())
+                .isEqualTo(StageStatus.DONE);
+    }
+
+    @Test
+    void theFilingStageCannotBeTickedByHand() {
+        // Otherwise the map could claim a filing that never reached the court.
+        assertThatExceptionOfType(DerivedStageException.class).isThrownBy(() ->
+                service.recordStage(caseId, JourneyStage.FILING, StageStatus.DONE,
+                        null, null, null));
+    }
+
+    @Test
     void recordingTheSameStageTwiceReplacesTheProgressInPlace() {
-        service.recordStage(caseId, JourneyStage.FILING, StageStatus.IN_PROGRESS, null, null, "…");
-        JourneyView journey = service.recordStage(caseId, JourneyStage.FILING, StageStatus.DONE,
-                null, LocalDate.parse("2026-07-23"), "Подано");
+        service.recordStage(caseId, JourneyStage.COURT_DECISION, StageStatus.IN_PROGRESS,
+                null, null, "…");
+        JourneyView journey = service.recordStage(caseId, JourneyStage.COURT_DECISION,
+                StageStatus.DONE, null, LocalDate.parse("2026-07-23"), "Рассмотрено");
 
         assertThat(stages.findByCaseId(caseId)).hasSize(1);
-        assertThat(stage(journey, JourneyStage.FILING).status()).isEqualTo(StageStatus.DONE);
+        assertThat(stage(journey, JourneyStage.COURT_DECISION).status()).isEqualTo(StageStatus.DONE);
     }
 
     @Test
@@ -302,7 +323,9 @@ class JourneyServiceTest {
 
         assertThat(stage(journey, JourneyStage.SCREENING).editable()).isFalse();
         assertThat(stage(journey, JourneyStage.DOCUMENT_PREPARATION).editable()).isFalse();
-        assertThat(stage(journey, JourneyStage.FILING).editable()).isTrue();
+        assertThat(stage(journey, JourneyStage.FEES_AND_DEPOSIT).editable()).isFalse();
+        assertThat(stage(journey, JourneyStage.FILING).editable()).isFalse();
+        assertThat(stage(journey, JourneyStage.MANAGER_SELECTION).editable()).isTrue();
     }
 
     @Test

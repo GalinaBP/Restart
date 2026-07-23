@@ -147,20 +147,37 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @Order(6)
-    void walkTheRealWorldStagesUpToTheCourtDecision() {
+    void submittingIsRecordedAsDataAndTheFilingStageFollowsIt() {
         put("/api/v1/cases/" + caseId + "/journey/MANAGER_SELECTION",
                 "{\"status\": \"DONE\", \"note\": \"СРО выбрана\"}");
-        put("/api/v1/cases/" + caseId + "/journey/FILING",
-                "{\"status\": \"DONE\", \"completedOn\": \"2026-07-23\"}");
+
+        // Nothing submitted yet — the stage sits untouched until a submission date lands:
+        assertThat(stage(journey(), "FILING")).containsEntry("status", "NOT_STARTED");
+
+        put("/api/v1/cases/" + caseId + "/sections/FILING_SUBMISSION", """
+                {"submissionDate": "2026-07-23", "courtName": "Арбитражный суд г. Москвы",
+                 "referenceNumber": "вх. № 4417"}""");
 
         Map<String, Object> journey = journey();
+        assertThat(stage(journey, "FILING"))
+                .containsEntry("status", "DONE")
+                .containsEntry("editable", false);
         assertThat(journey.get("currentStage")).isEqualTo("COURT_DECISION");
-        assertThat(stage(journey, "FILING")).containsEntry("completedOn", "2026-07-23");
         assertThat(stage(journey, "MANAGER_SELECTION")).containsEntry("note", "СРО выбрана");
     }
 
     @Test
     @Order(7)
+    void derivedFilingStageRefusesToBeRecordedByHand() {
+        ResponseEntity<Map> response = put(
+                "/api/v1/cases/" + caseId + "/journey/FILING", "{\"status\": \"DONE\"}");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody()).containsEntry("code", "INVALID_STATE");
+    }
+
+    @Test
+    @Order(8)
     void theFeesEndpointExposesTheConfiguredAmounts() {
         ResponseEntity<Map> response = rest.get().uri("/api/v1/cases/" + caseId + "/fees")
                 .header("Authorization", "Bearer " + token)
@@ -173,7 +190,7 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Order(8)
+    @Order(9)
     void waitingOnTheCourtIsBlockedNotFailed() {
         put("/api/v1/cases/" + caseId + "/journey/COURT_DECISION",
                 "{\"status\": \"BLOCKED\", \"note\": \"Заседание 12.08.2026\"}");
@@ -184,7 +201,7 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Order(9)
+    @Order(10)
     void recordingTheCourtsProcedureOpensThatBranch() {
         ResponseEntity<Map> response = put(
                 "/api/v1/cases/" + caseId + "/journey/procedure-type",
@@ -200,7 +217,7 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Order(10)
+    @Order(11)
     void finishingEveryStageLeavesNoCurrentStage() {
         put("/api/v1/cases/" + caseId + "/journey/COURT_DECISION", "{\"status\": \"DONE\"}");
         put("/api/v1/cases/" + caseId + "/journey/PROPERTY_INVENTORY", "{\"status\": \"DONE\"}");
@@ -215,13 +232,14 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Order(11)
+    @Order(12)
     void theRecordedJourneySurvivesAReRead() {
         Map<String, Object> journey = journey();
 
         assertThat(stage(journey, "COMPLETION"))
                 .containsEntry("status", "DONE")
                 .containsEntry("completedOn", "2026-12-01");
-        assertThat(stage(journey, "FILING")).containsEntry("completedOn", "2026-07-23");
+        // Derived stage: DONE follows the FILING_SUBMISSION section, not a recorded date.
+        assertThat(stage(journey, "FILING")).containsEntry("status", "DONE");
     }
 }

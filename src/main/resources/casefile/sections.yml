@@ -227,3 +227,18 @@ sections:
       - { name: inn,            type: INN,    required: false }
       - { name: ogrn,           type: STRING, required: false }
       - { name: registryNumber, type: STRING, required: false }
+
+  # Record that the completed package was actually handed to the court (backlog AI-022).
+  # Optional on purpose: the package can be prepared, and even paid for, well before it is
+  # submitted, so a missing submission must not block anything upstream — it only holds up the
+  # FILING stage. The journey's FILING stage reads its status from this section, which is why
+  # nothing else records submission state.
+  - key: FILING_SUBMISSION
+    order: 18
+    repeatable: false
+    mandatory: false
+    statutoryBasis: "ст. 213.4 127-ФЗ — подача заявления (ПЛЕЙСХОЛДЕР)"
+    fields:
+      - { name: submissionDate,  type: DATE,   required: false }
+      - { name: courtName,       type: STRING, required: false }
+      - { name: referenceNumber, type: STRING, required: false }
