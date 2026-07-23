@@ -203,10 +203,81 @@ class JourneyServiceTest {
                 .contains(JourneyStage.PROPERTY_REALIZATION)
                 .doesNotContain(JourneyStage.RESTRUCTURING_PLAN,
                         JourneyStage.SETTLEMENT_AGREEMENT);
-        // The branch stage sits between the court's decision and the common tail:
+        // The branch stages sit between the court's decision and the common tail:
         assertThat(journey.stages()).extracting(StageView::stage)
                 .containsSubsequence(JourneyStage.COURT_DECISION,
                         JourneyStage.PROPERTY_REALIZATION, JourneyStage.CREDITOR_CLAIMS);
+    }
+
+    @Test
+    void eachProcedureHasItsOwnSequenceAndNoneOfTheOthers() {
+        // AI-024: the three procedures are materially different, so each is its own run of
+        // stages — not one shared stage with a different label.
+        assertThat(stagesOf(ProcedureType.RESTRUCTURING))
+                .containsSubsequence(JourneyStage.RESTRUCTURING_PLAN,
+                        JourneyStage.RESTRUCTURING_PLAN_APPROVAL,
+                        JourneyStage.RESTRUCTURING_EXECUTION)
+                .doesNotContain(JourneyStage.PROPERTY_INVENTORY, JourneyStage.PROPERTY_REALIZATION,
+                        JourneyStage.CREDITOR_PAYOUTS, JourneyStage.SETTLEMENT_TERMS,
+                        JourneyStage.SETTLEMENT_AGREEMENT);
+
+        assertThat(stagesOf(ProcedureType.REALIZATION))
+                .containsSubsequence(JourneyStage.PROPERTY_INVENTORY,
+                        JourneyStage.PROPERTY_REALIZATION, JourneyStage.CREDITOR_PAYOUTS)
+                .doesNotContain(JourneyStage.RESTRUCTURING_PLAN,
+                        JourneyStage.RESTRUCTURING_PLAN_APPROVAL,
+                        JourneyStage.RESTRUCTURING_EXECUTION, JourneyStage.SETTLEMENT_TERMS,
+                        JourneyStage.SETTLEMENT_AGREEMENT);
+
+        assertThat(stagesOf(ProcedureType.SETTLEMENT))
+                .containsSubsequence(JourneyStage.SETTLEMENT_TERMS,
+                        JourneyStage.SETTLEMENT_AGREEMENT)
+                .doesNotContain(JourneyStage.RESTRUCTURING_PLAN, JourneyStage.PROPERTY_INVENTORY,
+                        JourneyStage.PROPERTY_REALIZATION, JourneyStage.CREDITOR_PAYOUTS);
+    }
+
+    @Test
+    void everyBranchKeepsTheCommonHeadAndTail() {
+        for (ProcedureType procedure : ProcedureType.values()) {
+            assertThat(stagesOf(procedure))
+                    .as("common path preserved on the %s branch", procedure)
+                    .containsSubsequence(JourneyStage.SCREENING, JourneyStage.DOCUMENT_PREPARATION,
+                            JourneyStage.MANAGER_SELECTION, JourneyStage.FEES_AND_DEPOSIT,
+                            JourneyStage.FILING, JourneyStage.COURT_DECISION)
+                    .endsWith(JourneyStage.CREDITOR_CLAIMS, JourneyStage.COMPLETION);
+        }
+    }
+
+    @Test
+    void beforeTheCourtDecidesNoBranchStageIsVisibleAtAll() {
+        // The regression AI-024 asks for: the single common path still works untouched.
+        assertThat(service.journeyOf(caseId).stages()).extracting(StageView::stage)
+                .doesNotContain(JourneyStage.RESTRUCTURING_PLAN,
+                        JourneyStage.RESTRUCTURING_PLAN_APPROVAL,
+                        JourneyStage.RESTRUCTURING_EXECUTION, JourneyStage.PROPERTY_INVENTORY,
+                        JourneyStage.PROPERTY_REALIZATION, JourneyStage.CREDITOR_PAYOUTS,
+                        JourneyStage.SETTLEMENT_TERMS, JourneyStage.SETTLEMENT_AGREEMENT);
+    }
+
+    @Test
+    void progressRecordedOnOneBranchSurvivesACorrectionBackToIt() {
+        service.recordProcedureType(caseId, ProcedureType.REALIZATION);
+        service.recordStage(caseId, JourneyStage.PROPERTY_INVENTORY, StageStatus.DONE,
+                null, LocalDate.parse("2026-09-01"), "Опись составлена");
+
+        // The user corrects the procedure, then corrects it back:
+        service.recordProcedureType(caseId, ProcedureType.RESTRUCTURING);
+        JourneyView back = service.recordProcedureType(caseId, ProcedureType.REALIZATION);
+
+        StageView inventory = stage(back, JourneyStage.PROPERTY_INVENTORY);
+        assertThat(inventory.status()).isEqualTo(StageStatus.DONE);
+        assertThat(inventory.note()).isEqualTo("Опись составлена");
+    }
+
+    private List<JourneyStage> stagesOf(ProcedureType procedure) {
+        return service.recordProcedureType(caseId, procedure).stages().stream()
+                .map(StageView::stage)
+                .toList();
     }
 
     @Test

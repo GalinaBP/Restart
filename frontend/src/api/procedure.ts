@@ -13,8 +13,14 @@ export type JourneyStageKey =
   | 'FEES_AND_DEPOSIT'
   | 'FILING'
   | 'COURT_DECISION'
+  // One branch per procedure the court can apply (AI-024); only one is ever visible.
   | 'RESTRUCTURING_PLAN'
+  | 'RESTRUCTURING_PLAN_APPROVAL'
+  | 'RESTRUCTURING_EXECUTION'
+  | 'PROPERTY_INVENTORY'
   | 'PROPERTY_REALIZATION'
+  | 'CREDITOR_PAYOUTS'
+  | 'SETTLEMENT_TERMS'
   | 'SETTLEMENT_AGREEMENT'
   | 'CREDITOR_CLAIMS'
   | 'COMPLETION';
@@ -81,6 +87,21 @@ export function getJourney(caseId: string): Promise<JourneyView> {
 
 export function getFees(caseId: string): Promise<FeeScheduleView> {
   return request<FeeScheduleView>(`/cases/${caseId}/fees`);
+}
+
+/**
+ * Records which procedure the court applied, switching the journey to that branch (AI-024).
+ * `null` clears it and returns the case to the common path — the user may have recorded the
+ * wrong one, and the app never guesses the court's decision.
+ */
+export function recordProcedureType(
+  caseId: string,
+  procedureType: ProcedureBranch | null,
+): Promise<JourneyView> {
+  return request<JourneyView>(`/cases/${caseId}/journey/procedure-type`, {
+    method: 'PUT',
+    body: { procedureType },
+  });
 }
 
 /** Records where an editable stage stands. 409s if the stage is derived. */

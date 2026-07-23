@@ -245,15 +245,35 @@ const STAGE_LABELS: Record<string, StageLabel> = {
   },
   RESTRUCTURING_PLAN: {
     title: 'План выплат',
-    description: 'Вы платите по долгам по графику, который утвердил суд.',
+    description: 'Готовится график, по которому вы будете постепенно рассчитываться с долгами.',
+  },
+  RESTRUCTURING_PLAN_APPROVAL: {
+    title: 'Утверждение плана',
+    description: 'Суд рассматривает график и решает, утвердить его или нет.',
+  },
+  RESTRUCTURING_EXECUTION: {
+    title: 'Выплаты по плану',
+    description: 'Вы платите по утверждённому графику. Если всё выполнено — дело завершается.',
+  },
+  PROPERTY_INVENTORY: {
+    title: 'Опись имущества',
+    description: 'Управляющий описывает и оценивает то, что у вас есть.',
   },
   PROPERTY_REALIZATION: {
     title: 'Продажа имущества',
-    description: 'То, что можно продать, продают, а вырученные деньги идут кредиторам.',
+    description: 'То, что можно продать, выставляется на торги.',
+  },
+  CREDITOR_PAYOUTS: {
+    title: 'Расчёты с кредиторами',
+    description: 'Вырученные деньги распределяются между кредиторами в установленном порядке.',
+  },
+  SETTLEMENT_TERMS: {
+    title: 'Условия соглашения',
+    description: 'Вы и кредиторы договариваетесь, на каких условиях закрыть долги.',
   },
   SETTLEMENT_AGREEMENT: {
-    title: 'Договорённость с кредиторами',
-    description: 'Вы и кредиторы сами согласовали условия — дело завершается на своих условиях.',
+    title: 'Утверждение соглашения',
+    description: 'Суд утверждает договорённость, и дело прекращается.',
   },
   CREDITOR_CLAIMS: {
     title: 'Требования кредиторов',
@@ -268,6 +288,27 @@ const STAGE_LABELS: Record<string, StageLabel> = {
 export function stageLabel(key: string): StageLabel {
   return STAGE_LABELS[key] ?? { title: key, description: '' };
 }
+
+/**
+ * The three procedures a court can apply (backlog AI-024), in plain words. `hint` is what the
+ * user reads when choosing which one the court actually decided on — it describes the procedure,
+ * never advises which to want: that is the court's decision, not ours.
+ */
+export const PROCEDURE_LABELS: Record<'RESTRUCTURING' | 'REALIZATION' | 'SETTLEMENT',
+  { title: string; hint: string }> = {
+  RESTRUCTURING: {
+    title: 'Реструктуризация долгов',
+    hint: 'Суд утверждает график, и вы постепенно рассчитываетесь с долгами.',
+  },
+  REALIZATION: {
+    title: 'Реализация имущества',
+    hint: 'Имущество продают, деньги идут кредиторам, остаток долгов может быть списан.',
+  },
+  SETTLEMENT: {
+    title: 'Мировое соглашение',
+    hint: 'Вы договорились с кредиторами сами, и суд эту договорённость утвердил.',
+  },
+};
 
 /** Plain-language names for the four stage statuses (backlog AI-019). */
 export const STATUS_LABELS: Record<'NOT_STARTED' | 'IN_PROGRESS' | 'DONE' | 'BLOCKED', { title: string }> = {

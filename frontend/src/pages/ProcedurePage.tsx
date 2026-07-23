@@ -5,15 +5,17 @@ import { currentCase } from '../api/cases';
 import {
   getFees,
   getJourney,
+  recordProcedureType,
   recordStage,
   type FeeScheduleView,
   type JourneyStageKey,
   type JourneyStageView,
   type JourneyView,
+  type ProcedureBranch,
   type RecordStageInput,
   type StageStatusKey,
 } from '../api/procedure';
-import { BLOCKED_EXPLANATION, STATUS_LABELS, stageLabel } from '../api/labels';
+import { BLOCKED_EXPLANATION, PROCEDURE_LABELS, STATUS_LABELS, stageLabel } from '../api/labels';
 
 /**
  * The stage overview (backlog AI-019): every stage of the court procedure in order, with the
@@ -84,6 +86,12 @@ export default function ProcedurePage() {
     setExpanded(null);
   };
 
+  /** Records (or corrects, or clears) the court's decision and reveals that branch. */
+  const chooseProcedure = async (procedureType: ProcedureBranch | null) => {
+    if (!caseId) return;
+    setJourney(await recordProcedureType(caseId, procedureType));
+  };
+
   if (loading) {
     return (
       <main className="check">
@@ -129,6 +137,11 @@ export default function ProcedurePage() {
           ? `Сейчас вы здесь: «${currentTitle}». Остальные этапы идут дальше по порядку.`
           : 'Все этапы пройдены.'}
       </p>
+      {journey.procedureType && (
+        <p className="procedure-branch-note">
+          Ваша процедура: {PROCEDURE_LABELS[journey.procedureType].title}
+        </p>
+      )}
       <ul className="procedure-list">
         {journey.stages.map((view) => (
           <StageCard
@@ -138,6 +151,8 @@ export default function ProcedurePage() {
             onToggle={() => setExpanded(expanded === view.stage ? null : view.stage)}
             onSave={(input) => save(view.stage, input)}
             fees={fees}
+            procedureType={journey.procedureType}
+            onChooseProcedure={chooseProcedure}
           />
         ))}
       </ul>
@@ -151,12 +166,16 @@ function StageCard({
   onToggle,
   onSave,
   fees,
+  procedureType,
+  onChooseProcedure,
 }: {
   view: JourneyStageView;
   expanded: boolean;
   onToggle: () => void;
   onSave: (input: RecordStageInput) => Promise<void>;
   fees: FeeScheduleView | null;
+  procedureType: ProcedureBranch | null;
+  onChooseProcedure: (procedureType: ProcedureBranch | null) => Promise<void>;
 }) {
   const label = stageLabel(view.stage);
   const status = STATUS_LABELS[view.status];
@@ -218,10 +237,83 @@ function StageCard({
           {detail && (
             <Link to={detail.route} className="procedure-detail-link">{detail.label} →</Link>
           )}
+          {view.stage === 'COURT_DECISION' && (
+            <ProcedurePicker chosen={procedureType} onChoose={onChooseProcedure} />
+          )}
           <StageEditor view={view} onSave={onSave} />
         </div>
       )}
     </li>
+  );
+}
+
+/**
+ * Records which procedure the court applied (backlog AI-024), revealing that branch of the
+ * journey and hiding the other two. Correctable, and clearable back to «ещё не решено»: the app
+ * never guesses the outcome, and a user who recorded the wrong one must be able to fix it.
+ */
+function ProcedurePicker({
+  chosen,
+  onChoose,
+}: {
+  chosen: ProcedureBranch | null;
+  onChoose: (procedureType: ProcedureBranch | null) => Promise<void>;
+}) {
+  const [pending, setPending] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  const choose = async (value: ProcedureBranch | null) => {
+    setPending(true);
+    setFailed(false);
+    try {
+      await onChoose(value);
+    } catch {
+      setFailed(true);
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const options: ProcedureBranch[] = ['RESTRUCTURING', 'REALIZATION', 'SETTLEMENT'];
+
+  return (
+    <div className="procedure-picker">
+      <p className="procedure-picker-lead">
+        {chosen
+          ? 'Суд назначил эту процедуру. Если здесь ошибка — выберите другую.'
+          : 'Когда суд решит, какая процедура будет по вашему делу, отметьте её — дальше покажем шаги именно этой процедуры.'}
+      </p>
+      <ul className="procedure-picker-options">
+        {options.map((option) => (
+          <li key={option}>
+            <button
+              type="button"
+              className={`check-option${chosen === option ? ' check-option-selected' : ''}`}
+              disabled={pending}
+              onClick={() => void choose(option)}
+            >
+              <span className="procedure-picker-title">{PROCEDURE_LABELS[option].title}</span>
+              <span className="procedure-picker-hint">{PROCEDURE_LABELS[option].hint}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      {chosen && (
+        <button
+          type="button"
+          className="check-back"
+          disabled={pending}
+          onClick={() => void choose(null)}
+        >
+          Ещё не решено — убрать отметку
+        </button>
+      )}
+      {failed && (
+        <p className="auth-error" role="alert">
+          Не получилось сохранить — проверьте интернет и попробуйте ещё раз.
+        </p>
+      )}
+    </div>
   );
 }
 

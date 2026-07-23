@@ -61,33 +61,69 @@ stages:
     statutoryBasis: "ст. 213.6 127-ФЗ — рассмотрение обоснованности заявления судом (ПЛЕЙСХОЛДЕР)"
 
   # --- After the court picks a procedure, exactly one branch continues (AI-024) --------------
+  # Orders 10–19 belong to the branches, 20+ to the common tail, so a branch can grow without
+  # renumbering anything else. Only one branch is ever visible at a time (AI-024).
+
+  # --- Реструктуризация долгов: the debtor repays under a court-approved plan ----------------
   - key: RESTRUCTURING_PLAN
-    order: 7
+    order: 10
     branch: RESTRUCTURING
     derived: false
-    statutoryBasis: "ст. 213.12–213.23 127-ФЗ — план реструктуризации долгов (ПЛЕЙСХОЛДЕР)"
+    statutoryBasis: "ст. 213.12, 213.14 127-ФЗ — разработка и представление плана реструктуризации (ПЛЕЙСХОЛДЕР)"
 
-  - key: PROPERTY_REALIZATION
-    order: 7
+  - key: RESTRUCTURING_PLAN_APPROVAL
+    order: 11
+    branch: RESTRUCTURING
+    derived: false
+    statutoryBasis: "ст. 213.17 127-ФЗ — рассмотрение и утверждение плана судом (ПЛЕЙСХОЛДЕР)"
+
+  - key: RESTRUCTURING_EXECUTION
+    order: 12
+    branch: RESTRUCTURING
+    derived: false
+    statutoryBasis: "ст. 213.19, 213.22, 213.23 127-ФЗ — исполнение плана и его итог (ПЛЕЙСХОЛДЕР)"
+
+  # --- Реализация имущества: property is sold to satisfy creditors --------------------------
+  - key: PROPERTY_INVENTORY
+    order: 10
     branch: REALIZATION
     derived: false
-    statutoryBasis: "ст. 213.24–213.27 127-ФЗ — реализация имущества гражданина (ПЛЕЙСХОЛДЕР)"
+    statutoryBasis: "ст. 213.26 127-ФЗ — опись и оценка имущества, формирование конкурсной массы (ПЛЕЙСХОЛДЕР)"
 
-  - key: SETTLEMENT_AGREEMENT
-    order: 7
+  - key: PROPERTY_REALIZATION
+    order: 11
+    branch: REALIZATION
+    derived: false
+    statutoryBasis: "ст. 213.26 127-ФЗ — продажа имущества гражданина (ПЛЕЙСХОЛДЕР)"
+
+  - key: CREDITOR_PAYOUTS
+    order: 12
+    branch: REALIZATION
+    derived: false
+    statutoryBasis: "ст. 213.27 127-ФЗ — расчёты с кредиторами из вырученных средств (ПЛЕЙСХОЛДЕР)"
+
+  # --- Мировое соглашение: debtor and creditors settle and the case ends ---------------------
+  - key: SETTLEMENT_TERMS
+    order: 10
     branch: SETTLEMENT
     derived: false
-    statutoryBasis: "ст. 213.31 127-ФЗ — мировое соглашение (ПЛЕЙСХОЛДЕР)"
+    statutoryBasis: "ст. 213.31 127-ФЗ — согласование условий мирового соглашения с кредиторами (ПЛЕЙСХОЛДЕР)"
+
+  - key: SETTLEMENT_AGREEMENT
+    order: 11
+    branch: SETTLEMENT
+    derived: false
+    statutoryBasis: "ст. 213.31 127-ФЗ — утверждение мирового соглашения судом и прекращение производства (ПЛЕЙСХОЛДЕР)"
 
   # --- Common tail: runs whichever procedure the court chose --------------------------------
   - key: CREDITOR_CLAIMS
-    order: 8
+    order: 20
     branch: ALL
     derived: false
     statutoryBasis: "ст. 213.7, 213.8 127-ФЗ — реестр требований кредиторов и публикации ЕФРСБ (ПЛЕЙСХОЛДЕР)"
 
   - key: COMPLETION
-    order: 9
+    order: 21
     branch: ALL
     derived: false
     statutoryBasis: "ст. 213.28, 213.30 127-ФЗ — завершение процедуры, освобождение от обязательств и последствия (ПЛЕЙСХОЛДЕР)"
