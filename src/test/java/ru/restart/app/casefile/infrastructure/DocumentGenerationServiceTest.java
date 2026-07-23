@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * The generation pipeline against the REAL validation rules (sections.yml) and real file writers;
  * only templates are stubbed (their rendering is covered in the doctemplate module's tests). In
  * particular this pins: the shared fixtures pass validation, incomplete cases are hard-blocked,
- * one run produces all six documents in both formats, and regeneration replaces rather than
+ * one run produces every document in all formats, and regeneration replaces rather than
  * duplicates.
  */
 class DocumentGenerationServiceTest {
@@ -110,7 +110,23 @@ class DocumentGenerationServiceTest {
     }
 
     @Test
-    void validCaseGeneratesAllSixDocumentsInBothFormats() {
+    void anUnnamedSroBlocksGenerationLikeAnyOtherMissingFact() {
+        fillValidCase();
+        // The СРО must be named for the court to approve a manager (AI-020) — an address alone
+        // is not enough, and the block must name the field rather than fail vaguely.
+        sections.save(sections.findByCaseIdAndKey(existingCase.id(), SectionKey.MANAGER_SRO)
+                .orElseThrow()
+                .withPayload("{\"address\": \"г. Москва, ул. Управляющая, д. 5\"}"));
+
+        assertThatExceptionOfType(GenerationBlockedException.class)
+                .isThrownBy(() -> service.generate(existingCase.id()))
+                .satisfies(ex -> assertThat(ex.issues())
+                        .extracting(i -> i.section() + ":" + i.field())
+                        .contains("MANAGER_SRO:name"));
+    }
+
+    @Test
+    void validCaseGeneratesEveryDocumentInEveryFormat() {
         fillValidCase();
 
         List<CaseDocument> generated = service.generate(existingCase.id());
@@ -124,7 +140,7 @@ class DocumentGenerationServiceTest {
                 .containsOnly("test-1");
         assertThat(generated)
                 .filteredOn(d -> d.format() == DocumentFormat.DOCX)
-                .hasSize(6)
+                .hasSize(DocumentType.values().length)
                 .allSatisfy(d -> assertThat(new String(d.content(), 0, 2,
                         StandardCharsets.US_ASCII)).isEqualTo("PK"));
     }
@@ -137,7 +153,7 @@ class DocumentGenerationServiceTest {
 
         List<CaseDocument> second = service.generate(existingCase.id());
 
-        assertThat(documents.findByCaseId(existingCase.id())).hasSize(18);
+        assertThat(documents.findByCaseId(existingCase.id())).hasSize(21);
         assertThat(second).extracting(CaseDocument::id)
                 .containsExactlyInAnyOrderElementsOf(first.stream().map(CaseDocument::id).toList());
         CaseDocument regeneratedTxt = second.stream()
@@ -160,7 +176,7 @@ class DocumentGenerationServiceTest {
                 entries.put(entry.getName(), in.readAllBytes());
             }
         }
-        assertThat(entries).hasSize(18);
+        assertThat(entries).hasSize(21);
         assertThat(entries.keySet())
                 .contains("bankruptcy_application.docx", "bankruptcy_application.txt",
                         "creditor_list.docx", "filing_checklist.txt");

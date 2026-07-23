@@ -67,7 +67,7 @@ cases answered as 404; step-by-step data collection and the deterministic valida
 both driven by `casefile/sections.yml` — field types, required flags, mandatory sections,
 duplicate rules, and the field ↔ 127-ФЗ mapping, placeholder pending lawyer review. Validation
 never blocks saving; `GET /cases/{id}/validation` is the report the generation gate consumes;
-document generation `POST /cases/{id}/documents` renders all six filing documents in txt + docx
+document generation `POST /cases/{id}/documents` renders all seven filing documents in txt + docx
 + pdf — minimal hand-built OOXML; PDF via PDFBox with the embedded DejaVu font for Cyrillic — hard-gated 409 GENERATION_BLOCKED with the missing-item
 list; once documents exist, every section save regenerates all of them while the case stays
 valid, or flags them `stale` when it doesn't — full regeneration by design, documents are never
@@ -80,7 +80,7 @@ recorded by hand (409), so the map can never contradict the case; the rest the u
 (status, dates, note) through `PUT /cases/{id}/journey/{stage}`. `GET /cases/{id}/journey` returns
 the stages that apply plus the current one, and `PUT /cases/{id}/journey/procedure-type` records
 the court's choice — restructuring / realization / settlement — revealing that branch only)
-and `doctemplate` (versioned Mustache templates for the six filing documents under
+and `doctemplate` (versioned Mustache templates for the seven filing documents under
 `resources/doctemplates/<version>/`, shared legal boilerplate as partials, edition picked by
 `doctemplates/manifest.yml` — a legislative amendment is a new version directory + manifest bump,
 no code changes; every output carries a "ШАБЛОН-ПЛЕЙСХОЛДЕР" banner until lawyer sign-off;

@@ -52,6 +52,10 @@ public final class CaseFixtures {
                   "overdueSinceDate": "2026-02-01"},
                  {"name": "МФО «Деньги-Быстро»",
                   "address": "г. Тверь, пр-т Займов, д. 7", "debtAmount": 250000.50}]""");
+        sections.put(SectionKey.MANAGER_SRO, """
+                {"name": "Ассоциация «СРО арбитражных управляющих «Содействие»»",
+                 "address": "г. Москва, ул. Управляющая, д. 5",
+                 "inn": "7707083893", "ogrn": "1027700132195", "registryNumber": "0012"}""");
         return sections;
     }
 

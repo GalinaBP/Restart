@@ -126,7 +126,7 @@ class DocumentControllerTest {
     }
 
     @Test
-    void aValidCaseYieldsTwelveFiles() throws Exception {
+    void aValidCaseYieldsEveryDocumentInEveryFormat() throws Exception {
         BankruptcyCase existing = ownCase();
         when(sections.findByCaseId(existing.id()))
                 .thenReturn(CaseFixtures.validCaseSections(existing.id()));
@@ -138,11 +138,13 @@ class DocumentControllerTest {
 
         mockMvc.perform(post("/api/v1/cases/" + existing.id() + "/documents").with(user()))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.length()").value(18))
+                .andExpect(jsonPath("$.length()")
+                        .value(ru.restart.app.doctemplate.api.DocumentType.values().length * 3))
                 .andExpect(jsonPath("$[0].templateVersion").value("2026-06-21.1"))
                 .andExpect(jsonPath("$[*].filename").value(
                         org.hamcrest.Matchers.hasItems("bankruptcy_application.txt",
-                                "bankruptcy_application.docx", "filing_checklist.docx")));
+                                "bankruptcy_application.docx", "filing_checklist.docx",
+                                "sro_nomination.txt")));
     }
 
     @Test

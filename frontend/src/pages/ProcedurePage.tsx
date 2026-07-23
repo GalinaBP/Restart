@@ -22,6 +22,15 @@ import { BLOCKED_EXPLANATION, STATUS_LABELS, stageLabel } from '../api/labels';
  * links straight there; every other stage has none yet, so it expands in place instead of
  * dead-ending: a short description plus one form to record where it stands.
  */
+/**
+ * Stages that already have a screen of their own. The later tickets of this epic
+ * (AI-021…AI-029) add theirs here as they land; a stage missing from this map simply expands in
+ * place instead of dead-ending on a click.
+ */
+const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: string }>> = {
+  MANAGER_SELECTION: { route: '/journey/MANAGER_SRO', label: 'Указать организацию' },
+};
+
 export default function ProcedurePage() {
   const navigate = useNavigate();
   const [caseId, setCaseId] = useState<string | null>(null);
@@ -141,6 +150,7 @@ function StageCard({
 }) {
   const label = stageLabel(view.stage);
   const status = STATUS_LABELS[view.status];
+  const detail = STAGE_DETAILS[view.stage];
   const cardClass = [
     'procedure-stage',
     view.current ? 'procedure-stage-current' : '',
@@ -190,6 +200,9 @@ function StageCard({
         <div className="procedure-stage-body">
           <p className="check-hint procedure-stage-desc">{label.description}</p>
           {view.status === 'BLOCKED' && <p className="procedure-blocked-note">{BLOCKED_EXPLANATION}</p>}
+          {detail && (
+            <Link to={detail.route} className="procedure-detail-link">{detail.label} →</Link>
+          )}
           <StageEditor view={view} onSave={onSave} />
         </div>
       )}

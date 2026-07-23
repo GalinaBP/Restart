@@ -193,3 +193,22 @@ sections:
       - { name: proceedingNumber,  type: STRING, required: true }
       - { name: subject,           type: STRING, required: false }
       - { name: amount,            type: MONEY,  required: false }
+
+  # The application must name the СРО from whose members the financial manager is approved
+  # (backlog AI-020). Mandatory, so an unnamed СРО blocks document generation exactly like any
+  # other missing required fact.
+  #
+  # ##  ПЛЕЙСХОЛДЕР: сам механизм (выбирает должник или суд назначает СРО случайным образом),
+  # ##  обязательный состав сведений и необходимость отдельного ходатайства — вопросы юристу,
+  # ##  см. docs/lawyer-review.md, раздел 2а.
+  - key: MANAGER_SRO
+    order: 16
+    repeatable: false
+    mandatory: true
+    statutoryBasis: "ст. 213.4, 213.9 127-ФЗ — саморегулируемая организация, из числа членов которой утверждается финансовый управляющий (ПЛЕЙСХОЛДЕР)"
+    fields:
+      - { name: name,           type: STRING, required: true }
+      - { name: address,        type: STRING, required: true }
+      - { name: inn,            type: INN,    required: false }
+      - { name: ogrn,           type: STRING, required: false }
+      - { name: registryNumber, type: STRING, required: false }

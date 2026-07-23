@@ -84,6 +84,19 @@ export const SECTION_LABELS: Record<string, SectionLabel> = {
     hint: 'Если приставы уже взыскивают с вас долги — укажите эти производства.',
     entryName: 'Добавить производство',
   },
+  MANAGER_SRO: {
+    title: 'Кто будет вести ваше дело',
+    hint: 'Вашим делом будет заниматься отдельный человек — финансовый управляющий. Его назначает суд, но выбирает не из воздуха: вы называете организацию, из числа участников которой его и утвердят. Её и нужно указать здесь.',
+    help: {
+      summary: 'Как выбрать эту организацию?',
+      steps: [
+        'Откройте реестр саморегулируемых организаций арбитражных управляющих — его ведёт Росреестр, он публичный и бесплатный.',
+        'Выберите организацию и возьмите из реестра её точное название и адрес — их и впишите ниже.',
+        'Если можете, заранее спросите в организации, готовы ли они вести ваше дело: управляющие берут не каждое.',
+      ],
+      note: 'Это один из тех шагов, где стоит не торопиться: без указанной организации суд не сможет назначить управляющего, а без управляющего дело не пойдёт.',
+    },
+  },
 };
 
 /** Field labels keyed «SECTION.field»; look up via fieldLabel(). */
@@ -145,14 +158,20 @@ const FIELD_LABELS: Record<string, string> = {
   'ENFORCEMENT_PROCEEDINGS.proceedingNumber': 'Номер производства',
   'ENFORCEMENT_PROCEEDINGS.subject': 'Из-за чего',
   'ENFORCEMENT_PROCEEDINGS.amount': 'Сумма, ₽',
+  'MANAGER_SRO.name': 'Название организации — как в реестре',
+  'MANAGER_SRO.address': 'Адрес организации — как в реестре',
+  'MANAGER_SRO.inn': 'ИНН организации (если знаете)',
+  'MANAGER_SRO.ogrn': 'ОГРН организации (если знаете)',
+  'MANAGER_SRO.registryNumber': 'Номер в реестре (если знаете)',
 };
 
-/** The six filing documents, in plain words. */
+/** The filing documents, in plain words. */
 const DOCUMENT_LABELS: Record<string, { title: string }> = {
   BANKRUPTCY_APPLICATION: { title: 'Заявление в суд' },
   CREDITOR_LIST: { title: 'Список кредиторов' },
   PROPERTY_INFORMATION: { title: 'Опись имущества' },
   DEBT_SUMMARY: { title: 'Сводка долгов' },
+  SRO_NOMINATION: { title: 'Ходатайство об управляющем' },
   ATTACHMENTS_CHECKLIST: { title: 'Перечень приложений' },
   FILING_CHECKLIST: { title: 'Чек-лист подачи' },
 };

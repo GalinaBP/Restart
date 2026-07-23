@@ -650,6 +650,20 @@ a.procedure-stage:hover {
   line-height: 1.5;
 }
 
+/* Link from a stage to the screen that actually collects its data. */
+.procedure-detail-link {
+  display: inline-block;
+  margin-top: 0.7rem;
+  color: var(--accent-from);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.procedure-detail-link:hover {
+  text-decoration: underline;
+}
+
 .procedure-stage-body {
   margin-top: 0.2rem;
 }

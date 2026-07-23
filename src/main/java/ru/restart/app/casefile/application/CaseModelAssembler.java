@@ -60,7 +60,18 @@ public class CaseModelAssembler {
         model.put("vehicles", vehicles(data.get(SectionKey.VEHICLES)));
         model.put("bankAccounts", bankAccounts(data.get(SectionKey.BANK_ACCOUNTS)));
         income(data.get(SectionKey.MONTHLY_INCOME), data.get(SectionKey.OTHER_INCOME), model);
+        model.put("sro", sro(data.get(SectionKey.MANAGER_SRO)));
         return model;
+    }
+
+    /** The СРО the financial manager is to be approved from (AI-020). */
+    private Map<String, Object> sro(JsonNode node) {
+        return Map.of(
+                "name", text(node, "name"),
+                "address", text(node, "address"),
+                "inn", orAbsent(text(node, "inn")),
+                "ogrn", orAbsent(text(node, "ogrn")),
+                "registryNumber", orAbsent(text(node, "registryNumber")));
     }
 
     private Map<String, Object> applicant(Map<SectionKey, JsonNode> data) {
