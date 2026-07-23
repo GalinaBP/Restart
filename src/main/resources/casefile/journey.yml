@@ -40,10 +40,12 @@ stages:
     derived: false
     statutoryBasis: "ст. 213.4, 213.9 127-ФЗ — выбор СРО и финансового управляющего (ПЛЕЙСХОЛДЕР)"
 
+  # Derived from the PAYMENTS section (AI-021): both payments recorded → done, one → in progress.
+  # Recording it by hand would let the map claim the filing is paid for when no payment is on file.
   - key: FEES_AND_DEPOSIT
     order: 4
     branch: ALL
-    derived: false
+    derived: true
     statutoryBasis: "ст. 213.4 127-ФЗ, ст. 333.21 НК РФ — госпошлина и депозит на вознаграждение (ПЛЕЙСХОЛДЕР)"
 
   - key: FILING

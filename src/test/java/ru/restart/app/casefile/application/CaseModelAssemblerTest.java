@@ -22,7 +22,8 @@ class CaseModelAssemblerTest {
             Clock.fixed(Instant.parse("2026-07-17T10:00:00Z"), ZoneOffset.UTC),
             region -> region.toLowerCase().contains("москв")
                     ? java.util.Optional.of("Арбитражный суд города Москвы")
-                    : java.util.Optional.empty());
+                    : java.util.Optional.empty(),
+            ru.restart.app.casefile.infrastructure.FeeScheduleFixture.real());
 
     private Map<String, Object> model() {
         return assembler.assemble(CaseFixtures.validCaseSections(UUID.randomUUID()));

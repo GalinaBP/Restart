@@ -100,7 +100,7 @@ class SectionFlowIntegrationTest extends AbstractIntegrationTest {
                 .retrieve().toEntity(List.class);
 
         List<Map<String, Object>> body = (List<Map<String, Object>>) overview.getBody();
-        assertThat(body).hasSize(16);
+        assertThat(body).hasSize(17);
         assertThat(body.stream().filter(s -> (Boolean) s.get("filled")))
                 .extracting(s -> s.get("key"))
                 .containsExactlyInAnyOrder("PASSPORT", "CREDITORS");

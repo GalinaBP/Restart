@@ -44,6 +44,18 @@ public final class SampleModels {
         model.put("otherIncome", List.of(
                 Map.of("index", "1", "source", "сдача комнаты в аренду", "amount", "15 000,00")));
         model.put("totalIncome", "100 000,00");
+        // Amounts are placeholders pending lawyer sign-off, so the reference case renders the
+        // "these figures are a draft" branch of the payment instructions.
+        model.put("fees", Map.of(
+                "stateDuty", "300,00",
+                "managerDeposit", "25 000,00",
+                "total", "25 300,00",
+                "unconfirmed", true));
+        model.put("payments", Map.of(
+                "stateDutyPaidOn", "20.07.2026",
+                "stateDutyReference", "чек № 4417",
+                "depositPaidOn", "—",
+                "depositReference", "—"));
         model.put("sro", Map.of(
                 "name", "Ассоциация «СРО арбитражных управляющих «Содействие»»",
                 "address", "г. Москва, ул. Управляющая, д. 5",

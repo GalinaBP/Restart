@@ -3,6 +3,9 @@ package ru.restart.app.casefile.application;
 import org.springframework.stereotype.Component;
 import ru.restart.app.casefile.domain.CaseSection;
 import ru.restart.app.casefile.domain.CourtDirectory;
+import ru.restart.app.casefile.domain.FeeItem;
+import ru.restart.app.casefile.domain.FeeSchedule;
+import ru.restart.app.casefile.domain.FeeScheduleRegistry;
 import ru.restart.app.casefile.domain.SectionKey;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -36,11 +39,14 @@ public class CaseModelAssembler {
     private final ObjectMapper objectMapper;
     private final Clock clock;
     private final CourtDirectory courts;
+    private final FeeScheduleRegistry feeSchedule;
 
-    public CaseModelAssembler(ObjectMapper objectMapper, Clock clock, CourtDirectory courts) {
+    public CaseModelAssembler(ObjectMapper objectMapper, Clock clock, CourtDirectory courts,
+                              FeeScheduleRegistry feeSchedule) {
         this.objectMapper = objectMapper;
         this.clock = clock;
         this.courts = courts;
+        this.feeSchedule = feeSchedule;
     }
 
     public Map<String, Object> assemble(List<CaseSection> sections) {
@@ -61,7 +67,29 @@ public class CaseModelAssembler {
         model.put("bankAccounts", bankAccounts(data.get(SectionKey.BANK_ACCOUNTS)));
         income(data.get(SectionKey.MONTHLY_INCOME), data.get(SectionKey.OTHER_INCOME), model);
         model.put("sro", sro(data.get(SectionKey.MANAGER_SRO)));
+        model.put("fees", fees());
+        model.put("payments", payments(data.get(SectionKey.PAYMENTS)));
         return model;
+    }
+
+    /** What the filing costs, from {@code fees.yml} (AI-021). */
+    private Map<String, Object> fees() {
+        FeeSchedule schedule = feeSchedule.current();
+        return Map.of(
+                "stateDuty", formatMoney(schedule.line(FeeItem.STATE_DUTY).amount()),
+                "managerDeposit", formatMoney(schedule.line(FeeItem.MANAGER_DEPOSIT).amount()),
+                "total", formatMoney(schedule.total()),
+                // Drives the "these figures are a draft" block in the payment instructions:
+                "unconfirmed", schedule.hasUnconfirmedAmounts());
+    }
+
+    /** What the user has recorded about paying (AI-021); blanks show as "—", never as a gap. */
+    private Map<String, Object> payments(JsonNode node) {
+        return Map.of(
+                "stateDutyPaidOn", ruDateOrAbsent(text(node, "stateDutyPaidOn")),
+                "stateDutyReference", orAbsent(text(node, "stateDutyReference")),
+                "depositPaidOn", ruDateOrAbsent(text(node, "depositPaidOn")),
+                "depositReference", orAbsent(text(node, "depositReference")));
     }
 
     /** The СРО the financial manager is to be approved from (AI-020). */

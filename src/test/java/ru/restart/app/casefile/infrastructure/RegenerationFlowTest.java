@@ -66,7 +66,7 @@ class RegenerationFlowTest {
                 sections, documents,
                 new CaseModelAssembler(objectMapper,
                         Clock.fixed(Instant.parse("2026-07-17T10:00:00Z"), ZoneOffset.UTC),
-                        new YamlCourtDirectory()),
+                        new YamlCourtDirectory(), FeeScheduleFixture.real()),
                 templates, List.of(new TxtDocumentWriter()));
         sectionService = new SectionService(caseService, cases, sections, registry,
                 validationService, generationService, documents);

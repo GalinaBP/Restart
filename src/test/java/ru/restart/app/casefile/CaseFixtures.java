@@ -52,6 +52,10 @@ public final class CaseFixtures {
                   "overdueSinceDate": "2026-02-01"},
                  {"name": "МФО «Деньги-Быстро»",
                   "address": "г. Тверь, пр-т Займов, д. 7", "debtAmount": 250000.50}]""");
+        // Only the duty is paid: the journey's FEES_AND_DEPOSIT stage must read IN_PROGRESS,
+        // not DONE, off this (AI-021).
+        sections.put(SectionKey.PAYMENTS, """
+                {"stateDutyPaidOn": "2026-07-20", "stateDutyReference": "чек № 4417"}""");
         sections.put(SectionKey.MANAGER_SRO, """
                 {"name": "Ассоциация «СРО арбитражных управляющих «Содействие»»",
                  "address": "г. Москва, ул. Управляющая, д. 5",

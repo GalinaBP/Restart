@@ -10,6 +10,7 @@ public enum DocumentType {
     PROPERTY_INFORMATION("property_information"),
     DEBT_SUMMARY("debt_summary"),
     SRO_NOMINATION("sro_nomination"),
+    PAYMENT_INSTRUCTIONS("payment_instructions"),
     ATTACHMENTS_CHECKLIST("attachments_checklist"),
     FILING_CHECKLIST("filing_checklist");
 
