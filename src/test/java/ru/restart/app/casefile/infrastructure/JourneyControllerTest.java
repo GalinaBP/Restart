@@ -1,0 +1,207 @@
+package ru.restart.app.casefile.infrastructure;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import ru.restart.app.casefile.application.CaseService;
+import ru.restart.app.casefile.application.JourneyService;
+import ru.restart.app.casefile.domain.BankruptcyCase;
+import ru.restart.app.casefile.domain.CaseDocumentRepository;
+import ru.restart.app.casefile.domain.CaseJourneyStage;
+import ru.restart.app.casefile.domain.CaseJourneyStageRepository;
+import ru.restart.app.casefile.domain.CaseRepository;
+import ru.restart.app.casefile.domain.CaseSectionRepository;
+import ru.restart.app.casefile.domain.CaseStatus;
+import ru.restart.app.casefile.domain.CaseType;
+import ru.restart.app.casefile.domain.JourneyStage;
+import ru.restart.app.casefile.domain.ProcedureType;
+import ru.restart.app.common.config.ClockConfig;
+import ru.restart.app.common.error.GlobalExceptionHandler;
+import ru.restart.app.common.security.AuthenticatedUser;
+import ru.restart.app.common.security.RestAccessDeniedHandler;
+import ru.restart.app.common.security.RestAuthenticationEntryPoint;
+import ru.restart.app.common.security.SecurityConfig;
+import ru.restart.app.common.security.SecurityContextCurrentUser;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * Web-slice test of the journey map (backlog AI-018) with the real security chain, the real
+ * service and the real {@code journey.yml}; only repositories are mocked.
+ */
+@WebMvcTest(JourneyController.class)
+@Import({JourneyService.class, CaseService.class, YamlJourneyRegistry.class,
+        SecurityContextCurrentUser.class, SecurityConfig.class, RestAuthenticationEntryPoint.class,
+        RestAccessDeniedHandler.class, GlobalExceptionHandler.class, ClockConfig.class,
+        JourneyControllerTest.EnableSecurity.class})
+class JourneyControllerTest {
+
+    /** See EligibilityControllerTest: Boot 4's web slice needs security switched on explicitly. */
+    @TestConfiguration
+    @EnableWebSecurity
+    static class EnableSecurity {
+    }
+
+    private static final UUID USER_ID = UUID.randomUUID();
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private CaseRepository cases;
+
+    @MockitoBean
+    private CaseJourneyStageRepository stages;
+
+    @MockitoBean
+    private CaseSectionRepository sections;
+
+    @MockitoBean
+    private CaseDocumentRepository documents;
+
+    private static RequestPostProcessor user(UUID userId) {
+        Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
+                new AuthenticatedUser(userId, "user@mail.ru", "ROLE_USER"), null,
+                List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        return authentication(authentication);
+    }
+
+    private BankruptcyCase ownCase() {
+        BankruptcyCase existing = new BankruptcyCase(UUID.randomUUID(), USER_ID,
+                CaseType.PERSONAL_BANKRUPTCY, CaseStatus.IN_PROGRESS, null);
+        when(cases.findById(existing.id())).thenReturn(Optional.of(existing));
+        when(stages.findByCaseId(existing.id())).thenReturn(List.of());
+        when(sections.findByCaseId(existing.id())).thenReturn(List.of());
+        when(documents.findByCaseId(existing.id())).thenReturn(List.of());
+        return existing;
+    }
+
+    @Test
+    void journeyListsTheCommonPathWithScreeningAlreadyBehindUs() throws Exception {
+        BankruptcyCase existing = ownCase();
+
+        mockMvc.perform(get("/api/v1/cases/" + existing.id() + "/journey").with(user(USER_ID)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stages.length()").value(8))
+                .andExpect(jsonPath("$.procedureType").doesNotExist())
+                .andExpect(jsonPath("$.currentStage").value("DOCUMENT_PREPARATION"))
+                .andExpect(jsonPath("$.stages[0].stage").value("SCREENING"))
+                .andExpect(jsonPath("$.stages[0].status").value("DONE"))
+                .andExpect(jsonPath("$.stages[0].editable").value(false))
+                .andExpect(jsonPath("$.stages[1].current").value(true));
+    }
+
+    @Test
+    void recordingAStageEchoesTheUpdatedMap() throws Exception {
+        BankruptcyCase existing = ownCase();
+        when(stages.findByCaseIdAndStage(existing.id(), JourneyStage.FILING))
+                .thenReturn(Optional.empty());
+        when(stages.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        // The saved row is what a re-read of the journey must show:
+        when(stages.findByCaseId(existing.id())).thenAnswer(invocation ->
+                List.of(CaseJourneyStage.record(existing.id(), JourneyStage.FILING,
+                        ru.restart.app.casefile.domain.StageStatus.DONE,
+                        java.time.LocalDate.parse("2026-07-23"), null, "Подано через МФЦ",
+                        java.time.Instant.parse("2026-07-23T10:00:00Z"))));
+
+        mockMvc.perform(put("/api/v1/cases/" + existing.id() + "/journey/FILING")
+                        .with(user(USER_ID))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"status": "DONE", "startedOn": "2026-07-23",
+                                 "note": "Подано через МФЦ"}"""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stages[4].stage").value("FILING"))
+                .andExpect(jsonPath("$.stages[4].status").value("DONE"))
+                .andExpect(jsonPath("$.stages[4].note").value("Подано через МФЦ"));
+    }
+
+    @Test
+    void recordingADerivedStageIsRefused() throws Exception {
+        BankruptcyCase existing = ownCase();
+
+        mockMvc.perform(put("/api/v1/cases/" + existing.id() + "/journey/DOCUMENT_PREPARATION")
+                        .with(user(USER_ID))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\": \"DONE\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("INVALID_STATE"));
+    }
+
+    @Test
+    void aMissingStatusIsAValidationError() throws Exception {
+        BankruptcyCase existing = ownCase();
+
+        mockMvc.perform(put("/api/v1/cases/" + existing.id() + "/journey/FILING")
+                        .with(user(USER_ID))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"note\": \"без статуса\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void anUnknownStageIsRejected() throws Exception {
+        BankruptcyCase existing = ownCase();
+
+        mockMvc.perform(put("/api/v1/cases/" + existing.id() + "/journey/NOT_A_STAGE")
+                        .with(user(USER_ID))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\": \"DONE\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void recordingTheProcedureRevealsThatBranchOnly() throws Exception {
+        BankruptcyCase existing = ownCase();
+        when(cases.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(cases.findById(existing.id())).thenReturn(Optional.of(existing),
+                Optional.of(existing.withProcedureType(ProcedureType.REALIZATION)));
+
+        mockMvc.perform(put("/api/v1/cases/" + existing.id() + "/journey/procedure-type")
+                        .with(user(USER_ID))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"procedureType\": \"REALIZATION\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.procedureType").value("REALIZATION"))
+                .andExpect(jsonPath("$.stages.length()").value(9))
+                .andExpect(jsonPath("$.stages[6].stage").value("PROPERTY_REALIZATION"))
+                .andExpect(jsonPath("$.stages[6].branch").value("REALIZATION"));
+    }
+
+    @Test
+    void someoneElsesCaseIsNotFound() throws Exception {
+        BankruptcyCase existing = ownCase();
+
+        mockMvc.perform(get("/api/v1/cases/" + existing.id() + "/journey")
+                        .with(user(UUID.randomUUID())))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
+    }
+
+    @Test
+    void journeyWithoutATokenIsUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/v1/cases/" + UUID.randomUUID() + "/journey"))
+                .andExpect(status().isUnauthorized());
+    }
+}

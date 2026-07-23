@@ -72,7 +72,14 @@ document generation `POST /cases/{id}/documents` renders all six filing document
 list; once documents exist, every section save regenerates all of them while the case stays
 valid, or flags them `stale` when it doesn't — full regeneration by design, documents are never
 silently outdated; `POST /cases/{id}/documents/export` regenerates and bundles everything into
-one zip behind the same gate)
+one zip behind the same gate; the **journey through the court procedure** is driven by
+`casefile/journey.yml` the same way — stages, their order, which procedure branch each belongs to
+and its 127-ФЗ reference, placeholder pending lawyer review. Two kinds of stage: *derived* ones
+(screening, document preparation) compute their status from the case data and refuse to be
+recorded by hand (409), so the map can never contradict the case; the rest the user records
+(status, dates, note) through `PUT /cases/{id}/journey/{stage}`. `GET /cases/{id}/journey` returns
+the stages that apply plus the current one, and `PUT /cases/{id}/journey/procedure-type` records
+the court's choice — restructuring / realization / settlement — revealing that branch only)
 and `doctemplate` (versioned Mustache templates for the six filing documents under
 `resources/doctemplates/<version>/`, shared legal boilerplate as partials, edition picked by
 `doctemplates/manifest.yml` — a legislative amendment is a new version directory + manifest bump,
