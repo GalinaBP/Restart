@@ -10,6 +10,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import ru.restart.app.casefile.domain.CaseStatus;
 import ru.restart.app.casefile.domain.CaseType;
+import ru.restart.app.casefile.domain.ProcedureType;
 import ru.restart.app.common.persistence.BaseEntity;
 
 import java.util.UUID;
@@ -36,15 +37,22 @@ public class BankruptcyCaseEntity extends BaseEntity {
     @Column(name = "status", nullable = false, length = 32)
     private CaseStatus status;
 
+    /** Null until the court decides which procedure applies (AI-018). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "procedure_type", length = 32)
+    private ProcedureType procedureType;
+
     protected BankruptcyCaseEntity() {
         // JPA
     }
 
-    BankruptcyCaseEntity(UUID id, UUID userId, CaseType caseType, CaseStatus status) {
+    BankruptcyCaseEntity(UUID id, UUID userId, CaseType caseType, CaseStatus status,
+                         ProcedureType procedureType) {
         this.id = id;
         this.userId = userId;
         this.caseType = caseType;
         this.status = status;
+        this.procedureType = procedureType;
     }
 
     UUID getId() {
@@ -61,5 +69,9 @@ public class BankruptcyCaseEntity extends BaseEntity {
 
     CaseStatus getStatus() {
         return status;
+    }
+
+    ProcedureType getProcedureType() {
+        return procedureType;
     }
 }

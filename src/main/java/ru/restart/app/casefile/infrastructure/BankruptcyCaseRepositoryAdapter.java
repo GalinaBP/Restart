@@ -21,7 +21,8 @@ class BankruptcyCaseRepositoryAdapter implements CaseRepository {
     @Override
     public BankruptcyCase save(BankruptcyCase bankruptcyCase) {
         return toDomain(jpa.save(new BankruptcyCaseEntity(bankruptcyCase.id(),
-                bankruptcyCase.userId(), bankruptcyCase.type(), bankruptcyCase.status())));
+                bankruptcyCase.userId(), bankruptcyCase.type(), bankruptcyCase.status(),
+                bankruptcyCase.procedureType().orElse(null))));
     }
 
     @Override
@@ -36,6 +37,6 @@ class BankruptcyCaseRepositoryAdapter implements CaseRepository {
 
     private BankruptcyCase toDomain(BankruptcyCaseEntity entity) {
         return new BankruptcyCase(entity.getId(), entity.getUserId(), entity.getCaseType(),
-                entity.getStatus());
+                entity.getStatus(), entity.getProcedureType());
     }
 }

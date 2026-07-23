@@ -1,0 +1,91 @@
+# The court-supervised bankruptcy procedure as a sequence of stages (backlog AI-018).
+#
+# This file is to the procedure what sections.yml is to the questionnaire: the single source of
+# truth. Adding a stage, reordering the procedure, or changing which branch a stage belongs to is
+# an edit here — the state machine, the API and the stepper UI all read from it.
+#
+# ############################################################################################
+# ##  ПЛЕЙСХОЛДЕР ДО ПРОВЕРКИ ЮРИСТОМ. Состав этапов, их порядок, условия перехода и ссылки  ##
+# ##  на нормы 127-ФЗ (ред., действующая с 21.06.2026) требуют подтверждения юристом.        ##
+# ##  Особенно: последовательность этапов внутри каждой процедуры (AI-024) и сроки.          ##
+# ############################################################################################
+#
+# Structure:
+#   key            — stable machine key, must match the JourneyStage enum
+#   order          — position in the procedure; unique within each branch
+#   branch         — ALL: part of the common path, before the court picks a procedure.
+#                    RESTRUCTURING | REALIZATION | SETTLEMENT: shown only once the court has
+#                    chosen that procedure and it is recorded on the case (AI-024).
+#   derived        — true: status is computed from case data, not recorded by hand. Such a stage
+#                    cannot be set through the API — it mirrors what the case already shows.
+#   statutoryBasis — the 127-ФЗ provision the stage traces back to (placeholder wording)
+
+stages:
+  # --- Common path: everything up to the court's decision -----------------------------------
+  - key: SCREENING
+    order: 1
+    branch: ALL
+    derived: true
+    statutoryBasis: "ст. 213.4 127-ФЗ — предварительная оценка признаков банкротства (ПЛЕЙСХОЛДЕР)"
+
+  - key: DOCUMENT_PREPARATION
+    order: 2
+    branch: ALL
+    derived: true
+    statutoryBasis: "ст. 213.4 127-ФЗ — подготовка заявления и приложений (ПЛЕЙСХОЛДЕР)"
+
+  - key: MANAGER_SELECTION
+    order: 3
+    branch: ALL
+    derived: false
+    statutoryBasis: "ст. 213.4, 213.9 127-ФЗ — выбор СРО и финансового управляющего (ПЛЕЙСХОЛДЕР)"
+
+  - key: FEES_AND_DEPOSIT
+    order: 4
+    branch: ALL
+    derived: false
+    statutoryBasis: "ст. 213.4 127-ФЗ, ст. 333.21 НК РФ — госпошлина и депозит на вознаграждение (ПЛЕЙСХОЛДЕР)"
+
+  - key: FILING
+    order: 5
+    branch: ALL
+    derived: false
+    statutoryBasis: "ст. 213.4 127-ФЗ — подача заявления в арбитражный суд (ПЛЕЙСХОЛДЕР)"
+
+  - key: COURT_DECISION
+    order: 6
+    branch: ALL
+    derived: false
+    statutoryBasis: "ст. 213.6 127-ФЗ — рассмотрение обоснованности заявления судом (ПЛЕЙСХОЛДЕР)"
+
+  # --- After the court picks a procedure, exactly one branch continues (AI-024) --------------
+  - key: RESTRUCTURING_PLAN
+    order: 7
+    branch: RESTRUCTURING
+    derived: false
+    statutoryBasis: "ст. 213.12–213.23 127-ФЗ — план реструктуризации долгов (ПЛЕЙСХОЛДЕР)"
+
+  - key: PROPERTY_REALIZATION
+    order: 7
+    branch: REALIZATION
+    derived: false
+    statutoryBasis: "ст. 213.24–213.27 127-ФЗ — реализация имущества гражданина (ПЛЕЙСХОЛДЕР)"
+
+  - key: SETTLEMENT_AGREEMENT
+    order: 7
+    branch: SETTLEMENT
+    derived: false
+    statutoryBasis: "ст. 213.31 127-ФЗ — мировое соглашение (ПЛЕЙСХОЛДЕР)"
+
+  # --- Common tail: runs whichever procedure the court chose --------------------------------
+  - key: CREDITOR_CLAIMS
+    order: 8
+    branch: ALL
+    derived: false
+    statutoryBasis: "ст. 213.7, 213.8 127-ФЗ — реестр требований кредиторов и публикации ЕФРСБ (ПЛЕЙСХОЛДЕР)"
+
+  - key: COMPLETION
+    order: 9
+    branch: ALL
+    derived: false
+    statutoryBasis: "ст. 213.28, 213.30 127-ФЗ — завершение процедуры, освобождение от обязательств и последствия (ПЛЕЙСХОЛДЕР)"

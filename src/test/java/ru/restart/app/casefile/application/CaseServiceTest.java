@@ -63,7 +63,7 @@ class CaseServiceTest {
     void aFiledCaseNoLongerBlocksANewOne() {
         BankruptcyCase created = service.create();
         cases.replace(new BankruptcyCase(created.id(), created.userId(), created.type(),
-                CaseStatus.FILED));
+                CaseStatus.FILED, null));
 
         assertThat(service.create().status()).isEqualTo(CaseStatus.DRAFT);
     }
