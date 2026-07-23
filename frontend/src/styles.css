@@ -532,6 +532,148 @@ button:disabled {
   font-weight: 800;
 }
 
+/* --- Procedure stepper (AI-019) -------------------------------------------------- */
+
+.procedure-list {
+  width: 100%;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.procedure-stage {
+  display: block;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 1rem;
+  color: var(--text);
+  text-decoration: none;
+  text-align: left;
+}
+
+a.procedure-stage {
+  transition: border-color 0.12s ease;
+}
+
+a.procedure-stage:hover {
+  border-color: var(--accent-to);
+}
+
+.procedure-stage-current {
+  border-color: var(--accent-from);
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.25);
+}
+
+.procedure-stage-done {
+  opacity: 0.72;
+}
+
+.procedure-stage-toggle {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.procedure-stage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.procedure-stage-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-weight: 700;
+}
+
+.procedure-current-badge {
+  color: #04231a;
+  background: var(--accent-from);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+}
+
+.procedure-status {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--pill-border);
+  color: var(--muted);
+}
+
+.procedure-status-done {
+  color: var(--accent-from);
+  border-color: rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.12);
+}
+
+.procedure-status-in-progress {
+  color: var(--text);
+  border-color: var(--accent-to);
+}
+
+.procedure-status-blocked {
+  color: #eab308;
+  border-color: rgba(234, 179, 8, 0.45);
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.procedure-stage-desc {
+  margin: 0.5rem 0 0;
+  max-width: none;
+  text-align: left;
+}
+
+.procedure-blocked-note {
+  margin: 0.5rem 0 0;
+  color: #eab308;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.procedure-stage-body {
+  margin-top: 0.2rem;
+}
+
+.procedure-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.8rem;
+}
+
+.procedure-note {
+  min-height: 4.5rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.procedure-save {
+  margin-top: 0.1rem;
+  padding: 0.75rem 1.6rem;
+  font-size: 1rem;
+  align-self: flex-start;
+}
+
 /* --- Section form ---------------------------------------------------------------- */
 
 .section {

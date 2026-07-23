@@ -110,6 +110,8 @@ export default function JourneyPage() {
       <header className="journey-header">
         <h1 className="journey-title">Ваше дело</h1>
         <span>
+          <Link to="/procedure" className="check-back">Весь путь</Link>
+          {' · '}
           <Link to="/documents" className="check-back">Документы</Link>
           {' · '}
           <button type="button" className="check-back" onClick={() => { logout(); navigate('/'); }}>

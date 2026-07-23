@@ -168,3 +168,81 @@ export function sectionLabel(key: string): SectionLabel {
 export function fieldLabel(sectionKey: string, fieldName: string): string {
   return FIELD_LABELS[`${sectionKey}.${fieldName}`] ?? fieldName;
 }
+
+/**
+ * Plain-language stage info for the procedure stepper (backlog AI-019): what each stage is, in
+ * one calm sentence — never the `statutoryBasis` the backend also carries, that string is for the
+ * lawyer review only and must not reach the screen. Order and composition of stages themselves
+ * come from the backend (`casefile/journey.yml`, placeholder pending lawyer review); this map
+ * only owns how each one reads.
+ */
+export interface StageLabel {
+  title: string;
+  description: string;
+}
+
+const STAGE_LABELS: Record<string, StageLabel> = {
+  SCREENING: {
+    title: 'Проверка перед стартом',
+    description: 'Короткий опрос показал, что этот путь вам подходит.',
+  },
+  DOCUMENT_PREPARATION: {
+    title: 'Сбор документов',
+    description: 'Вопросы о вас, долгах и доходах — из них мы соберём документы для суда.',
+  },
+  MANAGER_SELECTION: {
+    title: 'Выбор управляющего',
+    description: 'Нужно выбрать организацию, которая назначит человека для ведения вашего дела.',
+  },
+  FEES_AND_DEPOSIT: {
+    title: 'Пошлина и депозит',
+    description: 'Перед подачей нужно оплатить пошлину и внести депозит на работу управляющего.',
+  },
+  FILING: {
+    title: 'Подача в суд',
+    description: 'Документы подаются в суд, и начинается официальное рассмотрение дела.',
+  },
+  COURT_DECISION: {
+    title: 'Решение суда',
+    description: 'Суд рассматривает дело и определяет, каким будет дальнейший путь.',
+  },
+  RESTRUCTURING_PLAN: {
+    title: 'План выплат',
+    description: 'Вы платите по долгам по графику, который утвердил суд.',
+  },
+  PROPERTY_REALIZATION: {
+    title: 'Продажа имущества',
+    description: 'То, что можно продать, продают, а вырученные деньги идут кредиторам.',
+  },
+  SETTLEMENT_AGREEMENT: {
+    title: 'Договорённость с кредиторами',
+    description: 'Вы и кредиторы сами согласовали условия — дело завершается на своих условиях.',
+  },
+  CREDITOR_CLAIMS: {
+    title: 'Требования кредиторов',
+    description: 'Кредиторы сообщают суду, сколько вы им должны, — суммы попадают в общий список дела.',
+  },
+  COMPLETION: {
+    title: 'Завершение',
+    description: 'Суд подводит итоги процедуры и решает судьбу оставшихся долгов.',
+  },
+};
+
+export function stageLabel(key: string): StageLabel {
+  return STAGE_LABELS[key] ?? { title: key, description: '' };
+}
+
+/** Plain-language names for the four stage statuses (backlog AI-019). */
+export const STATUS_LABELS: Record<'NOT_STARTED' | 'IN_PROGRESS' | 'DONE' | 'BLOCKED', { title: string }> = {
+  NOT_STARTED: { title: 'Не начато' },
+  IN_PROGRESS: { title: 'В процессе' },
+  DONE: { title: 'Готово' },
+  BLOCKED: { title: 'Ждём' },
+};
+
+/**
+ * Shown next to a BLOCKED stage: being stuck here is normal — it depends on someone else (the
+ * court, the manager, a payment clearing), never on the user, and must never read like an error.
+ */
+export const BLOCKED_EXPLANATION =
+  'Пока не зависит от вас — ждём суд, управляющего или поступление денег.';
