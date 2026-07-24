@@ -745,6 +745,19 @@ a.procedure-stage:hover {
   font-weight: 600;
 }
 
+/* The most recent manager correspondence, shown right on the MANAGER_SELECTION card even
+   collapsed (AI-026) — same treatment as the hearing line above: a months-long procedure must
+   not let recent manager contact get lost. */
+.procedure-correspondence-latest {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.6rem;
+  background: rgba(52, 211, 153, 0.16);
+  color: var(--accent-from);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 /* The claim-filing deadline, shown right on the CREDITOR_CLAIMS card even collapsed (AI-025) —
    same treatment as the hearing line above: a months-long procedure must not let the deadline
    for creditors to file their claims get lost. */

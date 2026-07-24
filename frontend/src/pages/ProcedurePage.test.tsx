@@ -93,19 +93,23 @@ const NO_HEARINGS = { key: 'COURT_HEARINGS', order: 20, repeatable: true, fields
 /** No claim filed is the common case early in the procedure. */
 const NO_CLAIMS = { key: 'FILED_CLAIMS', order: 22, repeatable: true, fields: [], data: null, issues: [] };
 
+/** No manager correspondence recorded is the common case — matches what the backend sends for an empty section. */
+const NO_CORRESPONDENCE = { key: 'MANAGER_CORRESPONDENCE', order: 23, repeatable: true, fields: [], data: null, issues: [] };
+
 /** No ЕФРСБ publication recorded yet — nothing to compute a deadline from (backlog AI-025). */
 const NO_DEADLINE = { publicationDate: null, deadlineDate: null, daysFromPublication: 60, confirmed: false };
 
 function stubFetch(routes: { match: (url: string, init?: RequestInit) => boolean; status: number; body: unknown }[]) {
   const calls: { url: string; method: string; body?: string }[] = [];
-  // The page loads the journey, the fees, the hearings, the claim deadline and the filed claims
-  // together; tests that don't care about any of these get them for free, and can still override
-  // by declaring their own route first.
+  // The page loads the journey, the fees, the hearings, the claim deadline, the filed claims,
+  // and the manager correspondence together; tests that don't care about any of these get them
+  // for free, and can still override by declaring their own route first.
   const withDefaults = [...routes,
     { match: (url: string) => url.endsWith('/fees'), status: 200, body: FEES },
     { match: (url: string) => url.endsWith('/sections/COURT_HEARINGS'), status: 200, body: NO_HEARINGS },
     { match: (url: string) => url.endsWith('/claim-deadline'), status: 200, body: NO_DEADLINE },
-    { match: (url: string) => url.endsWith('/sections/FILED_CLAIMS'), status: 200, body: NO_CLAIMS }];
+    { match: (url: string) => url.endsWith('/sections/FILED_CLAIMS'), status: 200, body: NO_CLAIMS },
+    { match: (url: string) => url.endsWith('/sections/MANAGER_CORRESPONDENCE'), status: 200, body: NO_CORRESPONDENCE }];
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     calls.push({ url, method: init?.method ?? 'GET', body: init?.body as string | undefined });
@@ -465,5 +469,26 @@ describe('ProcedurePage', () => {
     await user.click(screen.getByRole('button', { name: 'Повторить' }));
 
     expect(await screen.findByText('Весь путь')).toBeInTheDocument();
+  });
+
+  it('shows the most recent manager correspondence on the MANAGER_SELECTION card', async () => {
+    const correspondence = {
+      key: 'MANAGER_CORRESPONDENCE', order: 23, repeatable: true, fields: [],
+      data: [
+        { date: '2026-07-10', type: 'Письмо' },
+        { date: '2026-07-20', type: 'Отчёт' },
+      ],
+      issues: [],
+    };
+    stubFetch([
+      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
+      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
+      { match: (url) => url.endsWith('/sections/MANAGER_CORRESPONDENCE'), status: 200, body: correspondence },
+    ]);
+    renderAtProcedure();
+
+    // Prominent even before the card is expanded, showing the newest date first:
+    expect(await screen.findByText(/Последняя запись: 20\.07\.2026 — Отчёт/))
+      .toBeInTheDocument();
   });
 });

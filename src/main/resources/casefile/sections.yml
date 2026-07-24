@@ -297,3 +297,15 @@ sections:
       - { name: amount,       type: MONEY,   required: false }
       - { name: filedOn,      type: DATE,    required: false }
       - { name: disputed,     type: BOOLEAN, required: false }   # должник оспаривает это требование
+
+  # A personal log of reports and correspondence received from the arbitration manager — a
+  # record-keeping convenience, not a messaging channel. Optional and repeatable, blocks nothing.
+  - key: MANAGER_CORRESPONDENCE
+    order: 23
+    repeatable: true
+    mandatory: false
+    statutoryBasis: "справочный журнал переписки с финансовым управляющим (ПЛЕЙСХОЛДЕР)"
+    fields:
+      - { name: date, type: DATE,   required: false }
+      - { name: type, type: STRING, required: false }
+      - { name: note, type: STRING, required: false }

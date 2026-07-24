@@ -144,6 +144,11 @@ export const SECTION_LABELS: Record<string, SectionLabel> = {
       note: 'Это один из тех шагов, где стоит не торопиться: без указанной организации суд не сможет назначить управляющего, а без управляющего дело не пойдёт.',
     },
   },
+  MANAGER_CORRESPONDENCE: {
+    title: 'Переписка с управляющим',
+    hint: 'Ваш личный журнал — что отправил вам управляющий, когда и по какому вопросу. Это только для ваших записей, ничего не блокирует.',
+    entryName: 'Добавить запись',
+  },
 };
 
 /** Field labels keyed «SECTION.field»; look up via fieldLabel(). */
@@ -229,6 +234,9 @@ const FIELD_LABELS: Record<string, string> = {
   'MANAGER_SRO.inn': 'ИНН организации (если знаете)',
   'MANAGER_SRO.ogrn': 'ОГРН организации (если знаете)',
   'MANAGER_SRO.registryNumber': 'Номер в реестре (если знаете)',
+  'MANAGER_CORRESPONDENCE.date': 'Дата',
+  'MANAGER_CORRESPONDENCE.type': 'Что это — отчёт, письмо, уведомление…',
+  'MANAGER_CORRESPONDENCE.note': 'Короткая заметка',
 };
 
 /** The filing documents, in plain words. */
