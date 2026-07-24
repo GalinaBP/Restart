@@ -269,3 +269,31 @@ sections:
       - { name: date,    type: DATE,   required: false }
       - { name: subject, type: STRING, required: false }
       - { name: outcome, type: STRING, required: false }
+
+  # Publication of the bankruptcy notice in the public register (ЕФРСБ) the claim-filing deadline
+  # runs from (backlog AI-025). Optional tracking data that blocks nothing — the CREDITOR_CLAIMS
+  # stage stays user-recorded; this section only feeds the deadline calculation exposed at
+  # GET /cases/{id}/claim-deadline (the period itself lives in claim-deadline.yml).
+  - key: EFRSB_PUBLICATION
+    order: 21
+    repeatable: false
+    mandatory: false
+    statutoryBasis: "ст. 213.7 127-ФЗ — включение сведений в Единый федеральный реестр сведений о банкротстве (ПЛЕЙСХОЛДЕР)"
+    fields:
+      - { name: publicationDate, type: DATE,   required: false }
+      - { name: messageNumber,   type: STRING, required: false }   # номер сообщения в ЕФРСБ
+
+  # Claims creditors have filed WITH THE COURT during the procedure (backlog AI-025) — NOT the
+  # same thing as CREDITORS above (the debtor's own list of who is owed, collected for the
+  # application). Optional and repeatable and blocks nothing: a debtor may see none, one, or many
+  # such claims, and may dispute any of them.
+  - key: FILED_CLAIMS
+    order: 22
+    repeatable: true
+    mandatory: false
+    statutoryBasis: "ст. 213.8 127-ФЗ — предъявление требований кредиторами и включение в реестр требований (ПЛЕЙСХОЛДЕР)"
+    fields:
+      - { name: creditorName, type: STRING,  required: false }
+      - { name: amount,       type: MONEY,   required: false }
+      - { name: filedOn,      type: DATE,    required: false }
+      - { name: disputed,     type: BOOLEAN, required: false }   # должник оспаривает это требование

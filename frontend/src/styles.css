@@ -745,6 +745,37 @@ a.procedure-stage:hover {
   font-weight: 600;
 }
 
+/* The claim-filing deadline, shown right on the CREDITOR_CLAIMS card even collapsed (AI-025) —
+   same treatment as the hearing line above: a months-long procedure must not let the deadline
+   for creditors to file their claims get lost. */
+.procedure-claim-deadline {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.6rem;
+  background: rgba(52, 211, 153, 0.16);
+  color: var(--accent-from);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* While the deadline period is an unconfirmed placeholder (AI-025), same amber caveat as the
+   fee draft warning — a wrong period here has real consequences, so it must read as a draft. */
+.procedure-claim-deadline-draft {
+  margin: 0.4rem 0 0;
+  color: #eab308;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Short summary when a filed claim is late or disputed (AI-025) — calm, not alarming, matching
+   the blocked-stage note's tone and colour rather than an error red. */
+.procedure-claims-flagged {
+  margin: 0.5rem 0 0;
+  color: #eab308;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
 /* Link from a stage to the screen that actually collects its data. A stage can have more than
    one (AI-023: court details + hearings), so these stack rather than run together on one line. */
 .procedure-detail-link {

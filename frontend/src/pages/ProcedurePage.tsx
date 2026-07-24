@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
 import { currentCase, getSection, type SectionEntry } from '../api/cases';
 import {
+  getClaimDeadline,
   getFees,
   getJourney,
   recordProcedureType,
   recordStage,
+  type ClaimDeadlineView,
   type FeeScheduleView,
   type JourneyStageKey,
   type JourneyStageView,
@@ -17,6 +19,7 @@ import {
 } from '../api/procedure';
 import { BLOCKED_EXPLANATION, PROCEDURE_LABELS, STATUS_LABELS, stageLabel } from '../api/labels';
 import { nextUpcomingHearing, type UpcomingHearing } from './nextUpcomingHearing';
+import { flagClaims, type FlaggedClaim } from './flagClaims';
 
 /**
  * The stage overview (backlog AI-019): every stage of the court procedure in order, with the
@@ -41,7 +44,22 @@ const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: str
     { route: '/journey/COURT_CASE', label: 'Дело в суде' },
     { route: '/journey/COURT_HEARINGS', label: 'Заседания' },
   ],
+  CREDITOR_CLAIMS: [
+    { route: '/journey/EFRSB_PUBLICATION', label: 'Публикация в реестре' },
+    { route: '/journey/FILED_CLAIMS', label: 'Требования кредиторов' },
+  ],
 };
+
+/** «1 позднее срока, 1 оспаривается» — calm, count-based, never alarming (backlog AI-025). */
+function flaggedClaimsSummary(flagged: FlaggedClaim[]): string | null {
+  const lateCount = flagged.filter((claim) => claim.late).length;
+  const disputedCount = flagged.filter((claim) => claim.disputed).length;
+  if (lateCount === 0 && disputedCount === 0) return null;
+  const parts: string[] = [];
+  if (lateCount > 0) parts.push(`${lateCount} позднее срока`);
+  if (disputedCount > 0) parts.push(`${disputedCount} оспаривается`);
+  return `Есть требования с пометками: ${parts.join(', ')}`;
+}
 
 /** Today as a local 'YYYY-MM-DD' string — matches the plain ISO dates the backend stores, and
  *  sidesteps the timezone traps of comparing `Date` objects. */
@@ -64,6 +82,8 @@ export default function ProcedurePage() {
   const [journey, setJourney] = useState<JourneyView | null>(null);
   const [fees, setFees] = useState<FeeScheduleView | null>(null);
   const [hearings, setHearings] = useState<SectionEntry[] | null>(null);
+  const [claimDeadline, setClaimDeadline] = useState<ClaimDeadlineView | null>(null);
+  const [filedClaims, setFiledClaims] = useState<SectionEntry[] | null>(null);
   const [expanded, setExpanded] = useState<JourneyStageKey | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -78,15 +98,20 @@ export default function ProcedurePage() {
         return;
       }
       setCaseId(existing.id);
-      const [view, feeSchedule, hearingsSection] = await Promise.all([
+      const [view, feeSchedule, hearingsSection, deadline, claimsSection] = await Promise.all([
         getJourney(existing.id),
         getFees(existing.id),
         getSection(existing.id, 'COURT_HEARINGS'),
+        getClaimDeadline(existing.id),
+        getSection(existing.id, 'FILED_CLAIMS'),
       ]);
       setJourney(view);
       setFees(feeSchedule);
       // No hearing recorded yet is the common case for months of the process — guard for it.
       setHearings(Array.isArray(hearingsSection.data) ? hearingsSection.data : null);
+      setClaimDeadline(deadline);
+      // No claim filed yet is the common case early in the procedure — guard for it.
+      setFiledClaims(Array.isArray(claimsSection.data) ? claimsSection.data : null);
       // Open the one stage that needs attention right now, when it has something to fill in.
       const current = view.stages.find((s) => s.current && s.editable);
       if (current) setExpanded(current.stage);
@@ -152,6 +177,7 @@ export default function ProcedurePage() {
 
   const currentTitle = journey.currentStage ? stageLabel(journey.currentStage).title : null;
   const upcomingHearing = nextUpcomingHearing(hearings, todayIso());
+  const flaggedClaims = flagClaims(filedClaims, claimDeadline?.deadlineDate ?? null);
 
   return (
     <main className="journey">
@@ -180,6 +206,8 @@ export default function ProcedurePage() {
             onSave={(input) => save(view.stage, input)}
             fees={fees}
             upcomingHearing={upcomingHearing}
+            claimDeadline={claimDeadline}
+            flaggedClaims={flaggedClaims}
             procedureType={journey.procedureType}
             onChooseProcedure={chooseProcedure}
           />
@@ -196,6 +224,8 @@ function StageCard({
   onSave,
   fees,
   upcomingHearing,
+  claimDeadline,
+  flaggedClaims,
   procedureType,
   onChooseProcedure,
 }: {
@@ -205,6 +235,8 @@ function StageCard({
   onSave: (input: RecordStageInput) => Promise<void>;
   fees: FeeScheduleView | null;
   upcomingHearing: UpcomingHearing | null;
+  claimDeadline: ClaimDeadlineView | null;
+  flaggedClaims: FlaggedClaim[];
   procedureType: ProcedureBranch | null;
   onChooseProcedure: (procedureType: ProcedureBranch | null) => Promise<void>;
 }) {
@@ -217,6 +249,7 @@ function StageCard({
     view.status === 'DONE' ? 'procedure-stage-done' : '',
   ].filter(Boolean).join(' ');
   const statusClass = `procedure-status procedure-status-${view.status.toLowerCase().replace(/_/g, '-')}`;
+  const claimsSummary = view.stage === 'CREDITOR_CLAIMS' ? flaggedClaimsSummary(flaggedClaims) : null;
 
   const head = (
     <span className="procedure-stage-head">
@@ -269,6 +302,22 @@ function StageCard({
           Ближайшее заседание: {formatRuDate(upcomingHearing.date)}
           {upcomingHearing.subject ? ` — ${upcomingHearing.subject}` : ''}
         </p>
+      )}
+      {/* Prominent even collapsed, mirroring the hearing line above (backlog AI-025): the
+          deadline for creditors to file their claims must not get lost over the months a
+          procedure takes. Shown only once a publication date makes it computable. */}
+      {view.stage === 'CREDITOR_CLAIMS' && claimDeadline?.deadlineDate && (
+        <p className="procedure-claim-deadline">
+          Срок предъявления требований: {formatRuDate(claimDeadline.deadlineDate)}
+        </p>
+      )}
+      {view.stage === 'CREDITOR_CLAIMS' && claimDeadline?.deadlineDate && !claimDeadline.confirmed && (
+        <p className="procedure-claim-deadline-draft" role="note">
+          Срок черновой, уточните на сайте суда/в реестре.
+        </p>
+      )}
+      {view.stage === 'CREDITOR_CLAIMS' && claimsSummary && (
+        <p className="procedure-claims-flagged">{claimsSummary}</p>
       )}
       {expanded && (
         <div className="procedure-stage-body">

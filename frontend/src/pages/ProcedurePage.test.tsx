@@ -90,13 +90,22 @@ function money(value: number): string {
 /** No hearing recorded is the common case — matches what the backend sends for an empty section. */
 const NO_HEARINGS = { key: 'COURT_HEARINGS', order: 20, repeatable: true, fields: [], data: null, issues: [] };
 
+/** No claim filed is the common case early in the procedure. */
+const NO_CLAIMS = { key: 'FILED_CLAIMS', order: 22, repeatable: true, fields: [], data: null, issues: [] };
+
+/** No ЕФРСБ publication recorded yet — nothing to compute a deadline from (backlog AI-025). */
+const NO_DEADLINE = { publicationDate: null, deadlineDate: null, daysFromPublication: 60, confirmed: false };
+
 function stubFetch(routes: { match: (url: string, init?: RequestInit) => boolean; status: number; body: unknown }[]) {
   const calls: { url: string; method: string; body?: string }[] = [];
-  // The page loads the journey, the fees, and the hearings together; tests that don't care about
-  // either get them for free, and can still override by declaring their own route first.
+  // The page loads the journey, the fees, the hearings, the claim deadline and the filed claims
+  // together; tests that don't care about any of these get them for free, and can still override
+  // by declaring their own route first.
   const withDefaults = [...routes,
     { match: (url: string) => url.endsWith('/fees'), status: 200, body: FEES },
-    { match: (url: string) => url.endsWith('/sections/COURT_HEARINGS'), status: 200, body: NO_HEARINGS }];
+    { match: (url: string) => url.endsWith('/sections/COURT_HEARINGS'), status: 200, body: NO_HEARINGS },
+    { match: (url: string) => url.endsWith('/claim-deadline'), status: 200, body: NO_DEADLINE },
+    { match: (url: string) => url.endsWith('/sections/FILED_CLAIMS'), status: 200, body: NO_CLAIMS }];
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     calls.push({ url, method: init?.method ?? 'GET', body: init?.body as string | undefined });
@@ -383,6 +392,59 @@ describe('ProcedurePage', () => {
     expect(screen.getByText('Пока не зависит от вас — ждём суд, управляющего или поступление денег.'))
       .toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('shows the claim-filing deadline, a flagged summary, and both CREDITOR_CLAIMS detail links', async () => {
+    const deadline = {
+      publicationDate: '2026-06-01', deadlineDate: '2026-07-31',
+      daysFromPublication: 60, confirmed: false,
+    };
+    const claims = {
+      key: 'FILED_CLAIMS', order: 22, repeatable: true, fields: [],
+      data: [
+        { creditorName: 'Банк А', amount: 100000, filedOn: '2026-08-15', disputed: false },
+        { creditorName: 'Банк Б', amount: 50000, filedOn: '2026-07-10', disputed: true },
+      ],
+      issues: [],
+    };
+    stubFetch([
+      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
+      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
+      { match: (url) => url.endsWith('/claim-deadline'), status: 200, body: deadline },
+      { match: (url) => url.endsWith('/sections/FILED_CLAIMS'), status: 200, body: claims },
+    ]);
+    const user = userEvent.setup();
+    renderAtProcedure();
+
+    // Prominent even before the card is expanded, mirroring the upcoming-hearing line:
+    expect(await screen.findByText(/Срок предъявления требований: 31\.07\.2026/))
+      .toBeInTheDocument();
+    expect(screen.getByText(/Срок черновой, уточните на сайте суда\/в реестре/))
+      .toBeInTheDocument();
+    // One claim filed after the deadline, one disputed — flagged calmly, not as an error:
+    expect(screen.getByText(/Есть требования с пометками: 1 позднее срока, 1 оспаривается/))
+      .toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Требования кредиторов/ }));
+
+    expect(screen.getByRole('link', { name: /Публикация в реестре/ }))
+      .toHaveAttribute('href', '/journey/EFRSB_PUBLICATION');
+    expect(screen.getByRole('link', { name: /Требования кредиторов/ }))
+      .toHaveAttribute('href', '/journey/FILED_CLAIMS');
+  });
+
+  it('shows nothing for the claim deadline when no publication date is recorded', async () => {
+    stubFetch([
+      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
+      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
+      // Falls back to the stub helper's defaults: no deadline, no filed claims.
+    ]);
+    renderAtProcedure();
+
+    await screen.findByText('Весь путь');
+    expect(screen.queryByText(/Срок предъявления требований/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Есть требования с пометками/)).not.toBeInTheDocument();
   });
 
   it('shows the failure state and recovers on retry', async () => {

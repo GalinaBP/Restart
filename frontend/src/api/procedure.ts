@@ -81,12 +81,29 @@ export interface FeeScheduleView {
   effectiveFrom: string;
 }
 
+/**
+ * The claim-filing deadline (backlog AI-025): how many calendar days after the ЕФРСБ publication
+ * creditors have to file their claims, and — once a publication date is recorded on the case —
+ * the computed deadline itself. Mirrors `FeeScheduleView`: `confirmed` is false while the period
+ * is an unreviewed placeholder and must be shown as a draft.
+ */
+export interface ClaimDeadlineView {
+  publicationDate: string | null;
+  deadlineDate: string | null;
+  daysFromPublication: number;
+  confirmed: boolean;
+}
+
 export function getJourney(caseId: string): Promise<JourneyView> {
   return request<JourneyView>(`/cases/${caseId}/journey`);
 }
 
 export function getFees(caseId: string): Promise<FeeScheduleView> {
   return request<FeeScheduleView>(`/cases/${caseId}/fees`);
+}
+
+export function getClaimDeadline(caseId: string): Promise<ClaimDeadlineView> {
+  return request<ClaimDeadlineView>(`/cases/${caseId}/claim-deadline`);
 }
 
 /**
