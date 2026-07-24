@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
-import { currentCase } from '../api/cases';
+import { currentCase, getSection, type SectionEntry } from '../api/cases';
 import {
   getFees,
   getJourney,
@@ -16,6 +16,7 @@ import {
   type StageStatusKey,
 } from '../api/procedure';
 import { BLOCKED_EXPLANATION, PROCEDURE_LABELS, STATUS_LABELS, stageLabel } from '../api/labels';
+import { nextUpcomingHearing, type UpcomingHearing } from './nextUpcomingHearing';
 
 /**
  * The stage overview (backlog AI-019): every stage of the court procedure in order, with the
@@ -28,20 +29,41 @@ import { BLOCKED_EXPLANATION, PROCEDURE_LABELS, STATUS_LABELS, stageLabel } from
 
 /**
  * Stages that already have a screen of their own. The later tickets of this epic
- * (AI-023…AI-029) add theirs here as they land; a stage missing from this map simply expands in
- * place instead of dead-ending on a click.
+ * (AI-025…AI-029) add theirs here as they land; a stage missing from this map simply expands in
+ * place instead of dead-ending on a click. A stage may link to more than one screen (AI-023:
+ * COURT_DECISION links both to the case's court details and to its hearings).
  */
-const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: string }>> = {
-  MANAGER_SELECTION: { route: '/journey/MANAGER_SRO', label: 'Указать организацию' },
-  FEES_AND_DEPOSIT: { route: '/journey/PAYMENTS', label: 'Отметить оплату' },
-  FILING: { route: '/journey/FILING_SUBMISSION', label: 'Отметить подачу' },
+const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: string }[]>> = {
+  MANAGER_SELECTION: [{ route: '/journey/MANAGER_SRO', label: 'Указать организацию' }],
+  FEES_AND_DEPOSIT: [{ route: '/journey/PAYMENTS', label: 'Отметить оплату' }],
+  FILING: [{ route: '/journey/FILING_SUBMISSION', label: 'Отметить подачу' }],
+  COURT_DECISION: [
+    { route: '/journey/COURT_CASE', label: 'Дело в суде' },
+    { route: '/journey/COURT_HEARINGS', label: 'Заседания' },
+  ],
 };
+
+/** Today as a local 'YYYY-MM-DD' string — matches the plain ISO dates the backend stores, and
+ *  sidesteps the timezone traps of comparing `Date` objects. */
+function todayIso(): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+/** 'YYYY-MM-DD' → 'DD.MM.YYYY', the date format used everywhere else in the app. */
+function formatRuDate(iso: string): string {
+  const [year, month, day] = iso.split('-');
+  return `${day}.${month}.${year}`;
+}
 
 export default function ProcedurePage() {
   const navigate = useNavigate();
   const [caseId, setCaseId] = useState<string | null>(null);
   const [journey, setJourney] = useState<JourneyView | null>(null);
   const [fees, setFees] = useState<FeeScheduleView | null>(null);
+  const [hearings, setHearings] = useState<SectionEntry[] | null>(null);
   const [expanded, setExpanded] = useState<JourneyStageKey | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -56,12 +78,15 @@ export default function ProcedurePage() {
         return;
       }
       setCaseId(existing.id);
-      const [view, feeSchedule] = await Promise.all([
+      const [view, feeSchedule, hearingsSection] = await Promise.all([
         getJourney(existing.id),
         getFees(existing.id),
+        getSection(existing.id, 'COURT_HEARINGS'),
       ]);
       setJourney(view);
       setFees(feeSchedule);
+      // No hearing recorded yet is the common case for months of the process — guard for it.
+      setHearings(Array.isArray(hearingsSection.data) ? hearingsSection.data : null);
       // Open the one stage that needs attention right now, when it has something to fill in.
       const current = view.stages.find((s) => s.current && s.editable);
       if (current) setExpanded(current.stage);
@@ -126,6 +151,7 @@ export default function ProcedurePage() {
   }
 
   const currentTitle = journey.currentStage ? stageLabel(journey.currentStage).title : null;
+  const upcomingHearing = nextUpcomingHearing(hearings, todayIso());
 
   return (
     <main className="journey">
@@ -153,6 +179,7 @@ export default function ProcedurePage() {
             onToggle={() => setExpanded(expanded === view.stage ? null : view.stage)}
             onSave={(input) => save(view.stage, input)}
             fees={fees}
+            upcomingHearing={upcomingHearing}
             procedureType={journey.procedureType}
             onChooseProcedure={chooseProcedure}
           />
@@ -168,6 +195,7 @@ function StageCard({
   onToggle,
   onSave,
   fees,
+  upcomingHearing,
   procedureType,
   onChooseProcedure,
 }: {
@@ -176,6 +204,7 @@ function StageCard({
   onToggle: () => void;
   onSave: (input: RecordStageInput) => Promise<void>;
   fees: FeeScheduleView | null;
+  upcomingHearing: UpcomingHearing | null;
   procedureType: ProcedureBranch | null;
   onChooseProcedure: (procedureType: ProcedureBranch | null) => Promise<void>;
 }) {
@@ -221,9 +250,9 @@ function StageCard({
         {head}
         <p className="check-hint procedure-stage-desc">{label.description}</p>
         {view.stage === 'FEES_AND_DEPOSIT' && fees && <FeeBreakdown fees={fees} />}
-        {detail && (
-          <Link to={detail.route} className="procedure-detail-link">{detail.label} →</Link>
-        )}
+        {detail?.map((d) => (
+          <Link key={d.route} to={d.route} className="procedure-detail-link">{d.label} →</Link>
+        ))}
       </li>
     );
   }
@@ -233,13 +262,21 @@ function StageCard({
       <button type="button" className="procedure-stage-toggle" aria-expanded={expanded} onClick={onToggle}>
         {head}
       </button>
+      {/* Prominent even collapsed (backlog AI-023): a months-long court process must not let an
+          upcoming hearing date get lost. */}
+      {view.stage === 'COURT_DECISION' && upcomingHearing && (
+        <p className="procedure-hearing-upcoming">
+          Ближайшее заседание: {formatRuDate(upcomingHearing.date)}
+          {upcomingHearing.subject ? ` — ${upcomingHearing.subject}` : ''}
+        </p>
+      )}
       {expanded && (
         <div className="procedure-stage-body">
           <p className="check-hint procedure-stage-desc">{label.description}</p>
           {view.status === 'BLOCKED' && <p className="procedure-blocked-note">{BLOCKED_EXPLANATION}</p>}
-          {detail && (
-            <Link to={detail.route} className="procedure-detail-link">{detail.label} →</Link>
-          )}
+          {detail?.map((d) => (
+            <Link key={d.route} to={d.route} className="procedure-detail-link">{d.label} →</Link>
+          ))}
           {view.stage === 'COURT_DECISION' && (
             <ProcedurePicker chosen={procedureType} onChoose={onChooseProcedure} />
           )}

@@ -87,16 +87,20 @@ function money(value: number): string {
   return `${formatted} ₽`.replace(/[\u00a0\u202f]/g, ' ');
 }
 
+/** No hearing recorded is the common case — matches what the backend sends for an empty section. */
+const NO_HEARINGS = { key: 'COURT_HEARINGS', order: 20, repeatable: true, fields: [], data: null, issues: [] };
+
 function stubFetch(routes: { match: (url: string, init?: RequestInit) => boolean; status: number; body: unknown }[]) {
   const calls: { url: string; method: string; body?: string }[] = [];
-  // The page loads the journey and the fees together; tests that don't care about money get the
-  // fee route for free, and can still override it by declaring their own first.
-  const withFees = [...routes,
-    { match: (url: string) => url.endsWith('/fees'), status: 200, body: FEES }];
+  // The page loads the journey, the fees, and the hearings together; tests that don't care about
+  // either get them for free, and can still override by declaring their own route first.
+  const withDefaults = [...routes,
+    { match: (url: string) => url.endsWith('/fees'), status: 200, body: FEES },
+    { match: (url: string) => url.endsWith('/sections/COURT_HEARINGS'), status: 200, body: NO_HEARINGS }];
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     calls.push({ url, method: init?.method ?? 'GET', body: init?.body as string | undefined });
-    const match = withFees.find((r) => r.match(url, init));
+    const match = withDefaults.find((r) => r.match(url, init));
     if (!match) throw new Error(`Unexpected fetch: ${init?.method ?? 'GET'} ${url}`);
     return new Response(JSON.stringify(match.body), { status: match.status });
   }));
@@ -183,6 +187,48 @@ describe('ProcedurePage', () => {
     // FILING is derived (not current, not editable), so its link is on screen without a click.
     const link = await screen.findByRole('link', { name: /Отметить подачу/ });
     expect(link).toHaveAttribute('href', '/journey/FILING_SUBMISSION');
+  });
+
+  it('shows both COURT_DECISION detail links, and the nearest upcoming hearing even collapsed', async () => {
+    const futureHearings = {
+      key: 'COURT_HEARINGS', order: 20, repeatable: true, fields: [],
+      data: [
+        { date: '2099-03-15', subject: 'Рассмотрение обоснованности заявления' },
+        { date: '2099-01-01', subject: 'Более раннее заседание' },
+      ],
+      issues: [],
+    };
+    stubFetch([
+      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
+      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
+      { match: (url) => url.endsWith('/sections/COURT_HEARINGS'), status: 200, body: futureHearings },
+    ]);
+    const user = userEvent.setup();
+    renderAtProcedure();
+
+    // Prominent even before the card is expanded — the earlier of the two future hearings wins.
+    expect(await screen.findByText(/Ближайшее заседание: 01\.01\.2099 — Более раннее заседание/))
+      .toBeInTheDocument();
+
+    // COURT_DECISION is editable, so its links live in the collapsible body.
+    await user.click(screen.getByRole('button', { name: /Решение суда/ }));
+
+    expect(screen.getByRole('link', { name: /Дело в суде/ }))
+      .toHaveAttribute('href', '/journey/COURT_CASE');
+    expect(screen.getByRole('link', { name: /Заседания/ }))
+      .toHaveAttribute('href', '/journey/COURT_HEARINGS');
+  });
+
+  it('shows no upcoming-hearing line when nothing is recorded or every hearing is past', async () => {
+    stubFetch([
+      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
+      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
+      // Falls back to the stub helper's default: COURT_HEARINGS section with no data at all.
+    ]);
+    renderAtProcedure();
+
+    await screen.findByText('Весь путь');
+    expect(screen.queryByText(/Ближайшее заседание/)).not.toBeInTheDocument();
   });
 
   it('shows the loading state, then every stage with its status, highlighting the current one', async () => {
