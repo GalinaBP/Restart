@@ -20,6 +20,7 @@ import {
 import { BLOCKED_EXPLANATION, PROCEDURE_LABELS, STATUS_LABELS, stageLabel } from '../api/labels';
 import { nextUpcomingHearing, type UpcomingHearing } from './nextUpcomingHearing';
 import { flagClaims, type FlaggedClaim } from './flagClaims';
+import { sortCorrespondence } from './sortCorrespondence';
 
 /**
  * The stage overview (backlog AI-019): every stage of the court procedure in order, with the
@@ -37,7 +38,10 @@ import { flagClaims, type FlaggedClaim } from './flagClaims';
  * COURT_DECISION links both to the case's court details and to its hearings).
  */
 const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: string }[]>> = {
-  MANAGER_SELECTION: [{ route: '/journey/MANAGER_SRO', label: 'Указать организацию' }],
+  MANAGER_SELECTION: [
+    { route: '/journey/MANAGER_SRO', label: 'Указать организацию' },
+    { route: '/journey/MANAGER_CORRESPONDENCE', label: 'Переписка с управляющим' },
+  ],
   FEES_AND_DEPOSIT: [{ route: '/journey/PAYMENTS', label: 'Отметить оплату' }],
   FILING: [{ route: '/journey/FILING_SUBMISSION', label: 'Отметить подачу' }],
   COURT_DECISION: [
@@ -84,6 +88,7 @@ export default function ProcedurePage() {
   const [hearings, setHearings] = useState<SectionEntry[] | null>(null);
   const [claimDeadline, setClaimDeadline] = useState<ClaimDeadlineView | null>(null);
   const [filedClaims, setFiledClaims] = useState<SectionEntry[] | null>(null);
+  const [correspondence, setCorrespondence] = useState<SectionEntry[] | null>(null);
   const [expanded, setExpanded] = useState<JourneyStageKey | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -98,12 +103,13 @@ export default function ProcedurePage() {
         return;
       }
       setCaseId(existing.id);
-      const [view, feeSchedule, hearingsSection, deadline, claimsSection] = await Promise.all([
+      const [view, feeSchedule, hearingsSection, deadline, claimsSection, correspondenceSection] = await Promise.all([
         getJourney(existing.id),
         getFees(existing.id),
         getSection(existing.id, 'COURT_HEARINGS'),
         getClaimDeadline(existing.id),
         getSection(existing.id, 'FILED_CLAIMS'),
+        getSection(existing.id, 'MANAGER_CORRESPONDENCE'),
       ]);
       setJourney(view);
       setFees(feeSchedule);
@@ -112,6 +118,8 @@ export default function ProcedurePage() {
       setClaimDeadline(deadline);
       // No claim filed yet is the common case early in the procedure — guard for it.
       setFiledClaims(Array.isArray(claimsSection.data) ? claimsSection.data : null);
+      // No correspondence recorded yet is the common case — guard for it.
+      setCorrespondence(Array.isArray(correspondenceSection.data) ? correspondenceSection.data : null);
       // Open the one stage that needs attention right now, when it has something to fill in.
       const current = view.stages.find((s) => s.current && s.editable);
       if (current) setExpanded(current.stage);
@@ -178,6 +186,7 @@ export default function ProcedurePage() {
   const currentTitle = journey.currentStage ? stageLabel(journey.currentStage).title : null;
   const upcomingHearing = nextUpcomingHearing(hearings, todayIso());
   const flaggedClaims = flagClaims(filedClaims, claimDeadline?.deadlineDate ?? null);
+  const sortedCorrespondence = sortCorrespondence(correspondence);
 
   return (
     <main className="journey">
@@ -208,6 +217,7 @@ export default function ProcedurePage() {
             upcomingHearing={upcomingHearing}
             claimDeadline={claimDeadline}
             flaggedClaims={flaggedClaims}
+            correspondence={sortedCorrespondence}
             procedureType={journey.procedureType}
             onChooseProcedure={chooseProcedure}
           />
@@ -226,6 +236,7 @@ function StageCard({
   upcomingHearing,
   claimDeadline,
   flaggedClaims,
+  correspondence,
   procedureType,
   onChooseProcedure,
 }: {
@@ -237,6 +248,7 @@ function StageCard({
   upcomingHearing: UpcomingHearing | null;
   claimDeadline: ClaimDeadlineView | null;
   flaggedClaims: FlaggedClaim[];
+  correspondence: SectionEntry[];
   procedureType: ProcedureBranch | null;
   onChooseProcedure: (procedureType: ProcedureBranch | null) => Promise<void>;
 }) {
@@ -301,6 +313,15 @@ function StageCard({
         <p className="procedure-hearing-upcoming">
           Ближайшее заседание: {formatRuDate(upcomingHearing.date)}
           {upcomingHearing.subject ? ` — ${upcomingHearing.subject}` : ''}
+        </p>
+      )}
+      {/* Prominent even collapsed, mirroring the hearing line above (backlog AI-026): the
+          most recent manager correspondence must not get lost over the months a procedure takes.
+          Shown only when at least one entry has been recorded. */}
+      {view.stage === 'MANAGER_SELECTION' && typeof correspondence[0]?.date === 'string' && (
+        <p className="procedure-correspondence-latest">
+          Последняя запись: {formatRuDate(correspondence[0].date)}
+          {correspondence[0].type ? ` — ${correspondence[0].type}` : ''}
         </p>
       )}
       {/* Prominent even collapsed, mirroring the hearing line above (backlog AI-025): the
