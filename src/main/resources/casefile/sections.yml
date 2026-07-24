@@ -242,3 +242,30 @@ sections:
       - { name: submissionDate,  type: DATE,   required: false }
       - { name: courtName,       type: STRING, required: false }
       - { name: referenceNumber, type: STRING, required: false }
+
+  # Court-case tracking (backlog AI-023): the case number the court assigns, the date it accepted
+  # the application for consideration, and what it ultimately decided. Optional and blocks nothing
+  # — the COURT_DECISION stage stays user-recorded (status/dates/note), this section is
+  # supplementary tracking data the stage links to, not something it derives its status from.
+  - key: COURT_CASE
+    order: 19
+    repeatable: false
+    mandatory: false
+    statutoryBasis: "ст. 213.6 127-ФЗ — рассмотрение дела судом (ПЛЕЙСХОЛДЕР)"
+    fields:
+      - { name: caseNumber,    type: STRING, required: false }
+      - { name: admissionDate, type: DATE,   required: false }
+      - { name: decision,      type: STRING, required: false }
+
+  # One entry per court hearing — a case can be rescheduled or heard several times over the months
+  # a procedure takes (backlog AI-023). Optional and repeatable for the same reason as COURT_CASE:
+  # nothing here is required, and nothing upstream depends on it.
+  - key: COURT_HEARINGS
+    order: 20
+    repeatable: true
+    mandatory: false
+    statutoryBasis: "ст. 213.6 127-ФЗ — рассмотрение дела судом (ПЛЕЙСХОЛДЕР)"
+    fields:
+      - { name: date,    type: DATE,   required: false }
+      - { name: subject, type: STRING, required: false }
+      - { name: outcome, type: STRING, required: false }

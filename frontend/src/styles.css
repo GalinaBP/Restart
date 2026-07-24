@@ -733,9 +733,23 @@ a.procedure-stage:hover {
   line-height: 1.5;
 }
 
-/* Link from a stage to the screen that actually collects its data. */
+/* The nearest court hearing, shown right on the COURT_DECISION card even collapsed (AI-023) —
+   a "don't miss your court date" cue, calm rather than alarmed, so no red and no icon. */
+.procedure-hearing-upcoming {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.6rem;
+  background: rgba(52, 211, 153, 0.16);
+  color: var(--accent-from);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Link from a stage to the screen that actually collects its data. A stage can have more than
+   one (AI-023: court details + hearings), so these stack rather than run together on one line. */
 .procedure-detail-link {
-  display: inline-block;
+  display: block;
+  width: fit-content;
   margin-top: 0.7rem;
   color: var(--accent-from);
   font-weight: 600;
