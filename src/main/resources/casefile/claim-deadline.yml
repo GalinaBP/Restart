@@ -1,0 +1,20 @@
+# How long creditors have to file their claims with the court, counted from the ЕФРСБ publication
+# of the bankruptcy notice (backlog AI-025). Mirrors fees.yml (AI-021): the number lives here and
+# nowhere else, so a legislative change or a lawyer's correction is a config edit, never code.
+#
+# ##############################################################################################
+# ##  !!! ПЛЕЙСХОЛДЕР, НЕ ПОДТВЕРЖДЁН ЮРИСТОМ — как и суммы пошлины, неверный срок имеет        ##
+# ##  реальные последствия (пропущенный срок → требование за реестром). Пока confirmed:false,   ##
+# ##  интерфейс показывает срок как черновик. Вопросы юристу — docs/lawyer-review.md, раздел 4б. ##
+# ##############################################################################################
+#
+# daysFromPublication — calendar days from the ЕФРСБ publication date (NOT quoted: parsed as a
+#                        plain integer; no floating-point days).
+# confirmed            — false until a lawyer signs the period off; the UI must show a draft.
+# statutoryBasis       — the norm the period is drawn from (ПЛЕЙСХОЛДЕР, never shown to the user).
+
+daysFromPublication: 60      # placeholder — calendar days from the ЕФРСБ publication
+
+confirmed: false
+
+statutoryBasis: "ст. 213.8, п. 2 ст. 213.24 127-ФЗ — срок предъявления требований кредиторами (ПЛЕЙСХОЛДЕР, требует подтверждения)"
