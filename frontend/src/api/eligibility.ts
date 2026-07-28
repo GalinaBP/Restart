@@ -27,7 +27,7 @@ export interface EligibilityAnswers {
 }
 
 export interface EligibilityResult {
-  decision: 'SELF_SERVICE_OK' | 'NEEDS_LAWYER';
+  decision: 'SELF_SERVICE_OK' | 'NEEDS_LAWYER' | 'DEBT_TOO_SMALL';
   reasons: string[];
 }
 

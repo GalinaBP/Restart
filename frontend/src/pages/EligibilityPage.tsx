@@ -567,6 +567,22 @@ function ResultScreen({ result }: { result: EligibilityResult }) {
       </main>
     );
   }
+  if (result.decision === 'DEBT_TOO_SMALL') {
+    return (
+      <main className="check">
+        <h1 className="check-question">Для такого долга банкротство обычно не нужно</h1>
+        <p className="check-hint">
+          При долге меньше 350 тысяч ₽ проходить банкротство чаще всего невыгодно: процедура
+          долгая и с последствиями, а с такой суммой обычно можно справиться проще.
+        </p>
+        <p className="check-hint">
+          Поэтому «Рестарт» здесь не поможет. Если долг вырастет или ситуация изменится —
+          возвращайтесь.
+        </p>
+        <Link to="/" className="check-back">На главную</Link>
+      </main>
+    );
+  }
   return (
     <main className="check">
       <h1 className="check-question">Скажем честно: вам лучше с юристом</h1>

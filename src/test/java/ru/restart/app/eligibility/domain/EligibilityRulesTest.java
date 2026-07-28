@@ -94,11 +94,23 @@ class EligibilityRulesTest {
     }
 
     @Test
-    void smallDebtStillFitsSelfService() {
-        // A debt below the focus range must NOT route to a lawyer on its own.
+    void smallDebtIsNotWorthBankruptcyButNeedsNoLawyer() {
+        // Below the focus range a court bankruptcy is not worthwhile — Restart is not the tool,
+        // but it must NOT route to a lawyer either.
         EligibilityResult result = rules.evaluate(Case.fitting().debt(DebtRange.UNDER_350K).build());
 
-        assertThat(result.decision()).isEqualTo(EligibilityDecision.SELF_SERVICE_OK);
+        assertThat(result.decision()).isEqualTo(EligibilityDecision.DEBT_TOO_SMALL);
+        assertThat(result.reasons()).isEmpty();
+    }
+
+    @Test
+    void smallDebtWinsOverEveryOtherMarker() {
+        // Even with every complexity marker on, a sub-threshold debt short-circuits to "too small"
+        // rather than to a lawyer — the procedure itself is not worthwhile at this amount.
+        EligibilityResult result =
+                rules.evaluate(Case.fitting().debt(DebtRange.UNDER_350K).allMarkers().build());
+
+        assertThat(result.decision()).isEqualTo(EligibilityDecision.DEBT_TOO_SMALL);
         assertThat(result.reasons()).isEmpty();
     }
 
