@@ -4,20 +4,82 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import java.util.function.UnaryOperator;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class EligibilityRulesTest {
 
     private final EligibilityRules rules = new EligibilityRules();
 
-    private static EligibilityAnswers fittingAnswers() {
-        return new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, false, false, true, false, PreferredPath.SELF_SERVICE);
+    /**
+     * Fluent builder over the (now 16-component) answers record — starts from a straightforward
+     * fitting case and each call flips exactly one marker, so tests read by intent and adding a
+     * future marker never touches the existing call sites.
+     */
+    private static final class Case {
+        private DebtRange debtRange = DebtRange.FROM_500K_TO_3M;
+        private boolean hasCar;
+        private boolean hasExtraRealEstate;
+        private boolean hasBusiness;
+        private boolean marriedOrDivorcing;
+        private boolean soldOrGiftedAssetsRecently;
+        private boolean onlyConsumerDebts = true;
+        private boolean hasForeignAssetsOrLawsuits;
+        private boolean movedMoneyBeforeFiling;
+        private boolean hasAlimonyDebt;
+        private boolean hasLifeHealthHarmDebt;
+        private boolean hasEconomicCriminalCase;
+        private boolean guaranteedOthersDebt;
+        private boolean incomeUnofficial;
+        private boolean largeThirdPartyDeposits;
+        private PreferredPath preferredPath = PreferredPath.SELF_SERVICE;
+
+        static Case fitting() {
+            return new Case();
+        }
+
+        Case debt(DebtRange range) {
+            this.debtRange = range;
+            return this;
+        }
+
+        Case path(PreferredPath path) {
+            this.preferredPath = path;
+            return this;
+        }
+
+        /** Turns on every complexity marker — the "worst case" used for reason counting. */
+        Case allMarkers() {
+            hasCar = true;
+            hasExtraRealEstate = true;
+            hasBusiness = true;
+            marriedOrDivorcing = true;
+            soldOrGiftedAssetsRecently = true;
+            onlyConsumerDebts = false;
+            hasForeignAssetsOrLawsuits = true;
+            movedMoneyBeforeFiling = true;
+            hasAlimonyDebt = true;
+            hasLifeHealthHarmDebt = true;
+            hasEconomicCriminalCase = true;
+            guaranteedOthersDebt = true;
+            incomeUnofficial = true;
+            largeThirdPartyDeposits = true;
+            return this;
+        }
+
+        EligibilityAnswers build() {
+            return new EligibilityAnswers(debtRange, hasCar, hasExtraRealEstate, hasBusiness,
+                    marriedOrDivorcing, soldOrGiftedAssetsRecently, onlyConsumerDebts,
+                    hasForeignAssetsOrLawsuits, movedMoneyBeforeFiling, hasAlimonyDebt,
+                    hasLifeHealthHarmDebt, hasEconomicCriminalCase, guaranteedOthersDebt,
+                    incomeUnofficial, largeThirdPartyDeposits, preferredPath);
+        }
     }
 
     @Test
     void typicalIcpCaseFits() {
-        EligibilityResult result = rules.evaluate(fittingAnswers());
+        EligibilityResult result = rules.evaluate(Case.fitting().build());
 
         assertThat(result.decision()).isEqualTo(EligibilityDecision.SELF_SERVICE_OK);
         assertThat(result.reasons()).isEmpty();
@@ -26,10 +88,7 @@ class EligibilityRulesTest {
     @ParameterizedTest
     @EnumSource(value = DebtRange.class, names = {"UNDER_500K", "OVER_3M"})
     void debtOutsideFocusRangeNeedsLawyer(DebtRange range) {
-        EligibilityAnswers answers = new EligibilityAnswers(range,
-                false, false, false, false, false, true, false, PreferredPath.SELF_SERVICE);
-
-        EligibilityResult result = rules.evaluate(answers);
+        EligibilityResult result = rules.evaluate(Case.fitting().debt(range).build());
 
         assertThat(result.decision()).isEqualTo(EligibilityDecision.NEEDS_LAWYER);
         assertThat(result.reasons()).hasSize(1);
@@ -37,23 +96,26 @@ class EligibilityRulesTest {
 
     @Test
     void anySingleComplexityMarkerNeedsLawyer() {
-        EligibilityAnswers car = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                true, false, false, false, false, true, false, PreferredPath.SELF_SERVICE);
-        EligibilityAnswers realEstate = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, true, false, false, false, true, false, PreferredPath.SELF_SERVICE);
-        EligibilityAnswers business = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, true, false, false, true, false, PreferredPath.SELF_SERVICE);
-        EligibilityAnswers marriage = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, true, false, true, false, PreferredPath.SELF_SERVICE);
-        EligibilityAnswers recentDeals = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, false, true, true, false, PreferredPath.SELF_SERVICE);
-        EligibilityAnswers nonConsumerDebts = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, false, false, false, false, PreferredPath.SELF_SERVICE);
-        EligibilityAnswers foreign = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, false, false, true, true, PreferredPath.SELF_SERVICE);
-        for (EligibilityAnswers answers : new EligibilityAnswers[] {
-                car, realEstate, business, marriage, recentDeals, nonConsumerDebts, foreign}) {
-            EligibilityResult result = rules.evaluate(answers);
+        // Each transform flips exactly one marker on top of the fitting baseline.
+        @SuppressWarnings("unchecked")
+        UnaryOperator<Case>[] markers = new UnaryOperator[] {
+                (UnaryOperator<Case>) c -> { c.hasCar = true; return c; },
+                (UnaryOperator<Case>) c -> { c.hasExtraRealEstate = true; return c; },
+                (UnaryOperator<Case>) c -> { c.hasBusiness = true; return c; },
+                (UnaryOperator<Case>) c -> { c.marriedOrDivorcing = true; return c; },
+                (UnaryOperator<Case>) c -> { c.soldOrGiftedAssetsRecently = true; return c; },
+                (UnaryOperator<Case>) c -> { c.onlyConsumerDebts = false; return c; },
+                (UnaryOperator<Case>) c -> { c.hasForeignAssetsOrLawsuits = true; return c; },
+                (UnaryOperator<Case>) c -> { c.movedMoneyBeforeFiling = true; return c; },
+                (UnaryOperator<Case>) c -> { c.hasAlimonyDebt = true; return c; },
+                (UnaryOperator<Case>) c -> { c.hasLifeHealthHarmDebt = true; return c; },
+                (UnaryOperator<Case>) c -> { c.hasEconomicCriminalCase = true; return c; },
+                (UnaryOperator<Case>) c -> { c.guaranteedOthersDebt = true; return c; },
+                (UnaryOperator<Case>) c -> { c.incomeUnofficial = true; return c; },
+                (UnaryOperator<Case>) c -> { c.largeThirdPartyDeposits = true; return c; },
+        };
+        for (UnaryOperator<Case> marker : markers) {
+            EligibilityResult result = rules.evaluate(marker.apply(Case.fitting()).build());
             assertThat(result.decision()).isEqualTo(EligibilityDecision.NEEDS_LAWYER);
             assertThat(result.reasons()).hasSize(1);
         }
@@ -61,21 +123,19 @@ class EligibilityRulesTest {
 
     @Test
     void everyMarkerContributesItsOwnReason() {
-        EligibilityAnswers everything = new EligibilityAnswers(DebtRange.OVER_3M,
-                true, true, true, true, true, false, true, PreferredPath.SELF_SERVICE);
+        EligibilityAnswers everything = Case.fitting().debt(DebtRange.OVER_3M).allMarkers().build();
 
         EligibilityResult result = rules.evaluate(everything);
 
         assertThat(result.decision()).isEqualTo(EligibilityDecision.NEEDS_LAWYER);
-        assertThat(result.reasons()).hasSize(8);
+        // Debt range + the fourteen complexity markers, each its own honest reason.
+        assertThat(result.reasons()).hasSize(15);
     }
 
     @Test
     void askingForALawyerRoutesThereEvenWhenEverythingElseFits() {
-        EligibilityAnswers answers = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, false, false, true, false, PreferredPath.LAWYER);
-
-        EligibilityResult result = rules.evaluate(answers);
+        EligibilityResult result =
+                rules.evaluate(Case.fitting().path(PreferredPath.LAWYER).build());
 
         assertThat(result.decision()).isEqualTo(EligibilityDecision.NEEDS_LAWYER);
         assertThat(result.reasons()).hasSize(1);
@@ -83,18 +143,15 @@ class EligibilityRulesTest {
 
     @Test
     void justExploringStillFitsWhenNothingElseIsComplex() {
-        EligibilityAnswers answers = new EligibilityAnswers(DebtRange.FROM_500K_TO_3M,
-                false, false, false, false, false, true, false, PreferredPath.EXPLORING);
-
-        EligibilityResult result = rules.evaluate(answers);
+        EligibilityResult result =
+                rules.evaluate(Case.fitting().path(PreferredPath.EXPLORING).build());
 
         assertThat(result.decision()).isEqualTo(EligibilityDecision.SELF_SERVICE_OK);
     }
 
     @Test
     void reasonsAreUserFacingRussianWithoutLegalese() {
-        EligibilityAnswers everything = new EligibilityAnswers(DebtRange.OVER_3M,
-                true, true, true, true, true, false, true, PreferredPath.SELF_SERVICE);
+        EligibilityAnswers everything = Case.fitting().debt(DebtRange.OVER_3M).allMarkers().build();
 
         EligibilityResult result = rules.evaluate(everything);
 

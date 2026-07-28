@@ -54,6 +54,13 @@ class EligibilityControllerTest {
                   "soldOrGiftedAssetsRecently": false,
                   "onlyConsumerDebts": true,
                   "hasForeignAssetsOrLawsuits": false,
+                  "movedMoneyBeforeFiling": false,
+                  "hasAlimonyDebt": false,
+                  "hasLifeHealthHarmDebt": false,
+                  "hasEconomicCriminalCase": false,
+                  "guaranteedOthersDebt": false,
+                  "incomeUnofficial": false,
+                  "largeThirdPartyDeposits": false,
                   "preferredPath": "SELF_SERVICE"
                 }
                 """.formatted(debtRange, anyMarker);
