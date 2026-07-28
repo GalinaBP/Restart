@@ -37,8 +37,9 @@ const click = (user: User, name: RegExp) =>
 async function answerEverythingAsFitting(user: User, lastChoice = /Хочу всё сделать сам/) {
   await startCheck(user);
   // 1 — Долги
-  await click(user, /500 000 – 3 000 000/);
+  await click(user, /350 тыс – 3 млн/);
   await click(user, /Кредиты, карты, микрозаймы/);
+  await click(user, /5 или меньше/);
   await click(user, /Далее/);
   // 2 — Имущество и бизнес
   await click(user, /Ничего такого нет/);
@@ -77,10 +78,11 @@ describe('EligibilityPage', () => {
 
     await startCheck(user);
 
-    // First screen holds the whole «Долги» group — both questions at once.
+    // First screen holds the whole «Долги» group — all its questions at once.
     expect(screen.getByText(/Долги · шаг 1 из 5/)).toBeInTheDocument();
     expect(screen.getByText(/Сколько у вас долгов/)).toBeInTheDocument();
     expect(screen.getByText(/Из чего состоят ваши долги/)).toBeInTheDocument();
+    expect(screen.getByText(/Скольким банкам, компаниям или людям/)).toBeInTheDocument();
   });
 
   it('refuses to advance until every question on the screen is answered', async () => {
@@ -89,7 +91,7 @@ describe('EligibilityPage', () => {
     renderPage();
 
     await startCheck(user);
-    await click(user, /500 000 – 3 000 000/); // only one of the two answered
+    await click(user, /350 тыс – 3 млн/); // only one of the three answered
     await click(user, /Далее/);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Ответьте на все вопросы');
@@ -102,8 +104,9 @@ describe('EligibilityPage', () => {
     renderPage();
 
     await startCheck(user);
-    await click(user, /500 000 – 3 000 000/);
+    await click(user, /350 тыс – 3 млн/);
     await click(user, /Кредиты, карты, микрозаймы/);
+    await click(user, /5 или меньше/);
     await click(user, /Далее/);
     expect(screen.getByText(/Имущество и бизнес · шаг 2 из 5/)).toBeInTheDocument();
 
@@ -120,8 +123,9 @@ describe('EligibilityPage', () => {
     renderPage();
 
     await startCheck(user);
-    await click(user, /500 000 – 3 000 000/);
+    await click(user, /350 тыс – 3 млн/);
     await click(user, /Кредиты, карты, микрозаймы/);
+    await click(user, /5 или меньше/);
     await click(user, /Далее/);
 
     await click(user, /Машина или мотоцикл/);
@@ -145,8 +149,9 @@ describe('EligibilityPage', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
     const body = JSON.parse((vi.mocked(fetch).mock.calls[0][1] as RequestInit).body as string);
     expect(body).toMatchObject({
-      debtRange: 'FROM_500K_TO_3M',
+      debtRange: 'FROM_350K_TO_3M',
       onlyConsumerDebts: true,
+      manyCreditors: false,
       hasCar: false,
       hasExtraRealEstate: false,
       hasBusiness: false,

@@ -1,6 +1,6 @@
 import { request } from './client';
 
-export type DebtRange = 'UNDER_500K' | 'FROM_500K_TO_3M' | 'OVER_3M';
+export type DebtRange = 'UNDER_350K' | 'FROM_350K_TO_3M' | 'OVER_3M';
 
 /** How the person wants to go through it — asking for a lawyer routes there directly. */
 export type PreferredPath = 'SELF_SERVICE' | 'LAWYER' | 'EXPLORING';
@@ -22,6 +22,7 @@ export interface EligibilityAnswers {
   guaranteedOthersDebt: boolean;
   incomeUnofficial: boolean;
   largeThirdPartyDeposits: boolean;
+  manyCreditors: boolean;
   preferredPath: PreferredPath;
 }
 

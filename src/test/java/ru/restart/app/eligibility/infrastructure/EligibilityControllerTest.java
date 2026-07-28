@@ -61,6 +61,7 @@ class EligibilityControllerTest {
                   "guaranteedOthersDebt": false,
                   "incomeUnofficial": false,
                   "largeThirdPartyDeposits": false,
+                  "manyCreditors": false,
                   "preferredPath": "SELF_SERVICE"
                 }
                 """.formatted(debtRange, anyMarker);
@@ -70,7 +71,7 @@ class EligibilityControllerTest {
     void fittingCaseIsOkAnonymously() throws Exception {
         mockMvc.perform(post("/api/v1/eligibility/check")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body("FROM_500K_TO_3M", false)))
+                        .content(body("FROM_350K_TO_3M", false)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.decision").value("SELF_SERVICE_OK"))
                 .andExpect(jsonPath("$.reasons").isEmpty());
@@ -80,7 +81,7 @@ class EligibilityControllerTest {
     void complexCaseReturnsReasons() throws Exception {
         mockMvc.perform(post("/api/v1/eligibility/check")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body("FROM_500K_TO_3M", true)))
+                        .content(body("FROM_350K_TO_3M", true)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.decision").value("NEEDS_LAWYER"))
                 .andExpect(jsonPath("$.reasons[0]").isNotEmpty());
@@ -90,7 +91,7 @@ class EligibilityControllerTest {
     void missingAnswerIsValidationError() throws Exception {
         mockMvc.perform(post("/api/v1/eligibility/check")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"debtRange\":\"FROM_500K_TO_3M\"}"))
+                        .content("{\"debtRange\":\"FROM_350K_TO_3M\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.fieldErrors").isNotEmpty());
