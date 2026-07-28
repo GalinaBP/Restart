@@ -37,7 +37,7 @@ const click = (user: User, name: RegExp) =>
 async function answerEverythingAsFitting(user: User, lastChoice = /Хочу всё сделать сам/) {
   await startCheck(user);
   // 1 — Долги
-  await click(user, /350 000 – 3 000 000/);
+  await click(user, /350 тыс – 3 млн/);
   await click(user, /Кредиты, карты, микрозаймы/);
   await click(user, /5 или меньше/);
   await click(user, /Далее/);
@@ -91,7 +91,7 @@ describe('EligibilityPage', () => {
     renderPage();
 
     await startCheck(user);
-    await click(user, /350 000 – 3 000 000/); // only one of the three answered
+    await click(user, /350 тыс – 3 млн/); // only one of the three answered
     await click(user, /Далее/);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Ответьте на все вопросы');
@@ -104,7 +104,7 @@ describe('EligibilityPage', () => {
     renderPage();
 
     await startCheck(user);
-    await click(user, /350 000 – 3 000 000/);
+    await click(user, /350 тыс – 3 млн/);
     await click(user, /Кредиты, карты, микрозаймы/);
     await click(user, /5 или меньше/);
     await click(user, /Далее/);
@@ -123,7 +123,7 @@ describe('EligibilityPage', () => {
     renderPage();
 
     await startCheck(user);
-    await click(user, /350 000 – 3 000 000/);
+    await click(user, /350 тыс – 3 млн/);
     await click(user, /Кредиты, карты, микрозаймы/);
     await click(user, /5 или меньше/);
     await click(user, /Далее/);

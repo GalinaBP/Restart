@@ -85,13 +85,13 @@ const GROUPS: Group[] = [
         emoji: '💰',
         text: 'Сколько у вас долгов примерно?',
         options: [
-          { key: 'under', label: 'До 350 000 ₽', patch: { debtRange: 'UNDER_350K' } },
+          { key: 'under', label: 'До 350 тыс ₽', patch: { debtRange: 'UNDER_350K' } },
           {
             key: 'mid',
-            label: '350 000 – 3 000 000 ₽',
+            label: '350 тыс – 3 млн ₽',
             patch: { debtRange: 'FROM_350K_TO_3M' },
           },
-          { key: 'over', label: 'Больше 3 000 000 ₽', patch: { debtRange: 'OVER_3M' } },
+          { key: 'over', label: 'Больше 3 млн ₽', patch: { debtRange: 'OVER_3M' } },
         ],
       },
       {
