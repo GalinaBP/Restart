@@ -11,7 +11,8 @@ bankruptcy procedure step by step, as a journey rather than bureaucracy. The pro
 - Plain language everywhere — **no legal terminology in anything user-facing** (UI copy, error
   messages). Tone: "Сейчас нужно получить выписку", never "В соответствии с ФЗ…".
 - One action per screen; only the next step is shown.
-- Narrow ICP: 20–35, unmarried, no car/real estate/business, consumer debts 500k–3M ₽. Complex cases
+- Narrow ICP: 20–35, unmarried, no car/real estate/business, consumer debts 350k–3M ₽, up to 5
+  creditors. Complex cases
   (assets, deals, divorce, business) must be detected early and routed to a lawyer — honestly.
 - The app never promises guaranteed discharge of debts.
 

@@ -17,12 +17,10 @@ public final class EligibilityRules {
         List<String> reasons = new ArrayList<>();
 
         switch (answers.debtRange()) {
-            case UNDER_500K -> reasons.add(
-                    "С долгом меньше 500 тысяч банкротство может быть не лучшим вариантом — "
-                            + "есть способы проще.");
             case OVER_3M -> reasons.add(
                     "Долг больше 3 миллионов — такие дела лучше вести вместе с юристом.");
-            case FROM_500K_TO_3M -> { }
+            // A small debt is fine for self-service — it must not route to a lawyer.
+            case UNDER_350K, FROM_350K_TO_3M -> { }
         }
         if (answers.hasCar()) {
             reasons.add("Машина — это имущество, которое суд будет оценивать отдельно.");
@@ -71,6 +69,10 @@ public final class EligibilityRules {
         }
         if (answers.largeThirdPartyDeposits()) {
             reasons.add("Крупные поступления на счёт от других людей суд проверит отдельно.");
+        }
+        if (answers.manyCreditors()) {
+            reasons.add("Если тех, кому вы должны, больше пяти, дело сложнее — "
+                    + "надёжнее пройти его с юристом.");
         }
         if (answers.preferredPath() == PreferredPath.LAWYER) {
             reasons.add("Вы сами выбрали пройти процедуру с юристом — это разумно, "

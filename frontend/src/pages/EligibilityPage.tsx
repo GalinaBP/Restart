@@ -85,11 +85,11 @@ const GROUPS: Group[] = [
         emoji: '💰',
         text: 'Сколько у вас долгов примерно?',
         options: [
-          { key: 'under', label: 'До 500 000 ₽', patch: { debtRange: 'UNDER_500K' } },
+          { key: 'under', label: 'До 350 000 ₽', patch: { debtRange: 'UNDER_350K' } },
           {
             key: 'mid',
-            label: '500 000 – 3 000 000 ₽',
-            patch: { debtRange: 'FROM_500K_TO_3M' },
+            label: '350 000 – 3 000 000 ₽',
+            patch: { debtRange: 'FROM_350K_TO_3M' },
           },
           { key: 'over', label: 'Больше 3 000 000 ₽', patch: { debtRange: 'OVER_3M' } },
         ],
@@ -110,6 +110,16 @@ const GROUPS: Group[] = [
             label: 'Есть ещё другие долги (налоги, долги людям, штрафы и т.д.)',
             patch: { onlyConsumerDebts: false },
           },
+        ],
+      },
+      {
+        kind: 'single',
+        id: 'creditors',
+        emoji: '👥',
+        text: 'Скольким банкам, компаниям или людям вы должны?',
+        options: [
+          { key: 'few', label: '5 или меньше', patch: { manyCreditors: false } },
+          { key: 'many', label: 'Больше 5', patch: { manyCreditors: true } },
         ],
       },
     ],

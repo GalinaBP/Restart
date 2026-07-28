@@ -1,8 +1,6 @@
 package ru.restart.app.eligibility.domain;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.function.UnaryOperator;
 
@@ -13,12 +11,12 @@ class EligibilityRulesTest {
     private final EligibilityRules rules = new EligibilityRules();
 
     /**
-     * Fluent builder over the (now 16-component) answers record — starts from a straightforward
+     * Fluent builder over the (now 17-component) answers record — starts from a straightforward
      * fitting case and each call flips exactly one marker, so tests read by intent and adding a
      * future marker never touches the existing call sites.
      */
     private static final class Case {
-        private DebtRange debtRange = DebtRange.FROM_500K_TO_3M;
+        private DebtRange debtRange = DebtRange.FROM_350K_TO_3M;
         private boolean hasCar;
         private boolean hasExtraRealEstate;
         private boolean hasBusiness;
@@ -33,6 +31,7 @@ class EligibilityRulesTest {
         private boolean guaranteedOthersDebt;
         private boolean incomeUnofficial;
         private boolean largeThirdPartyDeposits;
+        private boolean manyCreditors;
         private PreferredPath preferredPath = PreferredPath.SELF_SERVICE;
 
         static Case fitting() {
@@ -65,6 +64,7 @@ class EligibilityRulesTest {
             guaranteedOthersDebt = true;
             incomeUnofficial = true;
             largeThirdPartyDeposits = true;
+            manyCreditors = true;
             return this;
         }
 
@@ -73,7 +73,7 @@ class EligibilityRulesTest {
                     marriedOrDivorcing, soldOrGiftedAssetsRecently, onlyConsumerDebts,
                     hasForeignAssetsOrLawsuits, movedMoneyBeforeFiling, hasAlimonyDebt,
                     hasLifeHealthHarmDebt, hasEconomicCriminalCase, guaranteedOthersDebt,
-                    incomeUnofficial, largeThirdPartyDeposits, preferredPath);
+                    incomeUnofficial, largeThirdPartyDeposits, manyCreditors, preferredPath);
         }
     }
 
@@ -85,13 +85,21 @@ class EligibilityRulesTest {
         assertThat(result.reasons()).isEmpty();
     }
 
-    @ParameterizedTest
-    @EnumSource(value = DebtRange.class, names = {"UNDER_500K", "OVER_3M"})
-    void debtOutsideFocusRangeNeedsLawyer(DebtRange range) {
-        EligibilityResult result = rules.evaluate(Case.fitting().debt(range).build());
+    @Test
+    void debtOverThreeMillionNeedsLawyer() {
+        EligibilityResult result = rules.evaluate(Case.fitting().debt(DebtRange.OVER_3M).build());
 
         assertThat(result.decision()).isEqualTo(EligibilityDecision.NEEDS_LAWYER);
         assertThat(result.reasons()).hasSize(1);
+    }
+
+    @Test
+    void smallDebtStillFitsSelfService() {
+        // A debt below the focus range must NOT route to a lawyer on its own.
+        EligibilityResult result = rules.evaluate(Case.fitting().debt(DebtRange.UNDER_350K).build());
+
+        assertThat(result.decision()).isEqualTo(EligibilityDecision.SELF_SERVICE_OK);
+        assertThat(result.reasons()).isEmpty();
     }
 
     @Test
@@ -113,6 +121,7 @@ class EligibilityRulesTest {
                 (UnaryOperator<Case>) c -> { c.guaranteedOthersDebt = true; return c; },
                 (UnaryOperator<Case>) c -> { c.incomeUnofficial = true; return c; },
                 (UnaryOperator<Case>) c -> { c.largeThirdPartyDeposits = true; return c; },
+                (UnaryOperator<Case>) c -> { c.manyCreditors = true; return c; },
         };
         for (UnaryOperator<Case> marker : markers) {
             EligibilityResult result = rules.evaluate(marker.apply(Case.fitting()).build());
@@ -128,8 +137,8 @@ class EligibilityRulesTest {
         EligibilityResult result = rules.evaluate(everything);
 
         assertThat(result.decision()).isEqualTo(EligibilityDecision.NEEDS_LAWYER);
-        // Debt range + the fourteen complexity markers, each its own honest reason.
-        assertThat(result.reasons()).hasSize(15);
+        // Debt range + the fifteen complexity markers, each its own honest reason.
+        assertThat(result.reasons()).hasSize(16);
     }
 
     @Test
