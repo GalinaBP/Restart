@@ -19,4 +19,9 @@ public record EligibilityResult(EligibilityDecision decision, List<String> reaso
     public static EligibilityResult needsLawyer(List<String> reasons) {
         return new EligibilityResult(EligibilityDecision.NEEDS_LAWYER, reasons);
     }
+
+    /** Debt too small for a court bankruptcy to be worthwhile — Restart is not the right tool. */
+    public static EligibilityResult debtTooSmall() {
+        return new EligibilityResult(EligibilityDecision.DEBT_TOO_SMALL, List.of());
+    }
 }

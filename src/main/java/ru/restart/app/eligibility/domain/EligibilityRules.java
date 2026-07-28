@@ -14,12 +14,17 @@ import java.util.List;
 public final class EligibilityRules {
 
     public EligibilityResult evaluate(EligibilityAnswers answers) {
+        // A debt this small is not worth a court bankruptcy: Restart is not the right tool, but
+        // this is honestly not a "needs a lawyer" case, so it short-circuits everything else.
+        if (answers.debtRange() == DebtRange.UNDER_350K) {
+            return EligibilityResult.debtTooSmall();
+        }
+
         List<String> reasons = new ArrayList<>();
 
         switch (answers.debtRange()) {
             case OVER_3M -> reasons.add(
                     "Долг больше 3 миллионов — такие дела лучше вести вместе с юристом.");
-            // A small debt is fine for self-service — it must not route to a lawyer.
             case UNDER_350K, FROM_350K_TO_3M -> { }
         }
         if (answers.hasCar()) {

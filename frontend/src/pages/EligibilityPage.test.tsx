@@ -169,6 +169,21 @@ describe('EligibilityPage', () => {
     });
   });
 
+  it('shows the "debt too small" screen without routing to a lawyer', async () => {
+    // The decision is server-driven; a sub-threshold debt comes back as DEBT_TOO_SMALL.
+    mockCheckResponse({ decision: 'DEBT_TOO_SMALL', reasons: [] });
+    const user = userEvent.setup();
+    renderPage();
+
+    await answerEverythingAsFitting(user);
+
+    expect(
+      await screen.findByText('Для такого долга банкротство обычно не нужно'),
+    ).toBeInTheDocument();
+    // It must not look like the lawyer outcome.
+    expect(screen.queryByText(/вам лучше с юристом/)).not.toBeInTheDocument();
+  });
+
   it('passes the lawyer choice through and shows honest reasons', async () => {
     mockCheckResponse({
       decision: 'NEEDS_LAWYER',

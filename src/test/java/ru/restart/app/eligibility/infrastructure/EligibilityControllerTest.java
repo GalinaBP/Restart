@@ -78,6 +78,16 @@ class EligibilityControllerTest {
     }
 
     @Test
+    void smallDebtReturnsDebtTooSmall() throws Exception {
+        mockMvc.perform(post("/api/v1/eligibility/check")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("UNDER_350K", false)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.decision").value("DEBT_TOO_SMALL"))
+                .andExpect(jsonPath("$.reasons").isEmpty());
+    }
+
+    @Test
     void complexCaseReturnsReasons() throws Exception {
         mockMvc.perform(post("/api/v1/eligibility/check")
                         .contentType(MediaType.APPLICATION_JSON)
