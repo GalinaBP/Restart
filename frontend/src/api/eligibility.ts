@@ -14,6 +14,14 @@ export interface EligibilityAnswers {
   soldOrGiftedAssetsRecently: boolean;
   onlyConsumerDebts: boolean;
   hasForeignAssetsOrLawsuits: boolean;
+  /** "Clean case" markers — each true when the complication is present, false in a simple case. */
+  movedMoneyBeforeFiling: boolean;
+  hasAlimonyDebt: boolean;
+  hasLifeHealthHarmDebt: boolean;
+  hasEconomicCriminalCase: boolean;
+  guaranteedOthersDebt: boolean;
+  incomeUnofficial: boolean;
+  largeThirdPartyDeposits: boolean;
   preferredPath: PreferredPath;
 }
 

@@ -14,7 +14,11 @@ describe('App', () => {
     expect(
       screen.getByText('Сервис для самостоятельного судебного банкротства'),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Начать' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Проверьте, подходит ли вам самостоятельное банкротство',
+      }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Войти' })).toBeInTheDocument();
   });
 });

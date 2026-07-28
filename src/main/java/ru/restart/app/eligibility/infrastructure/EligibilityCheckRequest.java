@@ -18,11 +18,20 @@ public record EligibilityCheckRequest(
         @NotNull Boolean soldOrGiftedAssetsRecently,
         @NotNull Boolean onlyConsumerDebts,
         @NotNull Boolean hasForeignAssetsOrLawsuits,
+        @NotNull Boolean movedMoneyBeforeFiling,
+        @NotNull Boolean hasAlimonyDebt,
+        @NotNull Boolean hasLifeHealthHarmDebt,
+        @NotNull Boolean hasEconomicCriminalCase,
+        @NotNull Boolean guaranteedOthersDebt,
+        @NotNull Boolean incomeUnofficial,
+        @NotNull Boolean largeThirdPartyDeposits,
         @NotNull PreferredPath preferredPath) {
 
     EligibilityAnswers toAnswers() {
         return new EligibilityAnswers(debtRange, hasCar, hasExtraRealEstate, hasBusiness,
                 marriedOrDivorcing, soldOrGiftedAssetsRecently, onlyConsumerDebts,
-                hasForeignAssetsOrLawsuits, preferredPath);
+                hasForeignAssetsOrLawsuits, movedMoneyBeforeFiling, hasAlimonyDebt,
+                hasLifeHealthHarmDebt, hasEconomicCriminalCase, guaranteedOthersDebt,
+                incomeUnofficial, largeThirdPartyDeposits, preferredPath);
     }
 }

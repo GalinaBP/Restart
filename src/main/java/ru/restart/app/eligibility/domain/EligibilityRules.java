@@ -46,6 +46,32 @@ public final class EligibilityRules {
         if (answers.hasForeignAssetsOrLawsuits()) {
             reasons.add("Активы за границей или судебные споры делают дело сложным.");
         }
+        if (answers.movedMoneyBeforeFiling()) {
+            reasons.add("Если перед банкротством со счетов уходили крупные суммы, суд разберётся "
+                    + "с этим отдельно — тут надёжнее с юристом.");
+        }
+        if (answers.hasAlimonyDebt()) {
+            reasons.add("Долги по алиментам не спишутся, и с ними нужен отдельный разбор.");
+        }
+        if (answers.hasLifeHealthHarmDebt()) {
+            reasons.add("Долги за вред здоровью или жизни человека не списываются — "
+                    + "такой случай сложнее.");
+        }
+        if (answers.hasEconomicCriminalCase()) {
+            reasons.add("Если есть уголовное дело из-за денег или бизнеса, вести дело стоит "
+                    + "только с юристом.");
+        }
+        if (answers.guaranteedOthersDebt()) {
+            reasons.add("Если вы поручались по чужому кредиту, это добавляет сложностей — "
+                    + "лучше с юристом.");
+        }
+        if (answers.incomeUnofficial()) {
+            reasons.add("Когда доход неофициальный или его трудно подтвердить, дело ведут "
+                    + "аккуратнее — здесь поможет юрист.");
+        }
+        if (answers.largeThirdPartyDeposits()) {
+            reasons.add("Крупные поступления на счёт от других людей суд проверит отдельно.");
+        }
         if (answers.preferredPath() == PreferredPath.LAWYER) {
             reasons.add("Вы сами выбрали пройти процедуру с юристом — это разумно, "
                     + "если хочется поддержки на каждом шаге.");

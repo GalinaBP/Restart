@@ -33,7 +33,7 @@ async function startCheck(user: User) {
 const click = (user: User, name: RegExp) =>
   user.click(screen.getByRole('button', { name }));
 
-/** Walks all four groups picking the answers of a straightforward, fitting case. */
+/** Walks all five groups picking the answers of a straightforward, fitting case. */
 async function answerEverythingAsFitting(user: User, lastChoice = /Хочу всё сделать сам/) {
   await startCheck(user);
   // 1 — Долги
@@ -42,15 +42,18 @@ async function answerEverythingAsFitting(user: User, lastChoice = /Хочу вс
   await click(user, /Далее/);
   // 2 — Имущество и бизнес
   await click(user, /Ничего такого нет/);
-  await click(user, /^🙅 Нет$/);
+  await click(user, /^Нет$/);
   await click(user, /Далее/);
   // 3 — Ваша ситуация
-  const noButtons = screen.getAllByRole('button', { name: /^🙅 Нет$/ });
+  const noButtons = screen.getAllByRole('button', { name: /^Нет$/ });
   await user.click(noButtons[0]); // крупные сделки
   await user.click(noButtons[1]); // брак / развод
-  await click(user, /Ничего из этого/);
+  await click(user, /^Ничего из этого$/);
   await click(user, /Далее/);
-  // 4 — Как продолжить
+  // 4 — Важные детали
+  await click(user, /Ничего из этого нет/);
+  await click(user, /Далее/);
+  // 5 — Как продолжить
   await click(user, lastChoice);
   await click(user, /Показать результат/);
 }
@@ -67,7 +70,7 @@ describe('EligibilityPage', () => {
     expect(screen.queryByText(/Сколько у вас долгов/)).not.toBeInTheDocument();
   });
 
-  it('groups questions per screen and shows why each is asked', async () => {
+  it('groups questions per screen', async () => {
     mockCheckResponse({ decision: 'SELF_SERVICE_OK', reasons: [] });
     const user = userEvent.setup();
     renderPage();
@@ -75,10 +78,9 @@ describe('EligibilityPage', () => {
     await startCheck(user);
 
     // First screen holds the whole «Долги» group — both questions at once.
-    expect(screen.getByText(/Долги · шаг 1 из 4/)).toBeInTheDocument();
+    expect(screen.getByText(/Долги · шаг 1 из 5/)).toBeInTheDocument();
     expect(screen.getByText(/Сколько у вас долгов/)).toBeInTheDocument();
     expect(screen.getByText(/Из чего состоят ваши долги/)).toBeInTheDocument();
-    expect(screen.getByText(/Зачем: От суммы зависит/)).toBeInTheDocument();
   });
 
   it('refuses to advance until every question on the screen is answered', async () => {
@@ -91,7 +93,7 @@ describe('EligibilityPage', () => {
     await click(user, /Далее/);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Ответьте на все вопросы');
-    expect(screen.getByText(/Долги · шаг 1 из 4/)).toBeInTheDocument();
+    expect(screen.getByText(/Долги · шаг 1 из 5/)).toBeInTheDocument();
   });
 
   it('goes back to the previous group, and from the first group to the consequences', async () => {
@@ -103,10 +105,10 @@ describe('EligibilityPage', () => {
     await click(user, /500 000 – 3 000 000/);
     await click(user, /Кредиты, карты, микрозаймы/);
     await click(user, /Далее/);
-    expect(screen.getByText(/Имущество и бизнес · шаг 2 из 4/)).toBeInTheDocument();
+    expect(screen.getByText(/Имущество и бизнес · шаг 2 из 5/)).toBeInTheDocument();
 
     await click(user, /← Назад/);
-    expect(screen.getByText(/Долги · шаг 1 из 4/)).toBeInTheDocument();
+    expect(screen.getByText(/Долги · шаг 1 из 5/)).toBeInTheDocument();
 
     await click(user, /← Назад/);
     expect(screen.getByText('Сначала — что важно знать')).toBeInTheDocument();
@@ -151,6 +153,13 @@ describe('EligibilityPage', () => {
       soldOrGiftedAssetsRecently: false,
       marriedOrDivorcing: false,
       hasForeignAssetsOrLawsuits: false,
+      movedMoneyBeforeFiling: false,
+      hasAlimonyDebt: false,
+      hasLifeHealthHarmDebt: false,
+      hasEconomicCriminalCase: false,
+      guaranteedOthersDebt: false,
+      incomeUnofficial: false,
+      largeThirdPartyDeposits: false,
       preferredPath: 'SELF_SERVICE',
     });
   });

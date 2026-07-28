@@ -8,11 +8,10 @@ import {
 
 /**
  * The 2-minute eligibility check. It opens with a plain-language "what bankruptcy means"
- * checklist (the consequences screen), then walks four grouped screens of questions — each
- * question says why it is asked, so nothing feels like bureaucracy for its own sake.
+ * checklist (the consequences screen), then walks five grouped screens of questions.
  * All decision logic lives in the backend; this screen only collects answers.
  *
- * PLACEHOLDER: the consequences, the questions and the "why" texts are pending lawyer review.
+ * PLACEHOLDER: the consequences and the questions are pending lawyer review.
  */
 
 /** Boolean answer fields a question option can switch on. */
@@ -23,13 +22,19 @@ type BoolField =
   | 'marriedOrDivorcing'
   | 'soldOrGiftedAssetsRecently'
   | 'onlyConsumerDebts'
-  | 'hasForeignAssetsOrLawsuits';
+  | 'hasForeignAssetsOrLawsuits'
+  | 'movedMoneyBeforeFiling'
+  | 'hasAlimonyDebt'
+  | 'hasLifeHealthHarmDebt'
+  | 'hasEconomicCriminalCase'
+  | 'guaranteedOthersDebt'
+  | 'incomeUnofficial'
+  | 'largeThirdPartyDeposits';
 
 type Patch = Partial<EligibilityAnswers>;
 
 interface SingleOption {
   key: string;
-  emoji: string;
   label: string;
   patch: Patch;
 }
@@ -37,7 +42,6 @@ interface SingleOption {
 /** An option with no field is the exclusive "nothing of the sort" choice. */
 interface MultiOption {
   key: string;
-  emoji: string;
   label: string;
   field?: BoolField;
 }
@@ -47,7 +51,6 @@ interface SingleQuestion {
   id: string;
   emoji: string;
   text: string;
-  why: string;
   note?: string;
   options: SingleOption[];
 }
@@ -57,7 +60,6 @@ interface MultiQuestion {
   id: string;
   emoji: string;
   text: string;
-  why: string;
   note?: string;
   /** Every field this question owns — all reset to false before the picks are applied. */
   fields: BoolField[];
@@ -82,16 +84,14 @@ const GROUPS: Group[] = [
         id: 'debt',
         emoji: '💰',
         text: 'Сколько у вас долгов примерно?',
-        why: 'От суммы зависит, подходит ли вам обычная судебная процедура.',
         options: [
-          { key: 'under', emoji: '🙂', label: 'До 500 000 ₽', patch: { debtRange: 'UNDER_500K' } },
+          { key: 'under', label: 'До 500 000 ₽', patch: { debtRange: 'UNDER_500K' } },
           {
             key: 'mid',
-            emoji: '👌',
             label: '500 000 – 3 000 000 ₽',
             patch: { debtRange: 'FROM_500K_TO_3M' },
           },
-          { key: 'over', emoji: '😮', label: 'Больше 3 000 000 ₽', patch: { debtRange: 'OVER_3M' } },
+          { key: 'over', label: 'Больше 3 000 000 ₽', patch: { debtRange: 'OVER_3M' } },
         ],
       },
       {
@@ -99,17 +99,14 @@ const GROUPS: Group[] = [
         id: 'debtKind',
         emoji: '🧾',
         text: 'Из чего состоят ваши долги?',
-        why: 'Кредиты и займы списываются проще всего. Налоги, штрафы и долги людям — сложнее.',
         options: [
           {
             key: 'consumer',
-            emoji: '💳',
             label: 'Кредиты, карты, микрозаймы, рассрочки',
             patch: { onlyConsumerDebts: true },
           },
           {
             key: 'other',
-            emoji: '📄',
             label: 'Есть ещё другие долги (налоги, долги людям, штрафы и т.д.)',
             patch: { onlyConsumerDebts: false },
           },
@@ -126,18 +123,16 @@ const GROUPS: Group[] = [
         id: 'property',
         emoji: '🚗',
         text: 'Есть ли у вас что-то ценное в собственности?',
-        why: 'Имущество, кроме единственного жилья, могут продать на торгах — это усложняет дело.',
         note: 'Можно выбрать несколько вариантов',
         fields: ['hasCar', 'hasExtraRealEstate'],
         options: [
-          { key: 'car', emoji: '🚗', label: 'Машина или мотоцикл', field: 'hasCar' },
+          { key: 'car', label: 'Машина или мотоцикл', field: 'hasCar' },
           {
             key: 'realEstate',
-            emoji: '🏢',
             label: 'Недвижимость (кроме единственного жилья)',
             field: 'hasExtraRealEstate',
           },
-          { key: 'none', emoji: '✅', label: 'Ничего такого нет' },
+          { key: 'none', label: 'Ничего такого нет' },
         ],
       },
       {
@@ -145,12 +140,10 @@ const GROUPS: Group[] = [
         id: 'business',
         emoji: '💼',
         text: 'Есть ли у вас бизнес?',
-        why: 'Бизнес или доля в компании требуют отдельного разбора.',
         options: [
-          { key: 'no', emoji: '🙅', label: 'Нет', patch: { hasBusiness: false } },
+          { key: 'no', label: 'Нет', patch: { hasBusiness: false } },
           {
             key: 'yes',
-            emoji: '💼',
             label: 'Да, я ИП или владею компанией',
             patch: { hasBusiness: true },
           },
@@ -168,10 +161,9 @@ const GROUPS: Group[] = [
         emoji: '🎁',
         text: 'Были ли за последние 3 года крупные сделки?',
         note: 'Например: продажа квартиры, машины, дарение имущества.',
-        why: 'Суд проверяет сделки за три года — некоторые из них могут оспорить.',
         options: [
-          { key: 'no', emoji: '🙅', label: 'Нет', patch: { soldOrGiftedAssetsRecently: false } },
-          { key: 'yes', emoji: '✍️', label: 'Да', patch: { soldOrGiftedAssetsRecently: true } },
+          { key: 'no', label: 'Нет', patch: { soldOrGiftedAssetsRecently: false } },
+          { key: 'yes', label: 'Да', patch: { soldOrGiftedAssetsRecently: true } },
         ],
       },
       {
@@ -179,13 +171,11 @@ const GROUPS: Group[] = [
         id: 'marriage',
         emoji: '💍',
         text: 'Вы состоите в браке или развелись в последние 3 года?',
-        why: 'Брак и развод затрагивают общее имущество супругов.',
         options: [
-          { key: 'no', emoji: '🙅', label: 'Нет', patch: { marriedOrDivorcing: false } },
-          { key: 'married', emoji: '💍', label: 'Да, состою в браке', patch: { marriedOrDivorcing: true } },
+          { key: 'no', label: 'Нет', patch: { marriedOrDivorcing: false } },
+          { key: 'married', label: 'Да, состою в браке', patch: { marriedOrDivorcing: true } },
           {
             key: 'divorced',
-            emoji: '📑',
             label: 'Да, развёлся(лась) менее 3 лет назад',
             patch: { marriedOrDivorcing: true },
           },
@@ -196,23 +186,76 @@ const GROUPS: Group[] = [
         id: 'foreign',
         emoji: '🌍',
         text: 'Есть ли что-то из этого?',
-        why: 'Заграничные активы и судебные споры делают процедуру сложной.',
         note: 'Можно выбрать несколько вариантов',
         fields: ['hasForeignAssetsOrLawsuits'],
         options: [
           {
             key: 'abroad',
-            emoji: '🌍',
             label: 'Имущество или счета за границей',
             field: 'hasForeignAssetsOrLawsuits',
           },
           {
             key: 'lawsuits',
-            emoji: '⚖️',
             label: 'Судебные споры по имуществу или долгам',
             field: 'hasForeignAssetsOrLawsuits',
           },
-          { key: 'none', emoji: '✅', label: 'Ничего из этого' },
+          { key: 'none', label: 'Ничего из этого' },
+        ],
+      },
+    ],
+  },
+  {
+    emoji: '🔎',
+    title: 'Важные детали',
+    questions: [
+      {
+        kind: 'multi',
+        id: 'risks',
+        emoji: '🔎',
+        text: 'Было ли у вас что-то из этого?',
+        note: 'Отметьте всё, что подходит. Если ничего — выберите последний вариант.',
+        fields: [
+          'movedMoneyBeforeFiling',
+          'hasAlimonyDebt',
+          'hasLifeHealthHarmDebt',
+          'hasEconomicCriminalCase',
+          'guaranteedOthersDebt',
+          'incomeUnofficial',
+          'largeThirdPartyDeposits',
+        ],
+        options: [
+          {
+            key: 'movedMoney',
+            label: 'Снимали или переводили крупные суммы со счетов в последнее время',
+            field: 'movedMoneyBeforeFiling',
+          },
+          { key: 'alimony', label: 'Есть долги по алиментам', field: 'hasAlimonyDebt' },
+          {
+            key: 'harm',
+            label: 'Есть долги за вред здоровью или жизни человека',
+            field: 'hasLifeHealthHarmDebt',
+          },
+          {
+            key: 'criminal',
+            label: 'Есть уголовное дело, связанное с деньгами или бизнесом',
+            field: 'hasEconomicCriminalCase',
+          },
+          {
+            key: 'guarantee',
+            label: 'Поручались по чужому кредиту',
+            field: 'guaranteedOthersDebt',
+          },
+          {
+            key: 'income',
+            label: 'Доход неофициальный или его сложно подтвердить',
+            field: 'incomeUnofficial',
+          },
+          {
+            key: 'deposits',
+            label: 'На счёт приходили крупные суммы от других людей',
+            field: 'largeThirdPartyDeposits',
+          },
+          { key: 'none', label: 'Ничего из этого нет' },
         ],
       },
     ],
@@ -226,23 +269,19 @@ const GROUPS: Group[] = [
         id: 'path',
         emoji: '🚀',
         text: 'Как хотите пройти процедуру?',
-        why: 'Подскажем, что делать дальше — сами или вместе с юристом.',
         options: [
           {
             key: 'self',
-            emoji: '🚀',
             label: 'Хочу всё сделать сам через приложение',
             patch: { preferredPath: 'SELF_SERVICE' },
           },
           {
             key: 'lawyer',
-            emoji: '🤝',
             label: 'Хочу помощь юриста',
             patch: { preferredPath: 'LAWYER' },
           },
           {
             key: 'exploring',
-            emoji: '🔍',
             label: 'Пока просто хочу разобраться',
             patch: { preferredPath: 'EXPLORING' },
           },
@@ -437,7 +476,6 @@ export default function EligibilityPage() {
             <legend className="q-text">
               {question.emoji} {question.text}
             </legend>
-            <p className="q-why">Зачем: {question.why}</p>
             {question.note && <p className="q-note">{question.note}</p>}
             <div className="check-options">
               {question.options.map((option) => (
@@ -448,7 +486,7 @@ export default function EligibilityPage() {
                   className={`check-option${chosen.includes(option.key) ? ' check-option-selected' : ''}`}
                   onClick={() => choose(question, option.key)}
                 >
-                  {option.emoji} {option.label}
+                  {option.label}
                 </button>
               ))}
             </div>
