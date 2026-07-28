@@ -6,7 +6,9 @@ package ru.restart.app.eligibility.domain;
  *
  * <p>The block from {@code movedMoneyBeforeFiling} to {@code manyCreditors} are the "clean case"
  * markers: each is {@code true} when the corresponding complication is present, so a simple
- * self-service case has them all {@code false}.
+ * self-service case has them all {@code false}. {@code notReadyForCosts} is a separate gate:
+ * {@code true} means the person cannot cover the mandatory procedure costs, which stops the
+ * check outright rather than adding a lawyer reason.
  *
  * <p>{@code preferredPath} is the closing question — how the person wants to proceed. Asking for a
  * lawyer routes there directly. PLACEHOLDER — the questions and their weight are pending lawyer
@@ -29,5 +31,6 @@ public record EligibilityAnswers(
         boolean incomeUnofficial,
         boolean largeThirdPartyDeposits,
         boolean manyCreditors,
+        boolean notReadyForCosts,
         PreferredPath preferredPath) {
 }

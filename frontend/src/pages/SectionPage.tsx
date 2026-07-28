@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
-import { currentCase, getSection, saveSection } from '../api/cases';
-import type { FieldMeta, SectionContent, SectionEntry, SectionIssue } from '../api/cases';
+import { currentCase, getSection, saveSection, sectionsOverview } from '../api/cases';
+import type {
+  FieldMeta, SectionContent, SectionEntry, SectionIssue, SectionStatus,
+} from '../api/cases';
 import { fieldLabel, sectionLabel } from '../api/labels';
 
 /**
@@ -10,6 +12,9 @@ import { fieldLabel, sectionLabel } from '../api/labels';
  * (names, types, required flags) — sections.yml is the single source of truth; this screen adds
  * only labels and input widgets. Saving never blocks: value problems come back as issues and are
  * shown next to the exact field (and entry) they belong to.
+ *
+ * A clean save moves straight on to the next step in sections.yml order, so the wizard can be
+ * filled in one run; the last step (or an unknown order) falls back to the map of steps.
  */
 
 /** Form-side value: text inputs keep strings, booleans keep booleans. */
@@ -68,6 +73,8 @@ export default function SectionPage() {
   const navigate = useNavigate();
   const [caseId, setCaseId] = useState<string | null>(null);
   const [section, setSection] = useState<SectionContent | null>(null);
+  /** Every step of the case, used only to find what comes after this one. */
+  const [steps, setSteps] = useState<SectionStatus[]>([]);
   const [entries, setEntries] = useState<FormEntry[]>([{}]);
   const [issues, setIssues] = useState<SectionIssue[]>([]);
   const [saved, setSaved] = useState(false);
@@ -86,8 +93,17 @@ export default function SectionPage() {
         return;
       }
       setCaseId(existing.id);
-      const content = await getSection(existing.id, sectionKey);
+      // The overview only drives the «what's next» jump — a failure there must not stop the form.
+      const [content, overview] = await Promise.all([
+        getSection(existing.id, sectionKey),
+        sectionsOverview(existing.id).catch(() => []),
+      ]);
       setSection(content);
+      setSteps(Array.isArray(overview) ? overview : []);
+      // Moving between steps reuses this component: start the new one with a clean slate.
+      setIssues([]);
+      setSaved(false);
+      setSaveFailed(false);
       if (content.repeatable) {
         const list = (content.data as SectionEntry[] | null) ?? [];
         setEntries(list.map(toForm));
@@ -126,7 +142,9 @@ export default function SectionPage() {
     );
   }
 
-  if (!section || !caseId) {
+  // section.key lags the URL for one render while the next step loads — show the wait, not the
+  // step just left behind (its filled fields would read as if the save had not happened).
+  if (!section || !caseId || section.key !== sectionKey) {
     return (
       <main className="check">
         <p className="check-question">Секунду…</p>
@@ -135,6 +153,13 @@ export default function SectionPage() {
   }
 
   const label = sectionLabel(section.key);
+
+  /** The step after this one in sections.yml order; null when this is the last one. */
+  const ordered = [...steps].sort((a, b) => a.order - b.order);
+  const position = ordered.findIndex((s) => s.key === section.key);
+  const nextKey = position >= 0 && position + 1 < ordered.length
+    ? ordered[position + 1].key
+    : null;
 
   const issueFor = (entryIndex: number | null, field: string): string | undefined =>
     issues.find((i) => i.field === field
@@ -158,7 +183,7 @@ export default function SectionPage() {
       setIssues(result.issues);
       setSaved(true);
       if (result.issues.length === 0) {
-        navigate('/journey');
+        navigate(nextKey ? `/journey/${nextKey}` : '/journey');
       }
     } catch {
       // Keep the form and everything typed; only tell the user and let them retry the save.

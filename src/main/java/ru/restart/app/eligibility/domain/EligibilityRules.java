@@ -20,6 +20,13 @@ public final class EligibilityRules {
             return EligibilityResult.debtTooSmall();
         }
 
+        // The court will not start the procedure without the mandatory payments (deposit,
+        // publications, postage). A lawyer would only add cost, so this stops the check honestly
+        // instead of joining the lawyer reasons.
+        if (answers.notReadyForCosts()) {
+            return EligibilityResult.notReadyForCosts();
+        }
+
         List<String> reasons = new ArrayList<>();
 
         switch (answers.debtRange()) {

@@ -62,6 +62,7 @@ class EligibilityControllerTest {
                   "incomeUnofficial": false,
                   "largeThirdPartyDeposits": false,
                   "manyCreditors": false,
+                  "notReadyForCosts": false,
                   "preferredPath": "SELF_SERVICE"
                 }
                 """.formatted(debtRange, anyMarker);

@@ -32,6 +32,7 @@ class EligibilityRulesTest {
         private boolean incomeUnofficial;
         private boolean largeThirdPartyDeposits;
         private boolean manyCreditors;
+        private boolean notReadyForCosts;
         private PreferredPath preferredPath = PreferredPath.SELF_SERVICE;
 
         static Case fitting() {
@@ -73,7 +74,8 @@ class EligibilityRulesTest {
                     marriedOrDivorcing, soldOrGiftedAssetsRecently, onlyConsumerDebts,
                     hasForeignAssetsOrLawsuits, movedMoneyBeforeFiling, hasAlimonyDebt,
                     hasLifeHealthHarmDebt, hasEconomicCriminalCase, guaranteedOthersDebt,
-                    incomeUnofficial, largeThirdPartyDeposits, manyCreditors, preferredPath);
+                    incomeUnofficial, largeThirdPartyDeposits, manyCreditors, notReadyForCosts,
+                    preferredPath);
         }
     }
 

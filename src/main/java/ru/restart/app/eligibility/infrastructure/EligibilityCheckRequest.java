@@ -26,6 +26,7 @@ public record EligibilityCheckRequest(
         @NotNull Boolean incomeUnofficial,
         @NotNull Boolean largeThirdPartyDeposits,
         @NotNull Boolean manyCreditors,
+        @NotNull Boolean notReadyForCosts,
         @NotNull PreferredPath preferredPath) {
 
     EligibilityAnswers toAnswers() {
@@ -33,6 +34,7 @@ public record EligibilityCheckRequest(
                 marriedOrDivorcing, soldOrGiftedAssetsRecently, onlyConsumerDebts,
                 hasForeignAssetsOrLawsuits, movedMoneyBeforeFiling, hasAlimonyDebt,
                 hasLifeHealthHarmDebt, hasEconomicCriminalCase, guaranteedOthersDebt,
-                incomeUnofficial, largeThirdPartyDeposits, manyCreditors, preferredPath);
+                incomeUnofficial, largeThirdPartyDeposits, manyCreditors, notReadyForCosts,
+                preferredPath);
     }
 }

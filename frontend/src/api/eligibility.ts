@@ -23,11 +23,13 @@ export interface EligibilityAnswers {
   incomeUnofficial: boolean;
   largeThirdPartyDeposits: boolean;
   manyCreditors: boolean;
+  /** True when the person cannot cover the mandatory procedure costs — stops the check. */
+  notReadyForCosts: boolean;
   preferredPath: PreferredPath;
 }
 
 export interface EligibilityResult {
-  decision: 'SELF_SERVICE_OK' | 'NEEDS_LAWYER' | 'DEBT_TOO_SMALL';
+  decision: 'SELF_SERVICE_OK' | 'NEEDS_LAWYER' | 'DEBT_TOO_SMALL' | 'NOT_READY_FOR_COSTS';
   reasons: string[];
 }
 
