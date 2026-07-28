@@ -276,6 +276,26 @@ const GROUPS: Group[] = [
     questions: [
       {
         kind: 'single',
+        id: 'costs',
+        emoji: '💳',
+        text: 'Готовы ли вы к обязательным расходам?',
+        note: 'Даже если делать всё самостоятельно, будут обязательные платежи: депозит для '
+          + 'суда, публикации, письма. Обычно это 45–100 тыс ₽.',
+        options: [
+          {
+            key: 'ready',
+            label: 'Да, готов(а) к таким расходам',
+            patch: { notReadyForCosts: false },
+          },
+          {
+            key: 'notReady',
+            label: 'Нет, таких денег сейчас нет',
+            patch: { notReadyForCosts: true },
+          },
+        ],
+      },
+      {
+        kind: 'single',
         id: 'path',
         emoji: '🚀',
         text: 'Как хотите пройти процедуру?',
@@ -564,6 +584,21 @@ function ResultScreen({ result }: { result: EligibilityResult }) {
         <button type="button" className="landing-cta" onClick={() => navigate('/auth')}>
           Продолжить
         </button>
+      </main>
+    );
+  }
+  if (result.decision === 'NOT_READY_FOR_COSTS') {
+    return (
+      <main className="check">
+        <h1 className="check-question">Пока лучше подождать: будут обязательные расходы</h1>
+        <p className="check-hint">
+          Даже при самостоятельном банкротстве суд не начнёт процедуру без обязательных
+          платежей — это депозит, публикации и письма, обычно 45–100 тысяч ₽.
+        </p>
+        <p className="check-hint">
+          Вернитесь, когда получится отложить эту сумму, — со всем остальным мы поможем.
+        </p>
+        <Link to="/" className="check-back">На главную</Link>
       </main>
     );
   }

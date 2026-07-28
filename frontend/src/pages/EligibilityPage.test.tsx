@@ -55,6 +55,7 @@ async function answerEverythingAsFitting(user: User, lastChoice = /Хочу вс
   await click(user, /Ничего из этого нет/);
   await click(user, /Далее/);
   // 5 — Как продолжить
+  await click(user, /Да, готов\(а\) к таким расходам/);
   await click(user, lastChoice);
   await click(user, /Показать результат/);
 }

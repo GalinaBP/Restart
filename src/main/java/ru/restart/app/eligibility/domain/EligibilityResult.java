@@ -24,4 +24,9 @@ public record EligibilityResult(EligibilityDecision decision, List<String> reaso
     public static EligibilityResult debtTooSmall() {
         return new EligibilityResult(EligibilityDecision.DEBT_TOO_SMALL, List.of());
     }
+
+    /** Cannot cover the mandatory procedure costs — the court will not start without them. */
+    public static EligibilityResult notReadyForCosts() {
+        return new EligibilityResult(EligibilityDecision.NOT_READY_FOR_COSTS, List.of());
+    }
 }
