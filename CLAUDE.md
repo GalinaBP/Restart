@@ -133,7 +133,8 @@ start of a sentence. Visual style: a dark **"space" theme** — deep canvas (`--
 **solid green accent** (`#34d399`, no gradients) on buttons and text, soft green glows behind the
 landing, big friendly type, pill shapes; calm, never loud (the subject matter is heavy). Green
 buttons use dark ink text (`#04231a`) for contrast. Emoji: the landing keeps the single rocket
-🚀, and the **screening questions and their options carry emoji** (2026-07-22 decision); the rest
-of the app (wizard labels, journey, documents) stays emoji-free. Design tokens live in
+🚀, and the **screening questions (and their group headings) carry emoji** (2026-07-22 decision);
+the **answer options do not** (emoji stripped from options on 2026-07-28); the rest of the app
+(wizard labels, journey, documents) stays emoji-free. Design tokens live in
 `frontend/src/styles.css` `:root`. (Earlier AI-011 experiments with an Adiaphora slate/green, a
 light marketing landing, and a blue→cyan gradient were reverted.)
