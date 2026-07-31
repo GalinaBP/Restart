@@ -53,8 +53,16 @@ public final class EligibilityRules {
             reasons.add("Долги не по кредитам и займам (например, по бизнесу или алиментам) — "
                     + "это отдельная история.");
         }
-        if (answers.hasForeignAssetsOrLawsuits()) {
-            reasons.add("Активы за границей или судебные споры делают дело сложным.");
+        if (answers.hasForeignAssets()) {
+            reasons.add("Имущество или счета за границей делают дело сложным.");
+        }
+        if (answers.hasLawsuits()) {
+            reasons.add("Если против вас уже идёт суд, вести дело самостоятельно рискованно — "
+                    + "здесь нужен юрист.");
+        }
+        if (answers.hasEnforcementProceedings()) {
+            reasons.add("Если приставы уже взыскивают долг, дело ведут по-другому — "
+                    + "лучше с юристом.");
         }
         if (answers.movedMoneyBeforeFiling()) {
             reasons.add("Если перед банкротством со счетов уходили крупные суммы, суд разберётся "

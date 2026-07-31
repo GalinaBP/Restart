@@ -27,6 +27,11 @@ export default function LandingPage() {
         Проверьте, подходит ли вам самостоятельное банкротство
       </button>
       <p className="landing-note">≈ 30 минут на подготовку документов</p>
+      <p className="landing-starry">
+        <span className="landing-star" aria-hidden="true">✦</span>
+        Дальше — не бюрократия, а маршрут. Мы подсветим каждый шаг, чтобы вы не шли наугад.
+        <span className="landing-star" aria-hidden="true">✦</span>
+      </p>
     </main>
   );
 }

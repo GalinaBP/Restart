@@ -11,9 +11,9 @@ class EligibilityRulesTest {
     private final EligibilityRules rules = new EligibilityRules();
 
     /**
-     * Fluent builder over the (now 17-component) answers record — starts from a straightforward
-     * fitting case and each call flips exactly one marker, so tests read by intent and adding a
-     * future marker never touches the existing call sites.
+     * Fluent builder over the wide answers record — starts from a straightforward fitting case
+     * and each call flips exactly one marker, so tests read by intent and adding a future marker
+     * never touches the existing call sites.
      */
     private static final class Case {
         private DebtRange debtRange = DebtRange.FROM_350K_TO_3M;
@@ -23,7 +23,9 @@ class EligibilityRulesTest {
         private boolean marriedOrDivorcing;
         private boolean soldOrGiftedAssetsRecently;
         private boolean onlyConsumerDebts = true;
-        private boolean hasForeignAssetsOrLawsuits;
+        private boolean hasForeignAssets;
+        private boolean hasLawsuits;
+        private boolean hasEnforcementProceedings;
         private boolean movedMoneyBeforeFiling;
         private boolean hasAlimonyDebt;
         private boolean hasLifeHealthHarmDebt;
@@ -57,7 +59,9 @@ class EligibilityRulesTest {
             marriedOrDivorcing = true;
             soldOrGiftedAssetsRecently = true;
             onlyConsumerDebts = false;
-            hasForeignAssetsOrLawsuits = true;
+            hasForeignAssets = true;
+            hasLawsuits = true;
+            hasEnforcementProceedings = true;
             movedMoneyBeforeFiling = true;
             hasAlimonyDebt = true;
             hasLifeHealthHarmDebt = true;
@@ -72,10 +76,10 @@ class EligibilityRulesTest {
         EligibilityAnswers build() {
             return new EligibilityAnswers(debtRange, hasCar, hasExtraRealEstate, hasBusiness,
                     marriedOrDivorcing, soldOrGiftedAssetsRecently, onlyConsumerDebts,
-                    hasForeignAssetsOrLawsuits, movedMoneyBeforeFiling, hasAlimonyDebt,
-                    hasLifeHealthHarmDebt, hasEconomicCriminalCase, guaranteedOthersDebt,
-                    incomeUnofficial, largeThirdPartyDeposits, manyCreditors, notReadyForCosts,
-                    preferredPath);
+                    hasForeignAssets, hasLawsuits, hasEnforcementProceedings,
+                    movedMoneyBeforeFiling, hasAlimonyDebt, hasLifeHealthHarmDebt,
+                    hasEconomicCriminalCase, guaranteedOthersDebt, incomeUnofficial,
+                    largeThirdPartyDeposits, manyCreditors, notReadyForCosts, preferredPath);
         }
     }
 
@@ -127,7 +131,9 @@ class EligibilityRulesTest {
                 (UnaryOperator<Case>) c -> { c.marriedOrDivorcing = true; return c; },
                 (UnaryOperator<Case>) c -> { c.soldOrGiftedAssetsRecently = true; return c; },
                 (UnaryOperator<Case>) c -> { c.onlyConsumerDebts = false; return c; },
-                (UnaryOperator<Case>) c -> { c.hasForeignAssetsOrLawsuits = true; return c; },
+                (UnaryOperator<Case>) c -> { c.hasForeignAssets = true; return c; },
+                (UnaryOperator<Case>) c -> { c.hasLawsuits = true; return c; },
+                (UnaryOperator<Case>) c -> { c.hasEnforcementProceedings = true; return c; },
                 (UnaryOperator<Case>) c -> { c.movedMoneyBeforeFiling = true; return c; },
                 (UnaryOperator<Case>) c -> { c.hasAlimonyDebt = true; return c; },
                 (UnaryOperator<Case>) c -> { c.hasLifeHealthHarmDebt = true; return c; },
@@ -151,8 +157,8 @@ class EligibilityRulesTest {
         EligibilityResult result = rules.evaluate(everything);
 
         assertThat(result.decision()).isEqualTo(EligibilityDecision.NEEDS_LAWYER);
-        // Debt range + the fifteen complexity markers, each its own honest reason.
-        assertThat(result.reasons()).hasSize(16);
+        // Debt range + the seventeen complexity markers, each its own honest reason.
+        assertThat(result.reasons()).hasSize(18);
     }
 
     @Test

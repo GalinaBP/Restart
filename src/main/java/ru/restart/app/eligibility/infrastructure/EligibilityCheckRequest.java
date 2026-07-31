@@ -17,7 +17,9 @@ public record EligibilityCheckRequest(
         @NotNull Boolean marriedOrDivorcing,
         @NotNull Boolean soldOrGiftedAssetsRecently,
         @NotNull Boolean onlyConsumerDebts,
-        @NotNull Boolean hasForeignAssetsOrLawsuits,
+        @NotNull Boolean hasForeignAssets,
+        @NotNull Boolean hasLawsuits,
+        @NotNull Boolean hasEnforcementProceedings,
         @NotNull Boolean movedMoneyBeforeFiling,
         @NotNull Boolean hasAlimonyDebt,
         @NotNull Boolean hasLifeHealthHarmDebt,
@@ -32,9 +34,9 @@ public record EligibilityCheckRequest(
     EligibilityAnswers toAnswers() {
         return new EligibilityAnswers(debtRange, hasCar, hasExtraRealEstate, hasBusiness,
                 marriedOrDivorcing, soldOrGiftedAssetsRecently, onlyConsumerDebts,
-                hasForeignAssetsOrLawsuits, movedMoneyBeforeFiling, hasAlimonyDebt,
-                hasLifeHealthHarmDebt, hasEconomicCriminalCase, guaranteedOthersDebt,
-                incomeUnofficial, largeThirdPartyDeposits, manyCreditors, notReadyForCosts,
-                preferredPath);
+                hasForeignAssets, hasLawsuits, hasEnforcementProceedings, movedMoneyBeforeFiling,
+                hasAlimonyDebt, hasLifeHealthHarmDebt, hasEconomicCriminalCase,
+                guaranteedOthersDebt, incomeUnofficial, largeThirdPartyDeposits, manyCreditors,
+                notReadyForCosts, preferredPath);
     }
 }
