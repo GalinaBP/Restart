@@ -13,7 +13,9 @@ export interface EligibilityAnswers {
   marriedOrDivorcing: boolean;
   soldOrGiftedAssetsRecently: boolean;
   onlyConsumerDebts: boolean;
-  hasForeignAssetsOrLawsuits: boolean;
+  hasForeignAssets: boolean;
+  hasLawsuits: boolean;
+  hasEnforcementProceedings: boolean;
   /** "Clean case" markers — each true when the complication is present, false in a simple case. */
   movedMoneyBeforeFiling: boolean;
   hasAlimonyDebt: boolean;

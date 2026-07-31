@@ -22,7 +22,9 @@ type BoolField =
   | 'marriedOrDivorcing'
   | 'soldOrGiftedAssetsRecently'
   | 'onlyConsumerDebts'
-  | 'hasForeignAssetsOrLawsuits'
+  | 'hasForeignAssets'
+  | 'hasLawsuits'
+  | 'hasEnforcementProceedings'
   | 'movedMoneyBeforeFiling'
   | 'hasAlimonyDebt'
   | 'hasLifeHealthHarmDebt'
@@ -150,8 +152,15 @@ const GROUPS: Group[] = [
         id: 'business',
         emoji: '💼',
         text: 'Есть ли у вас бизнес?',
+        note: 'Самозанятость без ИП здесь не считается бизнесом: банкротство проходит как '
+          + 'у обычного человека, по общим правилам.',
         options: [
           { key: 'no', label: 'Нет', patch: { hasBusiness: false } },
+          {
+            key: 'selfEmployed',
+            label: 'Я самозанятый, ИП не оформлял(а)',
+            patch: { hasBusiness: false },
+          },
           {
             key: 'yes',
             label: 'Да, я ИП или владею компанией',
@@ -197,17 +206,22 @@ const GROUPS: Group[] = [
         emoji: '🌍',
         text: 'Есть ли что-то из этого?',
         note: 'Можно выбрать несколько вариантов',
-        fields: ['hasForeignAssetsOrLawsuits'],
+        fields: ['hasForeignAssets', 'hasLawsuits', 'hasEnforcementProceedings'],
         options: [
           {
             key: 'abroad',
             label: 'Имущество или счета за границей',
-            field: 'hasForeignAssetsOrLawsuits',
+            field: 'hasForeignAssets',
           },
           {
             key: 'lawsuits',
-            label: 'Судебные споры по имуществу или долгам',
-            field: 'hasForeignAssetsOrLawsuits',
+            label: 'Против вас уже идёт суд — по долгам или по имуществу',
+            field: 'hasLawsuits',
+          },
+          {
+            key: 'bailiffs',
+            label: 'Приставы уже взыскивают с вас долг',
+            field: 'hasEnforcementProceedings',
           },
           { key: 'none', label: 'Ничего из этого' },
         ],
@@ -361,7 +375,8 @@ const CONSEQUENCES: { title: string; detail: string }[] = [
   {
     title: 'Если вы были ИП, статус предпринимателя прекращается.',
     detail: 'После признания банкротом регистрация в качестве ИП прекращается, а повторно '
-      + 'зарегистрироваться в качестве ИП можно только через 5 лет.',
+      + 'зарегистрироваться в качестве ИП можно только через 5 лет. Самозанятости без ИП это '
+      + 'не касается: такое банкротство проходит как у обычного человека, по общим правилам.',
   },
 ];
 
