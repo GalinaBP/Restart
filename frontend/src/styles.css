@@ -84,6 +84,75 @@ button:disabled {
   position: relative;
 }
 
+/* The night sky itself: two fixed constellations of tiny white and star-yellow dots that
+   breathe in counter-phase, plus a rare quiet shooting star. Pure decoration — it sits under
+   the content, catches no clicks, and the green accent still owns every action. */
+.landing-sky {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1.2px 1.2px at 8% 12%, rgba(255, 255, 255, 0.8), transparent 60%),
+    radial-gradient(1px 1px at 22% 38%, var(--star), transparent 60%),
+    radial-gradient(1.5px 1.5px at 31% 8%, rgba(255, 255, 255, 0.65), transparent 60%),
+    radial-gradient(1px 1px at 44% 27%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1.3px 1.3px at 58% 14%, var(--star), transparent 60%),
+    radial-gradient(1px 1px at 66% 41%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1.6px 1.6px at 78% 6%, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(1px 1px at 88% 33%, var(--star), transparent 60%),
+    radial-gradient(1.2px 1.2px at 94% 18%, rgba(255, 255, 255, 0.55), transparent 60%),
+    radial-gradient(1px 1px at 15% 68%, rgba(255, 255, 255, 0.45), transparent 60%),
+    radial-gradient(1.3px 1.3px at 35% 84%, var(--star), transparent 60%),
+    radial-gradient(1px 1px at 52% 71%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1.4px 1.4px at 71% 88%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1px 1px at 86% 74%, var(--star), transparent 60%);
+  opacity: 0.55;
+}
+
+.landing-sky::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 24%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(1.4px 1.4px at 27% 55%, var(--star), transparent 60%),
+    radial-gradient(1px 1px at 39% 16%, rgba(255, 255, 255, 0.55), transparent 60%),
+    radial-gradient(1.2px 1.2px at 49% 44%, rgba(255, 255, 255, 0.65), transparent 60%),
+    radial-gradient(1px 1px at 61% 79%, var(--star), transparent 60%),
+    radial-gradient(1.5px 1.5px at 72% 24%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1px 1px at 81% 52%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1.2px 1.2px at 92% 86%, var(--star), transparent 60%),
+    radial-gradient(1px 1px at 5% 47%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1.3px 1.3px at 18% 91%, rgba(255, 255, 255, 0.6), transparent 60%);
+  animation: sky-breathe 9s ease-in-out infinite;
+}
+
+/* A shooting star: a thin white-gold streak sliding down the sky, ~2 s out of every 14. */
+.landing-sky::after {
+  content: '';
+  position: absolute;
+  top: 12%;
+  left: -12%;
+  width: 6.5rem;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(252, 211, 77, 0.55), #fff);
+  opacity: 0;
+  animation: comet-fly 14s linear 3s infinite;
+}
+
+@keyframes sky-breathe {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes comet-fly {
+  0% { transform: translate3d(0, 0, 0) rotate(14deg); opacity: 0; }
+  4% { opacity: 0.85; }
+  14% { transform: translate3d(74vw, 19vh, 0) rotate(14deg); opacity: 0; }
+  100% { transform: translate3d(74vw, 19vh, 0) rotate(14deg); opacity: 0; }
+}
+
 .landing-brand {
   font-size: clamp(2.6rem, 8vw, 3.6rem);
   font-weight: 900;
@@ -182,8 +251,10 @@ button:disabled {
 }
 
 .landing-star {
+  display: inline-block;
   color: var(--star);
   padding: 0 0.45rem;
+  text-shadow: 0 0 9px rgba(252, 211, 77, 0.75);
   animation: star-twinkle 5.5s ease-in-out infinite;
 }
 
@@ -192,14 +263,19 @@ button:disabled {
 }
 
 @keyframes star-twinkle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.85); }
 }
 
-/* Calm above all: no pulsing for anyone who asked the system to stop moving things. */
+/* Calm above all: nothing moves for anyone who asked the system to stop moving things. */
 @media (prefers-reduced-motion: reduce) {
-  .landing-star {
+  .landing-star,
+  .landing-sky::before {
     animation: none;
+  }
+
+  .landing-sky::after {
+    display: none;
   }
 }
 

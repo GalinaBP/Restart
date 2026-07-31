@@ -10,6 +10,7 @@ export default function LandingPage() {
   const navigate = useNavigate();
   return (
     <main className="landing">
+      <div className="landing-sky" aria-hidden="true" />
       <button
         type="button"
         className="landing-login"
