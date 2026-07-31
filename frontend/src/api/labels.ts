@@ -16,8 +16,16 @@ export interface SectionLabel {
    * the user should see it before answering, not after.
    */
   caution?: string;
-  /** Collapsed how-to, opened on tap: title, numbered steps, and a closing note. */
-  help?: { summary: string; steps: string[]; note?: string };
+  /**
+   * Collapsed how-to, opened on tap: title, numbered steps, an optional official link and a
+   * closing note. `link` opens in a new tab — the user is mid-form and must not lose it.
+   */
+  help?: {
+    summary: string;
+    steps: string[];
+    link?: { href: string; text: string };
+    note?: string;
+  };
 }
 
 export const SECTION_LABELS: Record<string, SectionLabel> = {
@@ -141,6 +149,10 @@ export const SECTION_LABELS: Record<string, SectionLabel> = {
         'Выберите организацию и возьмите из реестра её точное название и адрес — их и впишите ниже.',
         'Если можете, заранее спросите в организации, готовы ли они вести ваше дело: управляющие берут не каждое.',
       ],
+      link: {
+        href: 'https://bankrot.fedresurs.ru',
+        text: 'Открыть реестр арбитражных управляющих (ЕФРСБ)',
+      },
       note: 'Это один из тех шагов, где стоит не торопиться: без указанной организации суд не сможет назначить управляющего, а без управляющего дело не пойдёт.',
     },
   },

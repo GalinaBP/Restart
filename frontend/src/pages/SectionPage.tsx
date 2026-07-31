@@ -236,6 +236,18 @@ export default function SectionPage() {
           <ol className="section-help-steps">
             {label.help.steps.map((step) => <li key={step}>{step}</li>)}
           </ol>
+          {label.help.link && (
+            <p>
+              <a
+                className="section-help-link"
+                href={label.help.link.href}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {label.help.link.text}
+              </a>
+            </p>
+          )}
           {label.help.note && <p>{label.help.note}</p>}
         </details>
       )}
