@@ -6,6 +6,9 @@
   --muted: #9d9daf;
   --accent-from: #34d399;
   --accent-to: #34d399;
+  /* Warm star yellow — decorative only (stars, faint starfield). Never on buttons or links:
+     the one action accent stays green, so nothing competes with the call to action. */
+  --star: #fcd34d;
   --pill-bg: rgba(255, 255, 255, 0.07);
   --pill-border: rgba(255, 255, 255, 0.14);
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -155,6 +158,49 @@ button:disabled {
   color: var(--muted);
   font-size: 0.95rem;
   margin: 0;
+}
+
+/* A quiet starry sign-off: warm yellow stars over a faint starfield of tiny dots. The dots are
+   texture, not an accent fill — the green-only, no-gradient rule still owns buttons and links. */
+.landing-starry {
+  position: relative;
+  max-width: 32rem;
+  margin: 0.4rem 0 0;
+  padding: 1rem 1.3rem;
+  border: 1px solid rgba(252, 211, 77, 0.2);
+  border-radius: 1.25rem;
+  background-color: rgba(252, 211, 77, 0.045);
+  background-image:
+    radial-gradient(1.4px 1.4px at 14% 26%, var(--star), transparent 60%),
+    radial-gradient(1px 1px at 34% 72%, var(--star), transparent 60%),
+    radial-gradient(1.6px 1.6px at 62% 22%, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(1px 1px at 82% 64%, var(--star), transparent 60%),
+    radial-gradient(1.2px 1.2px at 91% 32%, rgba(255, 255, 255, 0.6), transparent 60%);
+  color: var(--text);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.landing-star {
+  color: var(--star);
+  padding: 0 0.45rem;
+  animation: star-twinkle 5.5s ease-in-out infinite;
+}
+
+.landing-star:last-child {
+  animation-delay: 2.6s;
+}
+
+@keyframes star-twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* Calm above all: no pulsing for anyone who asked the system to stop moving things. */
+@media (prefers-reduced-motion: reduce) {
+  .landing-star {
+    animation: none;
+  }
 }
 
 /* --- Eligibility check: one question per screen ------------------------------ */
