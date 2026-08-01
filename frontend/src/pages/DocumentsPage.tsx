@@ -209,6 +209,13 @@ export default function DocumentsPage() {
           Скачать всё одним архивом
         </button>
       )}
+      {/* Documents in hand, the obvious next question is «и что теперь?» — answer it right here
+          instead of leaving the user to find the filing step on their own. */}
+      {documents.length > 0 && (
+        <Link to="/journey/FILING_SUBMISSION" className="docs-next-step">
+          Что дальше: как подать документы в суд →
+        </Link>
+      )}
       <p className="docs-note">
         Документы собраны по шаблонам, которые ещё проверяет юрист, — на каждом файле есть
         пометка. Подавать их в суд пока рано.
