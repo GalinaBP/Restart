@@ -1149,6 +1149,20 @@ a.procedure-stage:hover {
   border-color: var(--accent-to);
 }
 
+/* The bridge from «документы готовы» to «как их подать» — a quiet link, not a second CTA:
+   the green button above stays the one loud action on this screen. */
+.docs-next-step {
+  margin-top: 0.2rem;
+  padding: 0.6rem 1rem;
+  color: var(--accent-to);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.docs-next-step:hover {
+  text-decoration: underline;
+}
+
 .docs-note {
   color: var(--muted);
   font-size: 0.9rem;
