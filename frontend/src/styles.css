@@ -759,10 +759,16 @@ a.procedure-stage:hover {
   background: rgba(234, 179, 8, 0.1);
 }
 
+/* Inside a stage card the note box would be a box within a box, repeated down the whole map —
+   so here the hint drops back to plain muted text. The card itself is already the container. */
 .procedure-stage-desc {
   margin: 0.5rem 0 0;
   max-width: none;
   text-align: left;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
 }
 
 .procedure-blocked-note {
