@@ -407,11 +407,18 @@ button:disabled {
   text-decoration: none;
 }
 
+/* Explanatory text reads as a note, in the same warm yellow family as the «Черновик» badge
+   above — but built for sentences: a soft box, normal weight, full reading size. The badge
+   stays the loud, bold, pill-shaped version for its three words. */
 .check-hint {
-  color: var(--muted);
-  line-height: 1.6;
   margin: 0;
   max-width: 26rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(234, 179, 8, 0.32);
+  border-radius: 0.9rem;
+  background: rgba(234, 179, 8, 0.07);
+  color: #f0dda4;
+  line-height: 1.6;
 }
 
 .check-reasons {
@@ -752,10 +759,16 @@ a.procedure-stage:hover {
   background: rgba(234, 179, 8, 0.1);
 }
 
+/* Inside a stage card the note box would be a box within a box, repeated down the whole map —
+   so here the hint drops back to plain muted text. The card itself is already the container. */
 .procedure-stage-desc {
   margin: 0.5rem 0 0;
   max-width: none;
   text-align: left;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
 }
 
 .procedure-blocked-note {
