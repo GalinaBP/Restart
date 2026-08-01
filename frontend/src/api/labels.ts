@@ -33,7 +33,18 @@ export const SECTION_LABELS: Record<string, SectionLabel> = {
   PASSPORT: { title: 'Паспорт' },
   REGISTRATION_ADDRESS: { title: 'Где вы прописаны' },
   CONTACT_INFO: { title: 'Как с вами связаться' },
-  EMPLOYMENT: { title: 'Работа' },
+  EMPLOYMENT: {
+    title: 'Работа',
+    help: {
+      summary: 'Какие документы о работе стоит подготовить заранее?',
+      steps: [
+        'Трудовая книжка — бумажная или выписка из электронной. Выписку можно заказать на Госуслугах или в СФР.',
+        'Справки о доходах и удержанных налогах (2-НДФЛ) за последние три года — их выдаёт работодатель или можно скачать в личном кабинете налоговой.',
+        'Если сейчас вы не работаете — справка из центра занятости, если вы там на учёте.',
+      ],
+      note: 'Суд часто просит донести именно эти документы уже после того, как принял заявление, — и назначает срок. Если подготовить их заранее, заседание не придётся откладывать.',
+    },
+  },
   MONTHLY_INCOME: {
     title: 'Доход в месяц',
     hint: 'Ваш основной доход. Другие доходы — на следующем шаге.',
@@ -51,6 +62,7 @@ export const SECTION_LABELS: Record<string, SectionLabel> = {
     title: 'Кто на вашем обеспечении',
     hint: 'Дети или другие близкие, которых вы содержите. Если таких нет — просто сохраните пустой список.',
     entryName: 'Добавить человека',
+    caution: 'Если у вас есть несовершеннолетние дети, суд обычно привлекает к делу орган опеки — он следит, чтобы права ребёнка не пострадали. Это обычный порядок, а не проверка вас: ребёнок здесь под защитой.',
   },
   CREDITORS: {
     title: 'Кому и сколько вы должны',
@@ -285,6 +297,12 @@ export function fieldLabel(sectionKey: string, fieldName: string): string {
 export interface StageLabel {
   title: string;
   description: string;
+  /**
+   * Roughly how long this stage takes, so the wait is expected rather than alarming. Always
+   * hedged («обычно», «примерно») — courts differ and these are observations from real cases,
+   * not statutory periods. PLACEHOLDER pending lawyer review, like everything rule-like here.
+   */
+  timing?: string;
 }
 
 const STAGE_LABELS: Record<string, StageLabel> = {
@@ -299,6 +317,7 @@ const STAGE_LABELS: Record<string, StageLabel> = {
   MANAGER_SELECTION: {
     title: 'Выбор управляющего',
     description: 'Нужно выбрать организацию, которая назначит человека для ведения вашего дела.',
+    timing: 'Организация должна сообщить суду кандидатуру в течение пяти дней после получения определения. На практике это занимает до нескольких недель.',
   },
   FEES_AND_DEPOSIT: {
     title: 'Пошлина и депозит',
@@ -307,10 +326,12 @@ const STAGE_LABELS: Record<string, StageLabel> = {
   FILING: {
     title: 'Подача в суд',
     description: 'Документы подаются в суд, и начинается официальное рассмотрение дела.',
+    timing: 'Обычно суд принимает заявление примерно за одну–две недели. После этого он может попросить донести документы — чаще всего трудовую книжку и справки о доходах.',
   },
   COURT_DECISION: {
     title: 'Решение суда',
     description: 'Суд рассматривает дело и определяет, каким будет дальнейший путь.',
+    timing: 'Первое заседание обычно назначают примерно через шесть–восемь недель после того, как суд принял заявление. Решение можно обжаловать в течение месяца.',
   },
   RESTRUCTURING_PLAN: {
     title: 'План выплат',
@@ -331,6 +352,7 @@ const STAGE_LABELS: Record<string, StageLabel> = {
   PROPERTY_REALIZATION: {
     title: 'Продажа имущества',
     description: 'То, что можно продать, выставляется на торги.',
+    timing: 'Эту часть процедуры обычно вводят примерно на шесть месяцев. Если управляющий не попросит суд её завершить, она продлевается ещё на такой же срок — это нормально и не значит, что что-то пошло не так.',
   },
   CREDITOR_PAYOUTS: {
     title: 'Расчёты с кредиторами',

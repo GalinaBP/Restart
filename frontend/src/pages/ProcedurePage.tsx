@@ -294,6 +294,7 @@ function StageCard({
       <li className={cardClass}>
         {head}
         <p className="check-hint procedure-stage-desc">{label.description}</p>
+        {label.timing && <p className="procedure-stage-timing">{label.timing}</p>}
         {view.stage === 'FEES_AND_DEPOSIT' && fees && <FeeBreakdown fees={fees} />}
         {detail?.map((d) => (
           <Link key={d.route} to={d.route} className="procedure-detail-link">{d.label} →</Link>
@@ -343,6 +344,7 @@ function StageCard({
       {expanded && (
         <div className="procedure-stage-body">
           <p className="check-hint procedure-stage-desc">{label.description}</p>
+          {label.timing && <p className="procedure-stage-timing">{label.timing}</p>}
           {view.status === 'BLOCKED' && <p className="procedure-blocked-note">{BLOCKED_EXPLANATION}</p>}
           {detail?.map((d) => (
             <Link key={d.route} to={d.route} className="procedure-detail-link">{d.label} →</Link>

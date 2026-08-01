@@ -771,6 +771,17 @@ a.procedure-stage:hover {
   color: var(--muted);
 }
 
+/* How long the stage usually takes. Quiet and secondary — it sets expectations during a
+   months-long process, it is never a promise. */
+.procedure-stage-timing {
+  margin: 0.4rem 0 0;
+  padding-left: 0.7rem;
+  border-left: 2px solid rgba(255, 255, 255, 0.14);
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 .procedure-blocked-note {
   margin: 0.5rem 0 0;
   color: #eab308;
