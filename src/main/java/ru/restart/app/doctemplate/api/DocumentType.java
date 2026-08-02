@@ -8,7 +8,6 @@ public enum DocumentType {
     BANKRUPTCY_APPLICATION("bankruptcy_application"),
     CREDITOR_LIST("creditor_list"),
     PROPERTY_INFORMATION("property_information"),
-    SRO_NOMINATION("sro_nomination"),
     ATTACHMENTS_CHECKLIST("attachments_checklist"),
     FILING_CHECKLIST("filing_checklist");
 

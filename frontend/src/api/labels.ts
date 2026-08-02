@@ -326,7 +326,6 @@ const FIELD_LABELS: Record<string, string> = {
 /** The filing documents, in plain words. `note` marks the one that never goes to the court. */
 const DOCUMENT_LABELS: Record<string, { title: string; note?: string }> = {
   BANKRUPTCY_APPLICATION: { title: 'Заявление в суд' },
-  SRO_NOMINATION: { title: 'Заявление о выборе СРО' },
   CREDITOR_LIST: { title: 'Список кредиторов' },
   PROPERTY_INFORMATION: { title: 'Опись имущества' },
   ATTACHMENTS_CHECKLIST: { title: 'Перечень приложений' },
