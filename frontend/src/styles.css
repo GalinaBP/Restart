@@ -771,6 +771,21 @@ a.procedure-stage:hover {
   color: var(--muted);
 }
 
+/* A few things worth knowing about the stage. Same muted register as the description — this is
+   explanation, not a call to action. */
+.procedure-stage-points {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.procedure-stage-points li + li {
+  margin-top: 0.4rem;
+}
+
 /* How long the stage usually takes. Quiet and secondary — it sets expectations during a
    months-long process, it is never a promise. */
 .procedure-stage-timing {
