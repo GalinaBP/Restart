@@ -63,7 +63,7 @@ class DocxDocumentWriterTest {
 
     @Test
     void markupCharactersInTheTextAreEscaped() throws Exception {
-        byte[] docx = writer.write(new RenderedDocument(DocumentType.DEBT_SUMMARY,
+        byte[] docx = writer.write(new RenderedDocument(DocumentType.CREDITOR_LIST,
                 "2026-06-21.1", "ООО «Рога & Копыта» <до 100%>"));
 
         String xml = new String(unzip(docx).get("word/document.xml"), StandardCharsets.UTF_8);

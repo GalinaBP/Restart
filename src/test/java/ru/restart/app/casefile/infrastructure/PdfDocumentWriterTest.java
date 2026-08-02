@@ -56,7 +56,7 @@ class PdfDocumentWriterTest {
     @Test
     void overlongLinesWrapInsteadOfOverflowing() throws Exception {
         String longLine = "кредитор ".repeat(30).trim();
-        byte[] pdf = writer.write(new RenderedDocument(DocumentType.DEBT_SUMMARY,
+        byte[] pdf = writer.write(new RenderedDocument(DocumentType.CREDITOR_LIST,
                 "2026-06-21.1", longLine));
 
         // All words survive; PDFTextStripper sees them across the wrapped lines.
