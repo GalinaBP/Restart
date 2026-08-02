@@ -5,7 +5,9 @@ import { currentCase, getSection, saveSection, sectionsOverview } from '../api/c
 import type {
   FieldMeta, SectionContent, SectionEntry, SectionIssue, SectionStatus,
 } from '../api/cases';
-import { CASE_DATA_SECTIONS, fieldLabel, sectionLabel } from '../api/labels';
+import { CASE_DATA_SECTIONS, sectionLabel } from '../api/labels';
+import { issueFor as findIssue, toApi, toForm, type FormEntry } from './sectionForm';
+import { SectionField } from './SectionField';
 
 /**
  * One data-collection step. The form is rendered entirely from the backend's field metadata
@@ -16,57 +18,6 @@ import { CASE_DATA_SECTIONS, fieldLabel, sectionLabel } from '../api/labels';
  * A clean save moves straight on to the next step in sections.yml order, so the wizard can be
  * filled in one run; the last step (or an unknown order) falls back to the map of steps.
  */
-
-/** Form-side value: text inputs keep strings, booleans keep booleans. */
-type FormEntry = Record<string, string | boolean>;
-
-function toForm(entry: SectionEntry | undefined): FormEntry {
-  const form: FormEntry = {};
-  if (entry) {
-    for (const [key, value] of Object.entries(entry)) {
-      form[key] = typeof value === 'boolean' ? value : String(value);
-    }
-  }
-  return form;
-}
-
-/** Converts one form entry back to API values per field type; blank optional fields are omitted. */
-function toApi(fields: FieldMeta[], form: FormEntry): SectionEntry {
-  const entry: SectionEntry = {};
-  for (const field of fields) {
-    const raw = form[field.name];
-    if (field.type === 'BOOLEAN') {
-      if (raw === true) entry[field.name] = true;
-      else if (raw === false) entry[field.name] = false;
-      continue;
-    }
-    const text = typeof raw === 'string' ? raw.trim() : '';
-    if (text === '') continue;
-    if (field.type === 'MONEY' || field.type === 'INTEGER') {
-      const parsed = Number(text.replace(/\s/g, '').replace(',', '.'));
-      entry[field.name] = Number.isNaN(parsed) ? text : parsed;
-    } else {
-      entry[field.name] = text;
-    }
-  }
-  return entry;
-}
-
-function inputType(field: FieldMeta): { type: string; inputMode?: 'numeric' | 'decimal' } {
-  switch (field.type) {
-    case 'DATE':
-      return { type: 'date' };
-    case 'MONEY':
-      return { type: 'text', inputMode: 'decimal' };
-    case 'INTEGER':
-    case 'PASSPORT_SERIES':
-    case 'PASSPORT_NUMBER':
-    case 'INN':
-      return { type: 'text', inputMode: 'numeric' };
-    default:
-      return { type: 'text' };
-  }
-}
 
 export default function SectionPage() {
   const { sectionKey = '' } = useParams();
@@ -163,8 +114,7 @@ export default function SectionPage() {
     : null;
 
   const issueFor = (entryIndex: number | null, field: string): string | undefined =>
-    issues.find((i) => i.field === field
-      && (section.repeatable ? i.entryIndex === entryIndex : true))?.message;
+    findIssue(issues, section.repeatable, entryIndex, field);
 
   const setValue = (entryIndex: number, field: string, value: string | boolean) => {
     setSaved(false);
@@ -194,36 +144,16 @@ export default function SectionPage() {
     }
   };
 
-  const renderField = (field: FieldMeta, entryIndex: number) => {
-    const value = entries[entryIndex]?.[field.name];
-    const issue = issueFor(section.repeatable ? entryIndex : null, field.name);
-    if (field.type === 'BOOLEAN') {
-      return (
-        <label key={field.name} className="section-bool">
-          <input
-            type="checkbox"
-            checked={value === true}
-            onChange={(e) => setValue(entryIndex, field.name, e.target.checked)}
-          />
-          {fieldLabel(section.key, field.name)}
-        </label>
-      );
-    }
-    const widget = inputType(field);
-    return (
-      <label key={field.name} className="auth-label">
-        {fieldLabel(section.key, field.name)}
-        <input
-          className={`auth-input${issue ? ' section-input-invalid' : ''}`}
-          type={widget.type}
-          inputMode={widget.inputMode}
-          value={typeof value === 'string' ? value : ''}
-          onChange={(e) => setValue(entryIndex, field.name, e.target.value)}
-        />
-        {issue && <span className="auth-error" role="alert">{issue}</span>}
-      </label>
-    );
-  };
+  const renderField = (field: FieldMeta, entryIndex: number) => (
+    <SectionField
+      key={field.name}
+      sectionKey={section.key}
+      field={field}
+      value={entries[entryIndex]?.[field.name]}
+      issue={issueFor(section.repeatable ? entryIndex : null, field.name)}
+      onChange={(value) => setValue(entryIndex, field.name, value)}
+    />
+  );
 
   return (
     <main className="section">

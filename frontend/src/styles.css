@@ -612,6 +612,44 @@ button:disabled {
   display: inline-block;
 }
 
+/* «Информация о вас» on one page: every section as a titled block, one save at the end. */
+.about-you {
+  max-width: 34rem;
+}
+
+.about-you-progress-label {
+  margin: 0.6rem 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.about-you .journey-progress {
+  margin-bottom: 0.4rem;
+}
+
+/* A rule and generous space above each title: at this length the eye needs the sections to be
+   obviously separate, or the page reads as one endless form. */
+.about-you-block {
+  margin-top: 1.9rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.about-you-block:first-of-type {
+  margin-top: 0.6rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+.about-you-block-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
 /* The case screen's three parts: what we ask, what we build, what you fetch yourself. */
 .journey-part {
   width: 100%;

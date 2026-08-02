@@ -53,7 +53,7 @@ describe('JourneyPage', () => {
     });
     await userEvent.setup().click(screen.getByRole('button', { name: 'Поехали' }));
 
-    expect(await screen.findByText('Немного о вас')).toBeInTheDocument();
+    expect(await screen.findByText('Информация о вас')).toBeInTheDocument();
   });
 
   it('shows progress and points «Продолжить» at the first unfilled step', async () => {
@@ -65,9 +65,11 @@ describe('JourneyPage', () => {
 
     expect(await screen.findByText('Заполнено 1 из 3. Продолжайте — всё сохраняется сразу.'))
       .toBeInTheDocument();
+    // All the data steps now live behind one page, so «Продолжить» opens that.
     expect(screen.getByRole('link', { name: 'Продолжить' }))
-      .toHaveAttribute('href', '/journey/PASSPORT');
-    expect(screen.getByText('Кому и сколько вы должны')).toBeInTheDocument();
+      .toHaveAttribute('href', '/journey/all');
+    expect(screen.getByText('Документы, которые нужно подготовить самостоятельно'))
+      .toBeInTheDocument();
   });
 
   it('links up to the stage overview (AI-019)', async () => {
