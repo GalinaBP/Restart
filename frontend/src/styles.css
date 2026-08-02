@@ -612,6 +612,67 @@ button:disabled {
   display: inline-block;
 }
 
+/* The case screen's three parts: what we ask, what we build, what you fetch yourself. */
+.journey-part {
+  width: 100%;
+  margin-top: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.journey-part-title {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.journey-part .check-hint {
+  max-width: none;
+}
+
+.journey-part-link {
+  margin-top: 0.7rem;
+  color: var(--accent-to);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.journey-part-link:hover {
+  text-decoration: underline;
+}
+
+/* Papers issued elsewhere: a reference list, not steps to click — so no card, no chevron. */
+.journey-own-docs {
+  width: 100%;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.journey-own-docs li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid rgba(255, 255, 255, 0.14);
+  text-align: left;
+}
+
+.journey-own-doc-title {
+  font-weight: 700;
+  font-size: 0.98rem;
+}
+
+.journey-own-doc-where {
+  color: var(--muted);
+  font-size: 0.87rem;
+  line-height: 1.5;
+}
+
 .journey-steps {
   width: 100%;
   margin: 0.6rem 0 0;

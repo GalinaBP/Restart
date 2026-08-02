@@ -8,11 +8,15 @@ import {
   type CaseInfo,
   type SectionStatus,
 } from '../api/cases';
-import { sectionLabel } from '../api/labels';
+import { CASE_DATA_SECTIONS, OWN_DOCUMENTS, sectionLabel } from '../api/labels';
 
 /**
- * The case home screen: the journey map. One list, sixteen steps, each a screen of its own;
- * «Продолжить» always jumps to the first unfilled step, per the one-next-action rule.
+ * The case home screen, in three parts: the data we ask for, the documents we build from it, and
+ * the papers the user has to obtain elsewhere. Only the data steps live here — the court, manager
+ * and payment steps belong to their stage on «Весь путь», and listing all twenty-three at once
+ * buried the thirteen that actually feed the documents.
+ *
+ * «Продолжить» always jumps to the first unfilled data step, per the one-next-action rule.
  */
 export default function JourneyPage() {
   const navigate = useNavigate();
@@ -101,9 +105,13 @@ export default function JourneyPage() {
     );
   }
 
-  const filled = steps?.filter((s) => s.filled).length ?? 0;
-  const total = steps?.length ?? 0;
-  const next = steps?.find((s) => !s.filled);
+  // Only the data steps count towards progress: the rest are recorded later, as the case moves.
+  const dataSteps = CASE_DATA_SECTIONS
+    .map((key) => steps?.find((s) => s.key === key))
+    .filter((s): s is SectionStatus => s !== undefined);
+  const filled = dataSteps.filter((s) => s.filled).length;
+  const total = dataSteps.length;
+  const next = dataSteps.find((s) => !s.filled);
 
   return (
     <main className="journey">
@@ -136,22 +144,52 @@ export default function JourneyPage() {
           Собрать документы
         </Link>
       )}
-      <ul className="journey-steps">
-        {steps?.map((step) => {
-          const label = sectionLabel(step.key);
-          return (
-            <li key={step.key}>
-              <Link className={`journey-step${step.filled ? ' journey-step-done' : ''}`}
-                    to={`/journey/${step.key}`}>
-                <span className="journey-step-title">{label.title}</span>
-                <span className="journey-step-state" aria-label={step.filled ? 'заполнено' : 'не заполнено'}>
-                  {step.filled ? 'Готово' : ''}
-                </span>
-              </Link>
+      <section className="journey-part">
+        <h2 className="journey-part-title">Информация о вас</h2>
+        <p className="check-hint">
+          Вопросы о вас, долгах и доходах — на основании них мы подготовим документы для суда.
+        </p>
+        <ul className="journey-steps">
+          {dataSteps.map((step) => {
+            const label = sectionLabel(step.key);
+            return (
+              <li key={step.key}>
+                <Link className={`journey-step${step.filled ? ' journey-step-done' : ''}`}
+                      to={`/journey/${step.key}`}>
+                  <span className="journey-step-title">{label.title}</span>
+                  <span className="journey-step-state" aria-label={step.filled ? 'заполнено' : 'не заполнено'}>
+                    {step.filled ? 'Готово' : ''}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className="journey-part">
+        <h2 className="journey-part-title">Документы, которые подготовил «Рестарт»</h2>
+        <p className="check-hint">
+          Заявление, списки и описи мы соберём сами — из ваших ответов выше.
+        </p>
+        <Link to="/documents" className="journey-part-link">Открыть документы →</Link>
+      </section>
+
+      <section className="journey-part">
+        <h2 className="journey-part-title">Документы, которые нужно подготовить самостоятельно</h2>
+        <p className="check-hint">
+          Эти бумаги выдают банки, работодатель и государство — закажите их заранее, суд попросит
+          их к заседанию.
+        </p>
+        <ul className="journey-own-docs">
+          {OWN_DOCUMENTS.map((doc) => (
+            <li key={doc.title}>
+              <span className="journey-own-doc-title">{doc.title}</span>
+              <span className="journey-own-doc-where">{doc.where}</span>
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      </section>
     </main>
   );
 }

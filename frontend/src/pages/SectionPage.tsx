@@ -5,7 +5,7 @@ import { currentCase, getSection, saveSection, sectionsOverview } from '../api/c
 import type {
   FieldMeta, SectionContent, SectionEntry, SectionIssue, SectionStatus,
 } from '../api/cases';
-import { fieldLabel, sectionLabel } from '../api/labels';
+import { CASE_DATA_SECTIONS, fieldLabel, sectionLabel } from '../api/labels';
 
 /**
  * One data-collection step. The form is rendered entirely from the backend's field metadata
@@ -154,11 +154,12 @@ export default function SectionPage() {
 
   const label = sectionLabel(section.key);
 
-  /** The step after this one in sections.yml order; null when this is the last one. */
-  const ordered = [...steps].sort((a, b) => a.order - b.order);
-  const position = ordered.findIndex((s) => s.key === section.key);
+  // «Дальше» walks the same list the case screen shows, so it can never hand the user a step
+  // that screen hides — the later steps are reached from their stage on «Весь путь» instead.
+  const ordered = CASE_DATA_SECTIONS.filter((key) => steps.some((s) => s.key === key));
+  const position = ordered.indexOf(section.key);
   const nextKey = position >= 0 && position + 1 < ordered.length
-    ? ordered[position + 1].key
+    ? ordered[position + 1]
     : null;
 
   const issueFor = (entryIndex: number | null, field: string): string | undefined =>
