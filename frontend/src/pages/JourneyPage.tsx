@@ -8,7 +8,7 @@ import {
   type CaseInfo,
   type SectionStatus,
 } from '../api/cases';
-import { CASE_DATA_SECTIONS, OWN_DOCUMENTS, sectionLabel } from '../api/labels';
+import { CASE_DATA_SECTIONS, OWN_DOCUMENTS } from '../api/labels';
 
 /**
  * The case home screen, in three parts: the data we ask for, the documents we build from it, and
@@ -136,7 +136,7 @@ export default function JourneyPage() {
         <div className="check-progress-fill" style={{ width: `${total ? (filled / total) * 100 : 0}%` }} />
       </div>
       {next ? (
-        <Link className="landing-cta journey-continue" to={`/journey/${next.key}`}>
+        <Link className="landing-cta journey-continue" to="/journey/all">
           Продолжить
         </Link>
       ) : (
@@ -148,23 +148,11 @@ export default function JourneyPage() {
         <h2 className="journey-part-title">Информация о вас</h2>
         <p className="check-hint">
           Вопросы о вас, долгах и доходах — на основании них мы подготовим документы для суда.
+          Все они собраны на одной странице.
         </p>
-        <ul className="journey-steps">
-          {dataSteps.map((step) => {
-            const label = sectionLabel(step.key);
-            return (
-              <li key={step.key}>
-                <Link className={`journey-step${step.filled ? ' journey-step-done' : ''}`}
-                      to={`/journey/${step.key}`}>
-                  <span className="journey-step-title">{label.title}</span>
-                  <span className="journey-step-state" aria-label={step.filled ? 'заполнено' : 'не заполнено'}>
-                    {step.filled ? 'Готово' : ''}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <Link to="/journey/all" className="journey-part-link">
+          {filled === total ? 'Проверить ответы →' : 'Заполнить →'}
+        </Link>
       </section>
 
       <section className="journey-part">
