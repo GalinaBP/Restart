@@ -323,19 +323,16 @@ const FIELD_LABELS: Record<string, string> = {
   'MANAGER_CORRESPONDENCE.note': 'Короткая заметка',
 };
 
-/** The filing documents, in plain words. */
-const DOCUMENT_LABELS: Record<string, { title: string }> = {
+/** The filing documents, in plain words. `note` marks the one that never goes to the court. */
+const DOCUMENT_LABELS: Record<string, { title: string; note?: string }> = {
   BANKRUPTCY_APPLICATION: { title: 'Заявление в суд' },
   CREDITOR_LIST: { title: 'Список кредиторов' },
   PROPERTY_INFORMATION: { title: 'Опись имущества' },
-  DEBT_SUMMARY: { title: 'Сводка долгов' },
-  SRO_NOMINATION: { title: 'Ходатайство об управляющем' },
-  PAYMENT_INSTRUCTIONS: { title: 'Что и сколько оплатить' },
   ATTACHMENTS_CHECKLIST: { title: 'Перечень приложений' },
-  FILING_CHECKLIST: { title: 'Чек-лист подачи' },
+  FILING_CHECKLIST: { title: 'Чек-лист подачи', note: 'памятка для вас, в суд не подаётся' },
 };
 
-export function documentLabel(type: string): { title: string } {
+export function documentLabel(type: string): { title: string; note?: string } {
   return DOCUMENT_LABELS[type] ?? { title: type };
 }
 

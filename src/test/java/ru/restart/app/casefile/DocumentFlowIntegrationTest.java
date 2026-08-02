@@ -197,7 +197,7 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
         }
         assertThat(entries).hasSize(EXPECTED_FILES)
                 .contains("bankruptcy_application.docx", "creditor_list.docx",
-                        "property_information.docx", "debt_summary.docx",
+                        "property_information.docx", "creditor_list.docx",
                         "attachments_checklist.docx", "filing_checklist.docx");
     }
 

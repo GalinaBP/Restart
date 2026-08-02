@@ -1235,6 +1235,13 @@ a.procedure-stage:hover {
   flex-wrap: wrap;
 }
 
+/* Marks the one file that is for the user only — quiet, so it reads as a note, not a warning. */
+.docs-card-note {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 400;
+}
+
 .docs-stale-badge {
   font-size: 0.78rem;
   font-weight: 700;

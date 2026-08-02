@@ -144,7 +144,7 @@ class DocumentControllerTest {
                 .andExpect(jsonPath("$[*].filename").value(
                         org.hamcrest.Matchers.hasItems("bankruptcy_application.txt",
                                 "bankruptcy_application.docx", "filing_checklist.docx",
-                                "sro_nomination.txt")));
+                                "creditor_list.txt")));
     }
 
     @Test

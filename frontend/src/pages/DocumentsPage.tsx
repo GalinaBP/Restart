@@ -131,7 +131,7 @@ export default function DocumentsPage() {
   return (
     <main className="journey">
       <header className="journey-header">
-        <h1 className="journey-title">Документы</h1>
+        <h1 className="journey-title">Документы, которые подготовил «Рестарт»</h1>
         <Link to="/journey" className="check-back">← К шагам</Link>
       </header>
 
@@ -177,6 +177,7 @@ export default function DocumentsPage() {
               <li key={type} className={`docs-card${stale ? ' docs-card-stale' : ''}`}>
                 <span className="docs-card-title">
                   {label.title}
+                  {label.note && <span className="docs-card-note">{label.note}</span>}
                   {stale && <span className="docs-stale-badge">устарел</span>}
                 </span>
                 <span className="docs-card-actions">
