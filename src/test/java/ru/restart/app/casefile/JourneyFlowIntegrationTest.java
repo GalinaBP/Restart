@@ -85,7 +85,8 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
         Map<String, Object> journey = journey();
         assertThat((List<?>) journey.get("stages")).hasSize(8);
         assertThat(journey.get("procedureType")).isNull();
-        assertThat(journey.get("currentStage")).isEqualTo("DOCUMENT_PREPARATION");
+        // The application names the СРО, so the manager search is the first thing to do.
+        assertThat(journey.get("currentStage")).isEqualTo("MANAGER_SELECTION");
         assertThat(stage(journey, "SCREENING")).containsEntry("status", "DONE");
     }
 

@@ -14,12 +14,12 @@ const JOURNEY_COMMON = {
     { stage: 'SCREENING', order: 1, branch: null, status: 'DONE',
       startedOn: null, completedOn: null, note: null,
       current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'DOCUMENT_PREPARATION', order: 2, branch: null, status: 'IN_PROGRESS',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'MANAGER_SELECTION', order: 3, branch: null, status: 'NOT_STARTED',
+    { stage: 'MANAGER_SELECTION', order: 2, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
       current: true, editable: true, statutoryBasis: 'ст. 213.4, 213.9 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
+    { stage: 'DOCUMENT_PREPARATION', order: 3, branch: null, status: 'IN_PROGRESS',
+      startedOn: null, completedOn: null, note: null,
+      current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
     // Derived from the payments step since AI-021, so the backend sends editable: false.
     { stage: 'FEES_AND_DEPOSIT', order: 4, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
@@ -259,8 +259,8 @@ describe('ProcedurePage', () => {
 
     const rows = [
       ['Проверка перед стартом', 'Готово'],
+      ['Поиск финансового управляющего', 'Не начато'],
       ['Сбор документов', 'В процессе'],
-      ['Выбор управляющего', 'Не начато'],
       ['Пошлина и депозит', 'Не начато'],
       ['Подача в суд', 'Не начато'],
       ['Решение суда', 'Не начато'],
@@ -274,10 +274,10 @@ describe('ProcedurePage', () => {
     });
 
     // Only the current stage carries the highlight and the "Сейчас" badge.
-    const current = stageRow(container, 2);
+    const current = stageRow(container, 1);
     expect(current.className).toContain('procedure-stage-current');
     expect(current.querySelector('.procedure-current-badge')).toHaveTextContent('Сейчас');
-    [0, 1, 3, 4, 5, 6, 7].forEach((index) => {
+    [0, 2, 3, 4, 5, 6, 7].forEach((index) => {
       expect(stageRow(container, index).className).not.toContain('procedure-stage-current');
     });
 

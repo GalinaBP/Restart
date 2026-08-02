@@ -104,7 +104,7 @@ class JourneyControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stages.length()").value(8))
                 .andExpect(jsonPath("$.procedureType").doesNotExist())
-                .andExpect(jsonPath("$.currentStage").value("DOCUMENT_PREPARATION"))
+                .andExpect(jsonPath("$.currentStage").value("MANAGER_SELECTION"))
                 .andExpect(jsonPath("$.stages[0].stage").value("SCREENING"))
                 .andExpect(jsonPath("$.stages[0].status").value("DONE"))
                 .andExpect(jsonPath("$.stages[0].editable").value(false))

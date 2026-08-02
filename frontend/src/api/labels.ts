@@ -317,6 +317,8 @@ export function fieldLabel(sectionKey: string, fieldName: string): string {
 export interface StageLabel {
   title: string;
   description: string;
+  /** A few things worth knowing about the stage, one per line, under the description. */
+  points?: string[];
   /**
    * Roughly how long this stage takes, so the wait is expected rather than alarming. Always
    * hedged («обычно», «примерно») — courts differ and these are observations from real cases,
@@ -328,15 +330,20 @@ export interface StageLabel {
 const STAGE_LABELS: Record<string, StageLabel> = {
   SCREENING: {
     title: 'Проверка перед стартом',
-    description: 'Короткий опрос показал, что этот путь вам подходит.',
+    description: 'Короткий опрос показал, что вы готовы пройти путь до банкротства самостоятельно.',
   },
   DOCUMENT_PREPARATION: {
     title: 'Сбор документов',
     description: 'Вопросы о вас, долгах и доходах — из них мы соберём документы для суда.',
   },
   MANAGER_SELECTION: {
-    title: 'Выбор управляющего',
-    description: 'Нужно выбрать организацию, которая назначит человека для ведения вашего дела.',
+    title: 'Поиск финансового управляющего',
+    description: 'Финансовый управляющий — обязательный участник процедуры, без него банкротство не начнётся. Вы указываете организацию (СРО) в заявлении, а суд утверждает из неё управляющего для вашего дела.',
+    points: [
+      'Управляющий проверит ваши документы, изучит долги и имущество, будет общаться с кредиторами и судом и следить за ходом процедуры. Его задача — чтобы банкротство прошло правильно и по правилам.',
+      'Работа управляющего платная: фиксированное вознаграждение — 25 000 ₽ за процедуру, одинаковое для всех регионов России и установленное законом.',
+      'Обычно эти деньги вносят заранее — на депозит арбитражного суда при подаче заявления. После того как суд назначит управляющего, он перечислит их ему.',
+    ],
     timing: 'Организация должна сообщить суду кандидатуру в течение пяти дней после получения определения. На практике это занимает до нескольких недель.',
   },
   FEES_AND_DEPOSIT: {

@@ -68,18 +68,19 @@ class JourneyServiceTest {
     }
 
     @Test
-    void freshCaseShowsOnlyTheCommonPathAndStartsAtDocumentPreparation() {
+    void freshCaseShowsOnlyTheCommonPathAndStartsAtTheManagerSearch() {
         JourneyView journey = service.journeyOf(caseId);
 
         assertThat(journey.procedureType()).isEmpty();
         assertThat(journey.stages()).extracting(StageView::stage)
-                .containsExactly(JourneyStage.SCREENING, JourneyStage.DOCUMENT_PREPARATION,
-                        JourneyStage.MANAGER_SELECTION, JourneyStage.FEES_AND_DEPOSIT,
+                .containsExactly(JourneyStage.SCREENING, JourneyStage.MANAGER_SELECTION,
+                        JourneyStage.DOCUMENT_PREPARATION, JourneyStage.FEES_AND_DEPOSIT,
                         JourneyStage.FILING, JourneyStage.COURT_DECISION,
                         JourneyStage.CREDITOR_CLAIMS, JourneyStage.COMPLETION);
         // Screening is behind us by construction — the case exists only because it passed.
         assertThat(stage(journey, JourneyStage.SCREENING).status()).isEqualTo(StageStatus.DONE);
-        assertThat(journey.currentStage()).contains(JourneyStage.DOCUMENT_PREPARATION);
+        // The application must name the СРО, so the manager search comes before the documents.
+        assertThat(journey.currentStage()).contains(JourneyStage.MANAGER_SELECTION);
     }
 
     @Test
@@ -212,7 +213,7 @@ class JourneyServiceTest {
         assertThat(stage(service.journeyOf(caseId), JourneyStage.COURT_DECISION).status())
                 .isEqualTo(StageStatus.BLOCKED);
         assertThat(service.journeyOf(caseId).currentStage())
-                .contains(JourneyStage.DOCUMENT_PREPARATION);
+                .contains(JourneyStage.MANAGER_SELECTION);
     }
 
     @Test
@@ -262,8 +263,8 @@ class JourneyServiceTest {
         for (ProcedureType procedure : ProcedureType.values()) {
             assertThat(stagesOf(procedure))
                     .as("common path preserved on the %s branch", procedure)
-                    .containsSubsequence(JourneyStage.SCREENING, JourneyStage.DOCUMENT_PREPARATION,
-                            JourneyStage.MANAGER_SELECTION, JourneyStage.FEES_AND_DEPOSIT,
+                    .containsSubsequence(JourneyStage.SCREENING, JourneyStage.MANAGER_SELECTION,
+                            JourneyStage.DOCUMENT_PREPARATION, JourneyStage.FEES_AND_DEPOSIT,
                             JourneyStage.FILING, JourneyStage.COURT_DECISION)
                     .endsWith(JourneyStage.CREDITOR_CLAIMS, JourneyStage.COMPLETION);
         }
