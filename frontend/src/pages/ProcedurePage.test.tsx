@@ -260,7 +260,7 @@ describe('ProcedurePage', () => {
     const rows = [
       ['Проверка перед стартом', 'Готово'],
       ['Поиск финансового управляющего', 'Не начато'],
-      ['Сбор документов', 'В процессе'],
+      ['Подготовка документов', 'В процессе'],
       ['Пошлина и депозит', 'Не начато'],
       ['Подача в суд', 'Не начато'],
       ['Решение суда', 'Не начато'],
@@ -301,7 +301,7 @@ describe('ProcedurePage', () => {
     expect(screen.queryByRole('button', { name: /Проверка перед стартом/ })).not.toBeInTheDocument();
 
     // Document preparation is derived too, but already has a screen — a plain link there.
-    const docPrepLink = screen.getByRole('link', { name: /Сбор документов/ });
+    const docPrepLink = screen.getByRole('link', { name: /Подготовка документов/ });
     expect(docPrepLink).toHaveAttribute('href', '/journey');
 
     await user.click(docPrepLink);

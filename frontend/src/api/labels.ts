@@ -32,6 +32,46 @@ export interface SectionLabel {
   help?: HelpBlock[];
 }
 
+/**
+ * The steps that make up «Информация о вас» on the case screen, in the order they are asked.
+ *
+ * Everything else in sections.yml belongs to a later stage of the procedure and is reached from
+ * that stage on «Весь путь» — the case screen is about the data the documents are built from, so
+ * listing the court, manager and payment steps here only buried it. The wizard's «дальше» walks
+ * this same list, so it can never land on a step the case screen does not show.
+ */
+export const CASE_DATA_SECTIONS: readonly string[] = [
+  'PERSONAL_DETAILS',
+  'PASSPORT',
+  'REGISTRATION_ADDRESS',
+  'CONTACT_INFO',
+  'EMPLOYMENT',
+  'MONTHLY_INCOME',
+  'OTHER_INCOME',
+  'MARITAL_STATUS',
+  'DEPENDENTS',
+  'CREDITORS',
+  'BANK_ACCOUNTS',
+  'REAL_ESTATE',
+  'VEHICLES',
+];
+
+/**
+ * Papers no one can generate for the user: they are issued by banks, employers and the state.
+ * Ordering follows the attachment list of the application. PLACEHOLDER pending lawyer review.
+ */
+export const OWN_DOCUMENTS: { title: string; where: string }[] = [
+  { title: 'Паспорт', where: 'Копии всех заполненных страниц.' },
+  { title: 'СНИЛС и выписка с лицевого счёта', where: 'Выписку заказывают на Госуслугах или в СФР.' },
+  { title: 'ИНН', where: 'Свидетельство или распечатка из личного кабинета налоговой.' },
+  { title: 'Трудовая книжка', where: 'Бумажная или выписка из электронной — Госуслуги, СФР.' },
+  { title: 'Справки о доходах (2-НДФЛ) за три года', where: 'У работодателя или в личном кабинете налоговой.' },
+  { title: 'Выписки по счетам и картам', where: 'В приложении или отделении каждого банка.' },
+  { title: 'Документы по долгам', where: 'Договоры, справки об остатке, отчёт из бюро кредитных историй.' },
+  { title: 'Документы о семье', where: 'Свидетельства о браке, разводе, рождении детей — если они есть.' },
+  { title: 'Квитанции об оплате', where: 'Госпошлина и депозит на вознаграждение управляющего.' },
+];
+
 export const SECTION_LABELS: Record<string, SectionLabel> = {
   PERSONAL_DETAILS: { title: 'Немного о вас' },
   PASSPORT: { title: 'Паспорт' },
@@ -333,8 +373,8 @@ const STAGE_LABELS: Record<string, StageLabel> = {
     description: 'Короткий опрос показал, что вы готовы пройти путь до банкротства самостоятельно.',
   },
   DOCUMENT_PREPARATION: {
-    title: 'Сбор документов',
-    description: 'Вопросы о вас, долгах и доходах — из них мы соберём документы для суда.',
+    title: 'Подготовка документов',
+    description: 'Вопросы о вас, долгах и доходах — на основании них мы подготовим документы для суда.',
   },
   MANAGER_SELECTION: {
     title: 'Поиск финансового управляющего',
