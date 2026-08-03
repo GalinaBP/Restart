@@ -50,8 +50,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(SectionController.class)
 @Import({SectionService.class, ValidationService.class, CaseService.class,
-        DocumentGenerationService.class, CaseModelAssembler.class, YamlCourtDirectory.class, YamlFeeScheduleRegistry.class, TxtDocumentWriter.class,
-        DocxDocumentWriter.class, YamlSectionRegistry.class, SecurityContextCurrentUser.class,
+        DocumentGenerationService.class, CaseModelAssembler.class, YamlCourtDirectory.class, YamlFeeScheduleRegistry.class,
+        PdfDocumentWriter.class, YamlSectionRegistry.class, SecurityContextCurrentUser.class,
         SecurityConfig.class, RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class,
         GlobalExceptionHandler.class, ClockConfig.class,
         SectionControllerTest.EnableSecurity.class})

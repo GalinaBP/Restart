@@ -58,8 +58,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(DocumentController.class)
 @Import({DocumentGenerationService.class, ValidationService.class, CaseModelAssembler.class,
-        CaseService.class, YamlSectionRegistry.class, YamlCourtDirectory.class, YamlFeeScheduleRegistry.class, TxtDocumentWriter.class,
-        DocxDocumentWriter.class, PdfDocumentWriter.class, SecurityContextCurrentUser.class, SecurityConfig.class,
+        CaseService.class, YamlSectionRegistry.class, YamlCourtDirectory.class, YamlFeeScheduleRegistry.class,
+        PdfDocumentWriter.class, SecurityContextCurrentUser.class, SecurityConfig.class,
         RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class,
         GlobalExceptionHandler.class, ClockConfig.class, DocumentControllerTest.EnableSecurity.class})
 class DocumentControllerTest {
@@ -139,19 +139,19 @@ class DocumentControllerTest {
         mockMvc.perform(post("/api/v1/cases/" + existing.id() + "/documents").with(user()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.length()")
-                        .value(ru.restart.app.doctemplate.api.DocumentType.values().length * 3))
+                        .value(ru.restart.app.doctemplate.api.DocumentType.values().length
+                                * ru.restart.app.casefile.domain.DocumentFormat.values().length))
                 .andExpect(jsonPath("$[0].templateVersion").value("2026-06-21.1"))
                 .andExpect(jsonPath("$[*].filename").value(
-                        org.hamcrest.Matchers.hasItems("bankruptcy_application.txt",
-                                "bankruptcy_application.docx", "filing_checklist.docx",
-                                "creditor_list.txt")));
+                        org.hamcrest.Matchers.hasItems("bankruptcy_application.pdf",
+                                "filing_checklist.pdf", "creditor_list.pdf")));
     }
 
     @Test
     void downloadSendsTheFileWithAttachmentHeaders() throws Exception {
         BankruptcyCase existing = ownCase();
         CaseDocument stored = CaseDocument.of(existing.id(), DocumentType.CREDITOR_LIST,
-                DocumentFormat.TXT, "2026-06-21.1",
+                DocumentFormat.PDF, "2026-06-21.1",
                 "СПИСОК КРЕДИТОРОВ".getBytes(StandardCharsets.UTF_8));
         when(documents.findByIdAndCaseId(stored.id(), existing.id()))
                 .thenReturn(Optional.of(stored));
@@ -162,9 +162,9 @@ class DocumentControllerTest {
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
                         org.hamcrest.Matchers.containsString("attachment")))
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-                        org.hamcrest.Matchers.containsString("creditor_list.txt")))
-                .andExpect(content().contentTypeCompatibleWith("text/plain"))
-                .andExpect(content().string("СПИСОК КРЕДИТОРОВ"));
+                        org.hamcrest.Matchers.containsString("creditor_list.pdf")))
+                .andExpect(content().contentTypeCompatibleWith("application/pdf"))
+                .andExpect(content().bytes("СПИСОК КРЕДИТОРОВ".getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test

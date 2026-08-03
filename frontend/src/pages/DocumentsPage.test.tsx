@@ -7,12 +7,10 @@ import DocumentsPage from './DocumentsPage';
 const CASE = { id: 'case-1', caseType: 'PERSONAL_BANKRUPTCY', status: 'IN_PROGRESS' };
 
 const DOCS = [
-  { id: 'd1', type: 'BANKRUPTCY_APPLICATION', format: 'DOCX', templateVersion: '2026-06-21.1',
-    filename: 'bankruptcy_application.docx', sizeBytes: 4000, stale: false },
-  { id: 'd2', type: 'BANKRUPTCY_APPLICATION', format: 'TXT', templateVersion: '2026-06-21.1',
-    filename: 'bankruptcy_application.txt', sizeBytes: 2000, stale: false },
-  { id: 'd3', type: 'CREDITOR_LIST', format: 'DOCX', templateVersion: '2026-06-21.1',
-    filename: 'creditor_list.docx', sizeBytes: 3000, stale: true },
+  { id: 'd1', type: 'BANKRUPTCY_APPLICATION', format: 'PDF', templateVersion: '2026-06-21.1',
+    filename: 'bankruptcy_application.pdf', sizeBytes: 4000, stale: false },
+  { id: 'd3', type: 'CREDITOR_LIST', format: 'PDF', templateVersion: '2026-06-21.1',
+    filename: 'creditor_list.pdf', sizeBytes: 3000, stale: true },
 ];
 
 afterEach(() => {
@@ -85,7 +83,7 @@ describe('DocumentsPage', () => {
     expect(screen.getByText('Список кредиторов')).toBeInTheDocument();
     expect(screen.getByText('устарел')).toBeInTheDocument();
     expect(screen.getByText(/эти файлы устарели/)).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Word' })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: 'Скачать PDF' })).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Собрать заново' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Скачать всё одним архивом' }))
       .toBeInTheDocument();
@@ -108,7 +106,7 @@ describe('DocumentsPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: 'Word' }));
+    await user.click(await screen.findByRole('button', { name: 'Скачать PDF' }));
 
     expect(createObjectURL).toHaveBeenCalledTimes(1);
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:restart');
