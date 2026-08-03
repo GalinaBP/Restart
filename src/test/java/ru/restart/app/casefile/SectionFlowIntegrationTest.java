@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import ru.restart.app.AbstractIntegrationTest;
+import ru.restart.app.casefile.domain.SectionKey;
 
 import java.util.List;
 import java.util.Map;
@@ -100,7 +101,8 @@ class SectionFlowIntegrationTest extends AbstractIntegrationTest {
                 .retrieve().toEntity(List.class);
 
         List<Map<String, Object>> body = (List<Map<String, Object>>) overview.getBody();
-        assertThat(body).hasSize(23);
+        // Derived, so adding or retiring a section in sections.yml does not break this.
+        assertThat(body).hasSize(SectionKey.values().length);
         assertThat(body.stream().filter(s -> (Boolean) s.get("filled")))
                 .extracting(s -> s.get("key"))
                 .containsExactlyInAnyOrder("PASSPORT", "CREDITORS");
