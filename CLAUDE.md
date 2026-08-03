@@ -12,7 +12,7 @@ bankruptcy procedure step by step, as a journey rather than bureaucracy. The pro
   messages). Tone: "Сейчас нужно получить выписку", never "В соответствии с ФЗ…".
 - One action per screen; only the next step is shown.
 - Narrow ICP: 20–35, unmarried, no car/real estate/business, consumer debts 350k–3M ₽, up to 5
-  creditors. Complex cases
+  creditors (constitution.docx updated to match on 2026-08-03). Complex cases
   (assets, deals, divorce, business) must be detected early and routed to a lawyer — honestly.
 - The app never promises guaranteed discharge of debts.
 
@@ -127,9 +127,9 @@ fast) must be chosen explicitly; `test` is used by integration tests via Testcon
 `frontend/` — React 19 + TypeScript + Vite SPA, served by nginx in Docker (static + SPA fallback,
 no API proxy; the API base URL is baked in via the `VITE_API_BASE` build arg). UI shell only — all
 legal/eligibility logic belongs to the backend. Copy style: warm, short, **formal second-person
-plural ("Вы")**, zero legalese. (This reverses the constitution's original informal "ты" — a
-product decision recorded in `../Corrections.xlsx`, 2026-07-21; the constitution.docx still says
-"ты" and should be updated to match.) Use lowercase «вы/вас/ваш» mid-sentence, capital only at the
+plural ("Вы")**, zero legalese. (This reversed the constitution's original informal "ты" — a
+product decision recorded in `../Corrections.xlsx`, 2026-07-21; `../constitution.docx` was brought
+in line on 2026-08-03 and now reads "Вы" throughout.) Use lowercase «вы/вас/ваш» mid-sentence, capital only at the
 start of a sentence. Visual style: a dark **"space" theme** — deep canvas (`--bg #0b0b12`), a
 **solid green accent** (`#34d399`, no gradients) on buttons and text, soft green glows behind the
 landing, big friendly type, pill shapes; calm, never loud (the subject matter is heavy). Green
