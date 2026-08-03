@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import AboutYouPage from './pages/AboutYouPage';
 import AuthPage from './pages/AuthPage';
+import CalmPage from './pages/CalmPage';
 import DocumentsPage from './pages/DocumentsPage';
 import EligibilityPage from './pages/EligibilityPage';
 import JourneyPage from './pages/JourneyPage';
@@ -21,6 +22,7 @@ export default function App() {
       <Route path="/journey/all" element={<AboutYouPage />} />
       <Route path="/journey/:sectionKey" element={<SectionPage />} />
       <Route path="/procedure" element={<ProcedurePage />} />
+      <Route path="/calm" element={<CalmPage />} />
       <Route path="/documents" element={<DocumentsPage />} />
     </Routes>
   );

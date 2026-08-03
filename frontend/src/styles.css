@@ -1294,3 +1294,172 @@ a.procedure-stage:hover {
   max-width: 26rem;
   text-align: center;
 }
+
+/* --- «Спокойно, это нормально» ------------------------------------------------ */
+
+/* A supportive screen, so it reads softer than the rest: wider cards, calmer type, and the one
+   place in the app where a warm blue appears — never on a control, only on the reassurance. */
+.calm {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.calm .journey-title {
+  font-size: clamp(1.4rem, 5vw, 1.9rem);
+}
+
+.calm-lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+
+.calm-intro {
+  margin: 0.2rem 0 0;
+  padding: 0.95rem 1.15rem;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  border-radius: 1rem;
+  background: rgba(125, 211, 252, 0.07);
+  color: #d7ecfb;
+  line-height: 1.6;
+}
+
+.calm-card {
+  border: 1px solid var(--pill-border);
+  border-radius: 1rem;
+  background: var(--pill-bg);
+  padding: 0.9rem 1.1rem;
+}
+
+.calm-card > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.calm-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.calm-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.calm-card-summary {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* The script sits first inside an open card: it is what most people came for. */
+.calm-script {
+  margin-top: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.calm-script-text {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.calm-copy,
+.calm-download {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: 999px;
+  white-space: nowrap;
+  color: #04231a;
+  background: var(--accent-from);
+}
+
+.calm-download {
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--pill-border);
+}
+
+.calm-block {
+  margin-top: 0.9rem;
+}
+
+.calm-block-heading {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.calm-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.93rem;
+  line-height: 1.55;
+}
+
+.calm-list li + li {
+  margin-top: 0.3rem;
+}
+
+.calm-template {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.calm-template-title {
+  font-weight: 700;
+}
+
+.calm-template-summary {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+/* Templates keep their line breaks and blanks to fill in, so they scroll rather than reflow. */
+.calm-template-body {
+  margin: 0.4rem 0 0;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.calm-template-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.calm-faq-title {
+  margin: 1.4rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.calm-faq {
+  width: 100%;
+}
