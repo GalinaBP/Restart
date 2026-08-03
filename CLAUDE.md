@@ -111,9 +111,18 @@ Every business module gets identical internal layering:
   contributes its token filter via the `HttpSecurityCustomizer` extension point. Roles: `USER`, `ADMIN`.
 - Time: inject the UTC `Clock` bean (`ClockConfig`); never call `Instant.now()` in domain code.
 
-**Database:** Flyway owns the schema (`src/main/resources/db/migration`, currently empty); Hibernate
+**Database:** Flyway owns the schema (`src/main/resources/db/migration`, V1–V9); Hibernate
 runs `ddl-auto: validate`. Add a migration in the same change as any new entity. UUIDs as
 `BINARY(16)` (`UuidUtils`), money as `DECIMAL(19,2)`, timestamps UTC.
+
+> **Deleting an enum constant that is persisted needs a migration in the same change.**
+> `SectionKey`, `DocumentType`, `CaseStatus`, `ProcedureType`, `JourneyStage` and `FeeItem` are
+> stored with `@Enumerated(STRING)`, so a row holding a name the enum no longer knows cannot be
+> mapped and *every read of that table for that case throws* — the feature looks fine on fresh
+> data and breaks only for users who already have the old value. V7 (retired sections) and V9
+> (retired document types) are the precedent; V9 was written after shipping the removal without
+> one took «Документы» and «Весь путь» down in production. `RetiredDocumentTypeIntegrationTest`
+> shows how to pin it: insert the legacy row through JDBC, then assert the screens still answer.
 
 **API conventions:** base path `/api/v1` (`ApiPaths`), JSON/camelCase, separate request/response
 DTOs, Bean Validation on request bodies, `PageResponse` envelope for collections, OpenAPI on every

@@ -253,6 +253,15 @@ function StageCard({
   onChooseProcedure: (procedureType: ProcedureBranch | null) => Promise<void>;
 }) {
   const label = stageLabel(view.stage);
+  // Money lives in fees.yml, never in the copy: substitute it here so the stage text, the fees
+  // screen and the printed documents can never disagree about the amount.
+  const deposit = fees?.lines.find((l) => l.item === 'MANAGER_DEPOSIT');
+  const fillAmounts = (text: string) => text.replace('{managerDeposit}',
+    deposit
+      ? `${deposit.amount.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽`
+      : 'фиксированная сумма');
+  const amountsAreDraft = label.points?.some((p) => p.includes('{managerDeposit}'))
+    && fees !== null && !fees.allConfirmed;
   const status = STATUS_LABELS[view.status];
   const detail = STAGE_DETAILS[view.stage];
   const cardClass = [
@@ -296,8 +305,13 @@ function StageCard({
         <p className="check-hint procedure-stage-desc">{label.description}</p>
         {label.points && (
           <ul className="procedure-stage-points">
-            {label.points.map((point) => <li key={point}>{point}</li>)}
+            {label.points.map((point) => <li key={point}>{fillAmounts(point)}</li>)}
           </ul>
+        )}
+        {amountsAreDraft && (
+          <p className="procedure-fees-draft" role="note">
+            Сумма черновая — её ещё проверяет юрист.
+          </p>
         )}
         {label.timing && <p className="procedure-stage-timing">{label.timing}</p>}
         {view.stage === 'FEES_AND_DEPOSIT' && fees && <FeeBreakdown fees={fees} />}
@@ -351,8 +365,13 @@ function StageCard({
           <p className="check-hint procedure-stage-desc">{label.description}</p>
           {label.points && (
             <ul className="procedure-stage-points">
-              {label.points.map((point) => <li key={point}>{point}</li>)}
+              {label.points.map((point) => <li key={point}>{fillAmounts(point)}</li>)}
             </ul>
+          )}
+          {amountsAreDraft && (
+            <p className="procedure-fees-draft" role="note">
+              Сумма черновая — её ещё проверяет юрист.
+            </p>
           )}
           {label.timing && <p className="procedure-stage-timing">{label.timing}</p>}
           {view.status === 'BLOCKED' && <p className="procedure-blocked-note">{BLOCKED_EXPLANATION}</p>}
