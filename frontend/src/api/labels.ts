@@ -354,7 +354,11 @@ export function fieldLabel(sectionKey: string, fieldName: string): string {
 export interface StageLabel {
   title: string;
   description: string;
-  /** A few things worth knowing about the stage, one per line, under the description. */
+  /**
+   * A few things worth knowing about the stage, one per line, under the description.
+   * `{managerDeposit}` is substituted with the amount from `fees.yml` — the one source of truth
+   * for money — so the copy can never drift from what the fees screen and documents say.
+   */
   points?: string[];
   /**
    * Roughly how long this stage takes, so the wait is expected rather than alarming. Always
@@ -378,7 +382,7 @@ const STAGE_LABELS: Record<string, StageLabel> = {
     description: 'Без управляющего банкротство не начнётся. Вы называете в заявлении организацию (СРО), а суд утверждает управляющего из её участников.',
     points: [
       'Что делает: проверяет документы, изучает долги и имущество, общается с кредиторами и судом и следит, чтобы всё шло по правилам.',
-      'Сколько стоит: 25 000 ₽ за процедуру. Сумму устанавливает закон, она одинакова по всей России.',
+      'Сколько стоит: {managerDeposit} за процедуру. Сумму устанавливает закон, она одинакова по всей России.',
       'Когда платить: до подачи заявления, на депозит суда. Суд передаст эти деньги управляющему, когда назначит его.',
     ],
     timing: 'После того как суд примет заявление, у организации есть пять дней, чтобы назвать кандидатуру. На практике это занимает до нескольких недель.',
