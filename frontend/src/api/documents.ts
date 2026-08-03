@@ -3,7 +3,8 @@ import { download, request } from './client';
 export interface DocumentMeta {
   id: string;
   type: string;
-  format: 'TXT' | 'DOCX' | 'PDF';
+  /** PDF only since 2026-08-03 — an editable copy would drift from the case data. */
+  format: 'PDF';
   templateVersion: string;
   filename: string;
   sizeBytes: number;

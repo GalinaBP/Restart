@@ -93,7 +93,7 @@ class JourneyServiceTest {
                 .isEqualTo(StageStatus.IN_PROGRESS);
 
         documents.save(CaseDocument.of(caseId, DocumentType.BANKRUPTCY_APPLICATION,
-                DocumentFormat.TXT, "2026-06-21.1", "text".getBytes()));
+                DocumentFormat.PDF, "2026-06-21.1", "text".getBytes()));
         assertThat(stage(service.journeyOf(caseId), JourneyStage.DOCUMENT_PREPARATION).status())
                 .isEqualTo(StageStatus.DONE);
     }
@@ -102,7 +102,7 @@ class JourneyServiceTest {
     void staleDocumentsPutDocumentPreparationBackInProgress() {
         sections.save(CaseSection.of(caseId, SectionKey.PASSPORT, "{\"series\": \"4519\"}"));
         documents.save(CaseDocument.of(caseId, DocumentType.BANKRUPTCY_APPLICATION,
-                DocumentFormat.TXT, "2026-06-21.1", "text".getBytes()));
+                DocumentFormat.PDF, "2026-06-21.1", "text".getBytes()));
         documents.markAllStale(caseId);
 
         assertThat(stage(service.journeyOf(caseId), JourneyStage.DOCUMENT_PREPARATION).status())
@@ -192,7 +192,7 @@ class JourneyServiceTest {
     void theCurrentStageIsTheFirstOneNotYetDone() {
         sections.save(CaseSection.of(caseId, SectionKey.PASSPORT, "{\"series\": \"4519\"}"));
         documents.save(CaseDocument.of(caseId, DocumentType.BANKRUPTCY_APPLICATION,
-                DocumentFormat.TXT, "2026-06-21.1", "text".getBytes()));
+                DocumentFormat.PDF, "2026-06-21.1", "text".getBytes()));
 
         assertThat(service.journeyOf(caseId).currentStage())
                 .contains(JourneyStage.MANAGER_SELECTION);

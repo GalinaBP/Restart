@@ -67,7 +67,7 @@ class DocumentGenerationServiceTest {
                 new YamlCourtDirectory(), FeeScheduleFixture.real());
         service = new DocumentGenerationService(caseService, validationService, sections,
                 documents, assembler, templates,
-                List.of(new TxtDocumentWriter(), new DocxDocumentWriter(), new PdfDocumentWriter()));
+                List.of(new PdfDocumentWriter()));
         currentUser.actAs(UUID.randomUUID());
         existingCase = caseService.create();
     }
@@ -131,7 +131,8 @@ class DocumentGenerationServiceTest {
 
         List<CaseDocument> generated = service.generate(existingCase.id());
 
-        assertThat(generated).hasSize(DocumentType.values().length * 3);
+        assertThat(generated)
+                .hasSize(DocumentType.values().length * DocumentFormat.values().length);
         assertThat(generated)
                 .extracting(CaseDocument::type)
                 .containsAll(List.of(DocumentType.values()));
@@ -139,10 +140,10 @@ class DocumentGenerationServiceTest {
                 .extracting(CaseDocument::templateVersion)
                 .containsOnly("test-1");
         assertThat(generated)
-                .filteredOn(d -> d.format() == DocumentFormat.DOCX)
+                .filteredOn(d -> d.format() == DocumentFormat.PDF)
                 .hasSize(DocumentType.values().length)
-                .allSatisfy(d -> assertThat(new String(d.content(), 0, 2,
-                        StandardCharsets.US_ASCII)).isEqualTo("PK"));
+                .allSatisfy(d -> assertThat(new String(d.content(), 0, 4,
+                        StandardCharsets.US_ASCII)).isEqualTo("%PDF"));
     }
 
     @Test
@@ -153,13 +154,14 @@ class DocumentGenerationServiceTest {
 
         List<CaseDocument> second = service.generate(existingCase.id());
 
-        assertThat(documents.findByCaseId(existingCase.id())).hasSize(DocumentType.values().length * 3);
+        assertThat(documents.findByCaseId(existingCase.id()))
+                .hasSize(DocumentType.values().length * DocumentFormat.values().length);
         assertThat(second).extracting(CaseDocument::id)
                 .containsExactlyInAnyOrderElementsOf(first.stream().map(CaseDocument::id).toList());
-        CaseDocument regeneratedTxt = second.stream()
-                .filter(d -> d.format() == DocumentFormat.TXT).findFirst().orElseThrow();
-        assertThat(new String(regeneratedTxt.content(), StandardCharsets.UTF_8))
-                .contains("ОБНОВЛЁННЫЙ ТЕКСТ");
+        CaseDocument regenerated = second.stream()
+                .filter(d -> d.format() == DocumentFormat.PDF).findFirst().orElseThrow();
+        assertThat(new String(regenerated.content(), 0, 4, StandardCharsets.US_ASCII))
+                .isEqualTo("%PDF");
     }
 
     @Test
@@ -176,16 +178,17 @@ class DocumentGenerationServiceTest {
                 entries.put(entry.getName(), in.readAllBytes());
             }
         }
-        assertThat(entries).hasSize(DocumentType.values().length * 3);
+        assertThat(entries)
+                .hasSize(DocumentType.values().length * DocumentFormat.values().length);
         assertThat(entries.keySet())
-                .contains("bankruptcy_application.docx", "bankruptcy_application.txt",
-                        "creditor_list.docx", "filing_checklist.txt");
+                .contains("bankruptcy_application.pdf", "creditor_list.pdf",
+                        "filing_checklist.pdf");
         // Entry bytes are exactly the stored documents:
-        CaseDocument storedTxt = documents
+        CaseDocument stored = documents
                 .findByCaseIdAndTypeAndFormat(existingCase.id(),
-                        DocumentType.BANKRUPTCY_APPLICATION, DocumentFormat.TXT)
+                        DocumentType.BANKRUPTCY_APPLICATION, DocumentFormat.PDF)
                 .orElseThrow();
-        assertThat(entries.get("bankruptcy_application.txt")).isEqualTo(storedTxt.content());
+        assertThat(entries.get("bankruptcy_application.pdf")).isEqualTo(stored.content());
     }
 
     @Test

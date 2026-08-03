@@ -28,13 +28,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
 
-    /** Every document, in every format — derived so a new document type doesn't break this. */
+    /** Every document, in every format — derived, so adding either does not break this. */
     private static final int EXPECTED_FILES =
-            ru.restart.app.doctemplate.api.DocumentType.values().length * 3;
+            ru.restart.app.doctemplate.api.DocumentType.values().length
+                    * ru.restart.app.casefile.domain.DocumentFormat.values().length;
 
     private static String token;
     private static String caseId;
-    private static String docxDocumentId;
+    private static String pdfDocumentId;
 
     @LocalServerPort
     private int port;
@@ -93,8 +94,8 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(generated.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         List<Map<String, Object>> body = (List<Map<String, Object>>) generated.getBody();
         assertThat(body).hasSize(EXPECTED_FILES);
-        docxDocumentId = body.stream()
-                .filter(d -> "DOCX".equals(d.get("format"))
+        pdfDocumentId = body.stream()
+                .filter(d -> "PDF".equals(d.get("format"))
                         && "BANKRUPTCY_APPLICATION".equals(d.get("type")))
                 .findFirst().orElseThrow()
                 .get("id").toString();
@@ -102,22 +103,22 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @Order(3)
-    void theGeneratedDocxDownloadsAsARealWordFile() {
+    void theGeneratedDocumentDownloadsAsARealPdf() {
         ResponseEntity<byte[]> download = rest.get()
-                .uri("/api/v1/cases/" + caseId + "/documents/" + docxDocumentId)
+                .uri("/api/v1/cases/" + caseId + "/documents/" + pdfDocumentId)
                 .header("Authorization", "Bearer " + token)
                 .retrieve().toEntity(byte[].class);
 
         assertThat(download.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(download.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION))
-                .contains("attachment").contains("bankruptcy_application.docx");
+                .contains("attachment").contains("bankruptcy_application.pdf");
         byte[] bytes = download.getBody();
-        assertThat(new String(bytes, 0, 2, StandardCharsets.US_ASCII)).isEqualTo("PK");
+        assertThat(new String(bytes, 0, 4, StandardCharsets.US_ASCII)).isEqualTo("%PDF");
     }
 
     @Test
     @Order(4)
-    void editingDataRegeneratesTheDocumentsAutomatically() {
+    void editingDataRegeneratesTheDocumentsAutomatically() throws Exception {
         // Remove the second creditor; the case stays valid, so documents refresh on their own.
         rest.put().uri("/api/v1/cases/" + caseId + "/sections/CREDITORS")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -134,14 +135,20 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(docs).hasSize(EXPECTED_FILES).allSatisfy(d -> assertThat(d.get("stale")).isEqualTo(false));
 
         String creditorListId = docs.stream()
-                .filter(d -> "CREDITOR_LIST".equals(d.get("type")) && "TXT".equals(d.get("format")))
+                .filter(d -> "CREDITOR_LIST".equals(d.get("type")) && "PDF".equals(d.get("format")))
                 .findFirst().orElseThrow().get("id").toString();
-        byte[] txt = rest.get().uri("/api/v1/cases/" + caseId + "/documents/" + creditorListId)
+        byte[] pdf = rest.get().uri("/api/v1/cases/" + caseId + "/documents/" + creditorListId)
                 .header("Authorization", "Bearer " + token)
                 .retrieve().toEntity(byte[].class).getBody();
-        assertThat(new String(txt, StandardCharsets.UTF_8))
+        // Documents are PDF only now, so read the text back out to check what was regenerated.
+        String text;
+        try (org.apache.pdfbox.pdmodel.PDDocument document =
+                     org.apache.pdfbox.Loader.loadPDF(pdf)) {
+            text = new org.apache.pdfbox.text.PDFTextStripper().getText(document);
+        }
+        assertThat(text.replaceAll("\\s+", " "))
                 .contains("Итого кредиторов: 1")
-                .doesNotContain("МФО «Деньги-Быстро»");
+                .doesNotContain("Деньги-Быстро");
     }
 
     @Test
@@ -196,9 +203,9 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
             }
         }
         assertThat(entries).hasSize(EXPECTED_FILES)
-                .contains("bankruptcy_application.docx", "creditor_list.docx",
-                        "property_information.docx", "creditor_list.docx",
-                        "attachments_checklist.docx", "filing_checklist.docx");
+                .contains("bankruptcy_application.pdf", "creditor_list.pdf",
+                        "property_information.pdf",
+                        "attachments_checklist.pdf", "filing_checklist.pdf");
     }
 
     @Test

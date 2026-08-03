@@ -1264,6 +1264,8 @@ a.procedure-stage:hover {
   background: none;
   border: 1px solid var(--pill-border);
   border-radius: 999px;
+  /* Keeps «Скачать PDF» on one line when the card's title takes two. */
+  white-space: nowrap;
 }
 
 .docs-download:hover {

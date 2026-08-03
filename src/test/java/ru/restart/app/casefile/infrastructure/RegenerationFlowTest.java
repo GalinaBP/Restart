@@ -67,7 +67,7 @@ class RegenerationFlowTest {
                 new CaseModelAssembler(objectMapper,
                         Clock.fixed(Instant.parse("2026-07-17T10:00:00Z"), ZoneOffset.UTC),
                         new YamlCourtDirectory(), FeeScheduleFixture.real()),
-                templates, List.of(new TxtDocumentWriter()));
+                templates, List.of(new PdfDocumentWriter()));
         sectionService = new SectionService(caseService, cases, sections, registry,
                 validationService, generationService, documents);
         currentUser.actAs(UUID.randomUUID());
@@ -77,11 +77,19 @@ class RegenerationFlowTest {
         generationService.generate(existingCase.id());
     }
 
+    /** Documents are PDF only, so the text has to be read back out of the file. */
     private String creditorListText() {
-        return new String(documents.findByCaseId(existingCase.id()).stream()
+        byte[] pdf = documents.findByCaseId(existingCase.id()).stream()
                 .filter(d -> d.type() == DocumentType.CREDITOR_LIST)
                 .findFirst().orElseThrow()
-                .content(), StandardCharsets.UTF_8);
+                .content();
+        try (org.apache.pdfbox.pdmodel.PDDocument document =
+                     org.apache.pdfbox.Loader.loadPDF(pdf)) {
+            return new org.apache.pdfbox.text.PDFTextStripper().getText(document)
+                    .replaceAll("\\s+", " ");
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("generated document is not a readable PDF", e);
+        }
     }
 
     @Test
