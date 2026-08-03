@@ -172,28 +172,6 @@ sections:
       - { name: year,      type: INTEGER, required: false }
       - { name: regNumber, type: STRING,  required: false }
 
-  - key: COURT_PROCEEDINGS
-    order: 14
-    repeatable: true
-    mandatory: false
-    statutoryBasis: "ст. 213.4 127-ФЗ — судебные производства (ПЛЕЙСХОЛДЕР)"
-    fields:
-      - { name: courtName,  type: STRING, required: true }
-      - { name: caseNumber, type: STRING, required: true }
-      - { name: subject,    type: STRING, required: false }
-      - { name: status,     type: STRING, required: false }
-
-  - key: ENFORCEMENT_PROCEEDINGS
-    order: 15
-    repeatable: true
-    mandatory: false
-    statutoryBasis: "ст. 69.1 229-ФЗ, ст. 213.4 127-ФЗ — исполнительные производства (ПЛЕЙСХОЛДЕР)"
-    fields:
-      - { name: bailiffDepartment, type: STRING, required: true }
-      - { name: proceedingNumber,  type: STRING, required: true }
-      - { name: subject,           type: STRING, required: false }
-      - { name: amount,            type: MONEY,  required: false }
-
   # The application must name the СРО from whose members the financial manager is approved
   # (backlog AI-020). Mandatory, so an unnamed СРО blocks document generation exactly like any
   # other missing required fact.
