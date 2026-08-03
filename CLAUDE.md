@@ -147,7 +147,9 @@ cosmic layer** — a twinkling starfield, a rare shooting star, and warm-yellow 
 accents (2026-07-31): decoration only, never on buttons, links, or anything actionable, and all
 motion is disabled under `prefers-reduced-motion`. Emoji: the landing keeps the single rocket
 🚀, and the **screening questions (and their group headings) carry emoji** (2026-07-22 decision);
-the **answer options do not** (emoji stripped from options on 2026-07-28); the rest of the app
-(wizard labels, journey, documents) stays emoji-free. Design tokens live in
+the **answer options do not** (emoji stripped from options on 2026-07-28); the **«Спокойно, это
+нормально» section carries emoji throughout** (2026-08-03 — it is the app's supportive corner and
+the ticket specified them); the rest of the app (wizard labels, journey, documents) stays
+emoji-free. Design tokens live in
 `frontend/src/styles.css` `:root`. (Earlier AI-011 experiments with an Adiaphora slate/green, a
 light marketing landing, and a blue→cyan gradient were reverted.)

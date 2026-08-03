@@ -122,6 +122,8 @@ export default function JourneyPage() {
           {' · '}
           <Link to="/documents" className="check-back">Документы</Link>
           {' · '}
+          <Link to="/calm" className="check-back">Спокойно</Link>
+          {' · '}
           <button type="button" className="check-back" onClick={() => { logout(); navigate('/'); }}>
             Выйти
           </button>
