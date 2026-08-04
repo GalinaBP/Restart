@@ -6,6 +6,7 @@ import DocumentsPage from './pages/DocumentsPage';
 import EligibilityPage from './pages/EligibilityPage';
 import JourneyPage from './pages/JourneyPage';
 import LandingPage from './pages/LandingPage';
+import ManagerPage from './pages/ManagerPage';
 import ProcedurePage from './pages/ProcedurePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import SectionPage from './pages/SectionPage';
@@ -22,6 +23,7 @@ export default function App() {
       <Route path="/journey/all" element={<AboutYouPage />} />
       <Route path="/journey/:sectionKey" element={<SectionPage />} />
       <Route path="/procedure" element={<ProcedurePage />} />
+      <Route path="/manager" element={<ManagerPage />} />
       <Route path="/calm" element={<CalmPage />} />
       <Route path="/documents" element={<DocumentsPage />} />
     </Routes>
