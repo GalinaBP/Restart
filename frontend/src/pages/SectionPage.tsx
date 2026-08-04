@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
 import { currentCase, getSection, saveSection, sectionsOverview } from '../api/cases';
 import type {
@@ -17,11 +17,17 @@ import { SectionField } from './SectionField';
  *
  * A clean save moves straight on to the next step in sections.yml order, so the wizard can be
  * filled in one run; the last step (or an unknown order) falls back to the map of steps.
+ *
+ * A screen that owns a step of its own — «Поиск финансового управляющего» — links here with a
+ * `back` route in the navigation state, and then both the back link and the save return there
+ * instead: the user came from that screen's step list, so that is the list they belong to.
  */
 
 export default function SectionPage() {
   const { sectionKey = '' } = useParams();
   const navigate = useNavigate();
+  const { state } = useLocation();
+  const back = (state as { back?: string } | null)?.back ?? null;
   const [caseId, setCaseId] = useState<string | null>(null);
   const [section, setSection] = useState<SectionContent | null>(null);
   /** Every step of the case, used only to find what comes after this one. */
@@ -134,7 +140,7 @@ export default function SectionPage() {
       setIssues(result.issues);
       setSaved(true);
       if (result.issues.length === 0) {
-        navigate(nextKey ? `/journey/${nextKey}` : '/journey');
+        navigate(back ?? (nextKey ? `/journey/${nextKey}` : '/journey'));
       }
     } catch {
       // Keep the form and everything typed; only tell the user and let them retry the save.
@@ -157,7 +163,7 @@ export default function SectionPage() {
 
   return (
     <main className="section">
-      <Link to="/journey" className="check-back">← К списку шагов</Link>
+      <Link to={back ?? '/journey'} className="check-back">← К списку шагов</Link>
       <h1 className="check-question">{label.title}</h1>
       {label.hint && <p className="check-hint">{label.hint}</p>}
       {label.caution && <p className="section-caution" role="note">{label.caution}</p>}

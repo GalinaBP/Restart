@@ -15,12 +15,13 @@ import {
   type JourneyView,
   type ProcedureBranch,
   type RecordStageInput,
-  type StageStatusKey,
 } from '../api/procedure';
 import { BLOCKED_EXPLANATION, PROCEDURE_LABELS, STATUS_LABELS, stageLabel } from '../api/labels';
 import { nextUpcomingHearing, type UpcomingHearing } from './nextUpcomingHearing';
 import { flagClaims, type FlaggedClaim } from './flagClaims';
 import { sortCorrespondence } from './sortCorrespondence';
+import { amountsAreDraft, fillAmounts } from './stageAmounts';
+import StageEditor from './StageEditor';
 
 /**
  * The stage overview (backlog AI-019): every stage of the court procedure in order, with the
@@ -32,16 +33,23 @@ import { sortCorrespondence } from './sortCorrespondence';
  */
 
 /**
+ * Stages big enough to be a small application of their own: the card links straight there instead
+ * of expanding, because the stage is several actions spread over weeks, not one toggle.
+ * «Подготовка документов» is the questionnaire; «Поиск финансового управляющего» its own
+ * three-step screen (organisation → deposit → appointment).
+ */
+const STAGE_SCREENS: Partial<Record<JourneyStageKey, string>> = {
+  DOCUMENT_PREPARATION: '/journey',
+  MANAGER_SELECTION: '/manager',
+};
+
+/**
  * Stages that already have a screen of their own. The later tickets of this epic
  * (AI-025…AI-029) add theirs here as they land; a stage missing from this map simply expands in
  * place instead of dead-ending on a click. A stage may link to more than one screen (AI-023:
  * COURT_DECISION links both to the case's court details and to its hearings).
  */
 const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: string }[]>> = {
-  MANAGER_SELECTION: [
-    { route: '/journey/MANAGER_SRO', label: 'Указать организацию' },
-    { route: '/journey/MANAGER_CORRESPONDENCE', label: 'Переписка с управляющим' },
-  ],
   FEES_AND_DEPOSIT: [{ route: '/journey/PAYMENTS', label: 'Отметить оплату' }],
   FILING: [{ route: '/journey/FILING_SUBMISSION', label: 'Отметить подачу' }],
   COURT_DECISION: [
@@ -253,15 +261,6 @@ function StageCard({
   onChooseProcedure: (procedureType: ProcedureBranch | null) => Promise<void>;
 }) {
   const label = stageLabel(view.stage);
-  // Money lives in fees.yml, never in the copy: substitute it here so the stage text, the fees
-  // screen and the printed documents can never disagree about the amount.
-  const deposit = fees?.lines.find((l) => l.item === 'MANAGER_DEPOSIT');
-  const fillAmounts = (text: string) => text.replace('{managerDeposit}',
-    deposit
-      ? `${deposit.amount.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽`
-      : 'фиксированная сумма');
-  const amountsAreDraft = label.points?.some((p) => p.includes('{managerDeposit}'))
-    && fees !== null && !fees.allConfirmed;
   const status = STATUS_LABELS[view.status];
   const detail = STAGE_DETAILS[view.stage];
   const cardClass = [
@@ -282,14 +281,22 @@ function StageCard({
     </span>
   );
 
-  // DOCUMENT_PREPARATION already has a screen of its own — send the user straight there rather
-  // than offering a dead-end expansion.
-  if (view.stage === 'DOCUMENT_PREPARATION') {
+  // A stage with a screen of its own — send the user straight there rather than offering a
+  // dead-end expansion. The manager stage keeps its «последняя запись» line here: it is the one
+  // thing that must catch the eye without opening anything.
+  const screen = STAGE_SCREENS[view.stage];
+  if (screen) {
     return (
       <li>
-        <Link to="/journey" className={cardClass}>
+        <Link to={screen} className={cardClass}>
           {head}
           <p className="check-hint procedure-stage-desc">{label.description}</p>
+          {view.stage === 'MANAGER_SELECTION' && typeof correspondence[0]?.date === 'string' && (
+            <span className="procedure-correspondence-latest">
+              Последняя запись: {formatRuDate(correspondence[0].date)}
+              {correspondence[0].type ? ` — ${correspondence[0].type}` : ''}
+            </span>
+          )}
         </Link>
       </li>
     );
@@ -305,10 +312,10 @@ function StageCard({
         <p className="check-hint procedure-stage-desc">{label.description}</p>
         {label.points && (
           <ul className="procedure-stage-points">
-            {label.points.map((point) => <li key={point}>{fillAmounts(point)}</li>)}
+            {label.points.map((point) => <li key={point}>{fillAmounts(point, fees)}</li>)}
           </ul>
         )}
-        {amountsAreDraft && (
+        {amountsAreDraft(label.points, fees) && (
           <p className="procedure-fees-draft" role="note">
             Сумма черновая — её ещё проверяет юрист.
           </p>
@@ -335,15 +342,6 @@ function StageCard({
           {upcomingHearing.subject ? ` — ${upcomingHearing.subject}` : ''}
         </p>
       )}
-      {/* Prominent even collapsed, mirroring the hearing line above (backlog AI-026): the
-          most recent manager correspondence must not get lost over the months a procedure takes.
-          Shown only when at least one entry has been recorded. */}
-      {view.stage === 'MANAGER_SELECTION' && typeof correspondence[0]?.date === 'string' && (
-        <p className="procedure-correspondence-latest">
-          Последняя запись: {formatRuDate(correspondence[0].date)}
-          {correspondence[0].type ? ` — ${correspondence[0].type}` : ''}
-        </p>
-      )}
       {/* Prominent even collapsed, mirroring the hearing line above (backlog AI-025): the
           deadline for creditors to file their claims must not get lost over the months a
           procedure takes. Shown only once a publication date makes it computable. */}
@@ -365,10 +363,10 @@ function StageCard({
           <p className="check-hint procedure-stage-desc">{label.description}</p>
           {label.points && (
             <ul className="procedure-stage-points">
-              {label.points.map((point) => <li key={point}>{fillAmounts(point)}</li>)}
+              {label.points.map((point) => <li key={point}>{fillAmounts(point, fees)}</li>)}
             </ul>
           )}
-          {amountsAreDraft && (
+          {amountsAreDraft(label.points, fees) && (
             <p className="procedure-fees-draft" role="note">
               Сумма черновая — её ещё проверяет юрист.
             </p>
@@ -496,90 +494,5 @@ function FeeBreakdown({ fees }: { fees: FeeScheduleView }) {
         </p>
       )}
     </div>
-  );
-}
-
-function StageEditor({
-  view,
-  onSave,
-}: {
-  view: JourneyStageView;
-  onSave: (input: RecordStageInput) => Promise<void>;
-}) {
-  const [status, setStatus] = useState<StageStatusKey>(view.status);
-  const [startedOn, setStartedOn] = useState(view.startedOn ?? '');
-  const [completedOn, setCompletedOn] = useState(view.completedOn ?? '');
-  const [note, setNote] = useState(view.note ?? '');
-  const [pending, setPending] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setPending(true);
-    setFailed(false);
-    try {
-      await onSave({
-        status,
-        startedOn: startedOn || null,
-        completedOn: completedOn || null,
-        note: note.trim() === '' ? null : note.trim(),
-      });
-    } catch {
-      setFailed(true);
-    } finally {
-      setPending(false);
-    }
-  };
-
-  return (
-    <form className="procedure-form" onSubmit={(e) => void submit(e)}>
-      <label className="auth-label">
-        Статус
-        <select
-          className="auth-input"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as StageStatusKey)}
-        >
-          <option value="NOT_STARTED">{STATUS_LABELS.NOT_STARTED.title}</option>
-          <option value="IN_PROGRESS">{STATUS_LABELS.IN_PROGRESS.title}</option>
-          <option value="DONE">{STATUS_LABELS.DONE.title}</option>
-          <option value="BLOCKED">{STATUS_LABELS.BLOCKED.title}</option>
-        </select>
-      </label>
-      <label className="auth-label">
-        Начали (не обязательно)
-        <input
-          className="auth-input"
-          type="date"
-          value={startedOn}
-          onChange={(e) => setStartedOn(e.target.value)}
-        />
-      </label>
-      <label className="auth-label">
-        Закончили (не обязательно)
-        <input
-          className="auth-input"
-          type="date"
-          value={completedOn}
-          onChange={(e) => setCompletedOn(e.target.value)}
-        />
-      </label>
-      <label className="auth-label">
-        Заметка (не обязательно)
-        <textarea
-          className="auth-input procedure-note"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
-      </label>
-      {failed && (
-        <p className="auth-error" role="alert">
-          Не получилось сохранить — проверьте интернет и попробуйте ещё раз.
-        </p>
-      )}
-      <button type="submit" className="landing-cta procedure-save" disabled={pending}>
-        {pending ? 'Сохраняем…' : 'Записать'}
-      </button>
-    </form>
   );
 }

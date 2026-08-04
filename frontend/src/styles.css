@@ -1002,6 +1002,7 @@ a.procedure-stage:hover {
    collapsed (AI-026) — same treatment as the hearing line above: a months-long procedure must
    not let recent manager contact get lost. */
 .procedure-correspondence-latest {
+  display: block;
   margin: 0.5rem 0 0;
   padding: 0.5rem 0.8rem;
   border-radius: 0.6rem;
@@ -1080,6 +1081,33 @@ a.procedure-stage:hover {
   padding: 0.75rem 1.6rem;
   font-size: 1rem;
   align-self: flex-start;
+}
+
+/* --- «Поиск финансового управляющего»: the stage as its own small step-by-step screen ---- */
+
+/* Reuses the stage cards of the stepper above; only the step number is new. Numbers are drawn
+   rather than left to the <ol> marker, so they sit inside the card next to the title. */
+.manager-steps {
+  margin-top: 0.8rem;
+}
+
+.manager-step-number {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--pill-border);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.procedure-stage-done .manager-step-number {
+  color: #04231a;
+  background: var(--accent-from);
+  border-color: var(--accent-from);
 }
 
 /* --- Section form ---------------------------------------------------------------- */

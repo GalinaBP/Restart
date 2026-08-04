@@ -47,14 +47,15 @@ afterEach(() => {
   localStorage.clear();
 });
 
-function renderAt(sectionKey: string) {
+function renderAt(sectionKey: string, back?: string) {
   localStorage.setItem('restart.accessToken', 'access-1');
   localStorage.setItem('restart.refreshToken', 'refresh-1');
   render(
-    <MemoryRouter initialEntries={[`/journey/${sectionKey}`]}>
+    <MemoryRouter initialEntries={[{ pathname: `/journey/${sectionKey}`, state: back ? { back } : null }]}>
       <Routes>
         <Route path="/journey" element={<p>journey-map</p>} />
         <Route path="/journey/:sectionKey" element={<SectionPage />} />
+        <Route path="/manager" element={<p>manager-screen</p>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -84,6 +85,31 @@ describe('SectionPage', () => {
     expect(await screen.findByText('journey-map')).toBeInTheDocument();
     const saved = calls.find((c) => c.body !== undefined);
     expect(JSON.parse(saved!.body!)).toEqual({ series: '4519', number: '123456' });
+  });
+
+  it('returns to the screen that sent the user here instead of walking on through the wizard', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith('/cases/current')) {
+        return new Response(JSON.stringify(CASE), { status: 200 });
+      }
+      if (init?.method === 'PUT') {
+        return new Response(JSON.stringify({ ...PASSPORT_SECTION, issues: [] }), { status: 200 });
+      }
+      return new Response(JSON.stringify(PASSPORT_SECTION), { status: 200 });
+    }));
+    const user = userEvent.setup();
+    // What «Поиск финансового управляющего» does with its own steps: it owns the step list, so
+    // both the back link and a clean save belong to it, not to the questionnaire.
+    renderAt('PASSPORT', '/manager');
+
+    expect(await screen.findByRole('link', { name: /К списку шагов/ }))
+      .toHaveAttribute('href', '/manager');
+
+    await user.type(screen.getByLabelText('Серия — 4 цифры'), '4519');
+    await user.click(screen.getByRole('button', { name: 'Сохранить и дальше' }));
+
+    expect(await screen.findByText('manager-screen')).toBeInTheDocument();
   });
 
   it('keeps the user on the step and shows issues on the exact field after a save with problems', async () => {

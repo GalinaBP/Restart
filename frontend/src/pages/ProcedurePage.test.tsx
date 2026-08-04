@@ -133,6 +133,7 @@ function renderAtProcedure() {
       <Routes>
         <Route path="/procedure" element={<ProcedurePage />} />
         <Route path="/journey" element={<p>journey-map</p>} />
+        <Route path="/manager" element={<p>manager-screen</p>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -142,6 +143,17 @@ function renderAtProcedure() {
 function stageRow(container: HTMLElement, index: number): HTMLElement {
   const rows = container.querySelectorAll('.procedure-list > li');
   return rows[index] as HTMLElement;
+}
+
+/**
+ * The card inside one stage row — the row itself, except for stages that link to a screen of
+ * their own, where the card is the link inside the row. Highlight classes live on the card.
+ */
+function stageCard(container: HTMLElement, index: number): HTMLElement {
+  const row = stageRow(container, index);
+  return row.classList.contains('procedure-stage')
+    ? row
+    : row.querySelector('.procedure-stage') as HTMLElement;
 }
 
 describe('ProcedurePage', () => {
@@ -178,16 +190,23 @@ describe('ProcedurePage', () => {
     expect(screen.queryByText(/Суммы черновые/)).not.toBeInTheDocument();
   });
 
-  it('sends the manager stage on to the step that collects the СРО', async () => {
+  it('sends the manager stage on to its own step-by-step screen', async () => {
     stubFetch([
       { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
       { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
     ]);
+    const user = userEvent.setup();
     renderAtProcedure();
 
-    // MANAGER_SELECTION is the current stage, so it opens on load and its data step is right there:
-    const link = await screen.findByRole('link', { name: /Указать организацию/ });
-    expect(link).toHaveAttribute('href', '/journey/MANAGER_SRO');
+    // The stage is three actions weeks apart, so the card links out instead of expanding —
+    // and offers no way to record the stage here.
+    const link = await screen.findByRole('link', { name: /Поиск финансового управляющего/ });
+    expect(link).toHaveAttribute('href', '/manager');
+    expect(screen.queryByRole('button', { name: /Поиск финансового управляющего/ }))
+      .not.toBeInTheDocument();
+
+    await user.click(link);
+    expect(await screen.findByText('manager-screen')).toBeInTheDocument();
   });
 
   it('sends the filing stage on to the step that records submission', async () => {
@@ -274,11 +293,11 @@ describe('ProcedurePage', () => {
     });
 
     // Only the current stage carries the highlight and the "Сейчас" badge.
-    const current = stageRow(container, 1);
+    const current = stageCard(container, 1);
     expect(current.className).toContain('procedure-stage-current');
     expect(current.querySelector('.procedure-current-badge')).toHaveTextContent('Сейчас');
     [0, 2, 3, 4, 5, 6, 7].forEach((index) => {
-      expect(stageRow(container, index).className).not.toContain('procedure-stage-current');
+      expect(stageCard(container, index).className).not.toContain('procedure-stage-current');
     });
 
     // Branch-specific stages don't show up before the court has decided.
@@ -312,33 +331,32 @@ describe('ProcedurePage', () => {
     const updated = {
       ...JOURNEY_COMMON,
       stages: JOURNEY_COMMON.stages.map((s) =>
-        s.stage === 'MANAGER_SELECTION' ? { ...s, status: 'IN_PROGRESS' } : s),
+        s.stage === 'COURT_DECISION' ? { ...s, status: 'IN_PROGRESS' } : s),
     };
     const calls = stubFetch([
       { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
       { match: (url, init) => url.endsWith('/case-1/journey') && init?.method !== 'PUT',
         status: 200, body: JOURNEY_COMMON },
-      { match: (url, init) => url.endsWith('/journey/MANAGER_SELECTION') && init?.method === 'PUT',
+      { match: (url, init) => url.endsWith('/journey/COURT_DECISION') && init?.method === 'PUT',
         status: 200, body: updated },
     ]);
     const user = userEvent.setup();
     const { container } = renderAtProcedure();
 
-    // MANAGER_SELECTION is the current, editable stage — its form is already open.
     await screen.findByText('Весь путь');
-    const select = await screen.findByRole('combobox');
-    await user.selectOptions(select, 'IN_PROGRESS');
+    await user.click(screen.getByRole('button', { name: /Решение суда/ }));
+    await user.selectOptions(await screen.findByRole('combobox'), 'IN_PROGRESS');
     await user.click(screen.getByRole('button', { name: 'Записать' }));
 
     const putCall = calls.find((c) => c.method === 'PUT');
-    expect(putCall?.url).toContain('/cases/case-1/journey/MANAGER_SELECTION');
+    expect(putCall?.url).toContain('/cases/case-1/journey/COURT_DECISION');
     expect(JSON.parse(putCall!.body!)).toEqual({
       status: 'IN_PROGRESS', startedOn: null, completedOn: null, note: null,
     });
 
     // The panel closes and the badge reflects the recorded status.
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-    const row = stageRow(container, 2);
+    const row = stageRow(container, 5);
     expect(row.querySelector('.procedure-status')?.textContent?.trim()).toBe('В процессе');
   });
 
