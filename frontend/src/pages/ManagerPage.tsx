@@ -3,30 +3,29 @@ import { Link, useNavigate } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
 import { currentCase, getSection, type SectionEntry } from '../api/cases';
 import {
-  getFees,
   getJourney,
   recordStage,
-  type FeeScheduleView,
   type JourneyStageView,
   type RecordStageInput,
 } from '../api/procedure';
-import { stageLabel, STATUS_LABELS } from '../api/labels';
-import { managerSteps, type ManagerStep } from './managerSteps';
+import { sectionLabel, stageLabel } from '../api/labels';
+import SectionHelp from './SectionHelp';
 import { sortCorrespondence } from './sortCorrespondence';
-import { amountsAreDraft, fillAmounts } from './stageAmounts';
 import StageEditor from './StageEditor';
 
 /**
- * «Поиск финансового управляющего» — the stage as a small application of its own, built like the
- * document-preparation screen: what the stage is about, how far along it is, one «Продолжить» to
- * the single next action, then the steps in order.
+ * «Поиск финансового управляющего» — the stage on a screen of its own.
  *
- * The stage used to be an expandable card on «Весь путь», which meant three unrelated things —
- * choosing the organisation, paying the deposit, waiting for the appointment — hid behind one
- * toggle. They are separate actions, weeks apart, so they are separate steps here.
+ * The screen is about ONE action: naming the organisation (СРО) the court will appoint the
+ * manager from. Everything else here only supports it — why a manager is needed at all, and how
+ * to choose the organisation. Money is not repeated here: the amounts belong to «Пошлина и
+ * депозит», and asking for the deposit twice made this screen read like a list of errands.
  *
- * Nothing about the manager is stored on this screen: the СРО and the payment live in their own
- * data steps, the appointment is the journey stage itself. This screen only gathers them.
+ * Below the action, out of its way, sit the two things that stay useful for months afterwards:
+ * marking that the court has appointed the manager, and the correspondence journal.
+ *
+ * Nothing about the manager is stored here: the СРО lives in its own data step, the appointment is
+ * the journey stage itself. This screen only gathers them.
  */
 
 /** 'YYYY-MM-DD' → 'DD.MM.YYYY', the date format used everywhere else in the app. */
@@ -39,9 +38,7 @@ export default function ManagerPage() {
   const navigate = useNavigate();
   const [caseId, setCaseId] = useState<string | null>(null);
   const [stage, setStage] = useState<JourneyStageView | null>(null);
-  const [fees, setFees] = useState<FeeScheduleView | null>(null);
   const [sro, setSro] = useState<SectionEntry | null>(null);
-  const [payments, setPayments] = useState<SectionEntry | null>(null);
   const [correspondence, setCorrespondence] = useState<SectionEntry[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -56,21 +53,14 @@ export default function ManagerPage() {
         return;
       }
       setCaseId(existing.id);
-      const [journey, feeSchedule, sroSection, paymentsSection, correspondenceSection] =
-        await Promise.all([
-          getJourney(existing.id),
-          getFees(existing.id),
-          getSection(existing.id, 'MANAGER_SRO'),
-          getSection(existing.id, 'PAYMENTS'),
-          getSection(existing.id, 'MANAGER_CORRESPONDENCE'),
-        ]);
+      const [journey, sroSection, correspondenceSection] = await Promise.all([
+        getJourney(existing.id),
+        getSection(existing.id, 'MANAGER_SRO'),
+        getSection(existing.id, 'MANAGER_CORRESPONDENCE'),
+      ]);
       setStage(journey.stages.find((s) => s.stage === 'MANAGER_SELECTION') ?? null);
-      setFees(feeSchedule);
-      // An unfilled section is the common case on every one of these — guard for it.
+      // An unfilled section is the common case on both of these — guard for it.
       setSro(sroSection.data && !Array.isArray(sroSection.data) ? sroSection.data : null);
-      setPayments(
-        paymentsSection.data && !Array.isArray(paymentsSection.data) ? paymentsSection.data : null,
-      );
       setCorrespondence(
         Array.isArray(correspondenceSection.data) ? correspondenceSection.data : null,
       );
@@ -124,10 +114,8 @@ export default function ManagerPage() {
   }
 
   const label = stageLabel('MANAGER_SELECTION');
-  const steps = managerSteps(sro, payments, stage.status);
-  const done = steps.filter((step) => step.done).length;
-  const total = steps.length;
-  const next = steps.find((step) => !step.done);
+  const sroLabel = sectionLabel('MANAGER_SRO');
+  const chosen = typeof sro?.name === 'string' && sro.name.trim() !== '' ? sro.name : null;
   const latest = sortCorrespondence(correspondence)[0];
 
   return (
@@ -139,50 +127,43 @@ export default function ManagerPage() {
       <p className="check-placeholder" role="note">Черновик — проверяется юристом</p>
       <p className="check-hint">{label.description}</p>
 
-      <p className="check-hint">
-        {done === total
-          ? 'Все шаги этого этапа пройдены — управляющий у вашего дела есть.'
-          : `Пройдено ${done} из ${total}. Шаги идут по порядку, спешить некуда.`}
-      </p>
-      <div className="journey-progress" aria-label={`Пройдено ${done} из ${total}`}>
-        <div className="check-progress-fill" style={{ width: `${(done / total) * 100}%` }} />
-      </div>
-      {next?.route && next.linkLabel && (
-        // `back` brings the user home to this step list once the step is saved — the data steps
-        // otherwise walk on through the questionnaire, which is a different screen's flow.
-        <Link className="landing-cta journey-continue" to={next.route} state={{ back: '/manager' }}>
-          {next.linkLabel}
-        </Link>
-      )}
-
-      {label.points && (
+      {label.about && (
         <section className="journey-part">
-          <h2 className="journey-part-title">Что делает управляющий</h2>
-          <ul className="procedure-stage-points">
-            {label.points.map((point) => <li key={point}>{fillAmounts(point, fees)}</li>)}
-          </ul>
-          {amountsAreDraft(label.points, fees) && (
-            <p className="procedure-fees-draft" role="note">
-              Сумма черновая — её ещё проверяет юрист.
-            </p>
-          )}
+          <h2 className="journey-part-title">{label.about.title}</h2>
+          <p className="check-hint">{label.about.text}</p>
           {label.timing && <p className="procedure-stage-timing">{label.timing}</p>}
         </section>
       )}
 
-      <ol className="procedure-list manager-steps">
-        {steps.map((step, index) => (
-          <ManagerStepCard
-            key={step.key}
-            step={step}
-            number={index + 1}
-            current={step === next}
-            fees={fees}
-            stage={stage}
-            onSave={save}
-          />
-        ))}
-      </ol>
+      {/* The one action of this screen. Its instructions come from the step's own labels, so the
+          how-to reads the same here and on the form itself. */}
+      <section className="journey-part">
+        <h2 className="journey-part-title">{sroLabel.title}</h2>
+        {sroLabel.hint && <p className="check-hint">{sroLabel.hint}</p>}
+        <SectionHelp blocks={sroLabel.help} />
+        {chosen && <p className="manager-chosen">Вы указали: {chosen}</p>}
+        {/* `back` brings the user home to this screen once the step is saved — the data steps
+            otherwise walk on through the questionnaire, which is a different screen's flow. */}
+        <Link
+          className="landing-cta journey-continue"
+          to="/journey/MANAGER_SRO"
+          state={{ back: '/manager' }}
+        >
+          {chosen ? 'Проверить организацию' : 'Указать организацию'}
+        </Link>
+      </section>
+
+      {/* Weeks later, and only while the backend says the stage is the user's to record. */}
+      {stage.editable && (
+        <section className="journey-part">
+          <h2 className="journey-part-title">Когда управляющего утвердят</h2>
+          <p className="check-hint">
+            Суд примет заявление, организация назовёт кандидатуру, а суд утвердит управляющего.
+            Как только это произойдёт — отметьте здесь.
+          </p>
+          <StageEditor view={stage} onSave={save} submitLabel="Сохранить" />
+        </section>
+      )}
 
       <section className="journey-part">
         <h2 className="journey-part-title">Переписка с управляющим</h2>
@@ -205,55 +186,5 @@ export default function ManagerPage() {
         </Link>
       </section>
     </main>
-  );
-}
-
-function ManagerStepCard({
-  step,
-  number,
-  current,
-  fees,
-  stage,
-  onSave,
-}: {
-  step: ManagerStep;
-  number: number;
-  current: boolean;
-  fees: FeeScheduleView | null;
-  stage: JourneyStageView;
-  onSave: (input: RecordStageInput) => Promise<void>;
-}) {
-  const cardClass = [
-    'procedure-stage',
-    current ? 'procedure-stage-current' : '',
-    step.done ? 'procedure-stage-done' : '',
-  ].filter(Boolean).join(' ');
-
-  return (
-    <li className={cardClass}>
-      <span className="procedure-stage-head">
-        <span className="procedure-stage-title">
-          <span className="manager-step-number">{number}</span>
-          {step.title}
-          {current && <span className="procedure-current-badge">Сейчас</span>}
-        </span>
-        <span
-          className={`procedure-status procedure-status-${step.done ? 'done' : 'not-started'}`}
-        >
-          {step.done ? STATUS_LABELS.DONE.title : STATUS_LABELS.NOT_STARTED.title}
-        </span>
-      </span>
-      <p className="check-hint procedure-stage-desc">{fillAmounts(step.description, fees)}</p>
-      {step.route && step.linkLabel && (
-        <Link to={step.route} className="procedure-detail-link" state={{ back: '/manager' }}>
-          {step.linkLabel} →
-        </Link>
-      )}
-      {/* The appointment step is the journey stage itself — recorded here, and only while the
-          backend says the stage is the user's to record. */}
-      {step.key === 'APPOINTMENT' && stage.editable && (
-        <StageEditor view={stage} onSave={onSave} submitLabel="Сохранить" />
-      )}
-    </li>
   );
 }

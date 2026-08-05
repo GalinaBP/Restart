@@ -20,7 +20,6 @@ import { BLOCKED_EXPLANATION, PROCEDURE_LABELS, STATUS_LABELS, stageLabel } from
 import { nextUpcomingHearing, type UpcomingHearing } from './nextUpcomingHearing';
 import { flagClaims, type FlaggedClaim } from './flagClaims';
 import { sortCorrespondence } from './sortCorrespondence';
-import { amountsAreDraft, fillAmounts } from './stageAmounts';
 import StageEditor from './StageEditor';
 
 /**
@@ -33,10 +32,10 @@ import StageEditor from './StageEditor';
  */
 
 /**
- * Stages big enough to be a small application of their own: the card links straight there instead
- * of expanding, because the stage is several actions spread over weeks, not one toggle.
- * «Подготовка документов» is the questionnaire; «Поиск финансового управляющего» its own
- * three-step screen (organisation → deposit → appointment).
+ * Stages big enough to be a screen of their own: the card links straight there instead of
+ * expanding, because the stage is more than one action spread over weeks. «Подготовка документов»
+ * is the questionnaire; «Поиск финансового управляющего» explains the stage, collects the
+ * organisation, and keeps the appointment note and the correspondence journal.
  */
 const STAGE_SCREENS: Partial<Record<JourneyStageKey, string>> = {
   DOCUMENT_PREPARATION: '/journey',
@@ -310,16 +309,6 @@ function StageCard({
       <li className={cardClass}>
         {head}
         <p className="check-hint procedure-stage-desc">{label.description}</p>
-        {label.points && (
-          <ul className="procedure-stage-points">
-            {label.points.map((point) => <li key={point}>{fillAmounts(point, fees)}</li>)}
-          </ul>
-        )}
-        {amountsAreDraft(label.points, fees) && (
-          <p className="procedure-fees-draft" role="note">
-            Сумма черновая — её ещё проверяет юрист.
-          </p>
-        )}
         {label.timing && <p className="procedure-stage-timing">{label.timing}</p>}
         {view.stage === 'FEES_AND_DEPOSIT' && fees && <FeeBreakdown fees={fees} />}
         {detail?.map((d) => (
@@ -361,16 +350,6 @@ function StageCard({
       {expanded && (
         <div className="procedure-stage-body">
           <p className="check-hint procedure-stage-desc">{label.description}</p>
-          {label.points && (
-            <ul className="procedure-stage-points">
-              {label.points.map((point) => <li key={point}>{fillAmounts(point, fees)}</li>)}
-            </ul>
-          )}
-          {amountsAreDraft(label.points, fees) && (
-            <p className="procedure-fees-draft" role="note">
-              Сумма черновая — её ещё проверяет юрист.
-            </p>
-          )}
           {label.timing && <p className="procedure-stage-timing">{label.timing}</p>}
           {view.status === 'BLOCKED' && <p className="procedure-blocked-note">{BLOCKED_EXPLANATION}</p>}
           {detail?.map((d) => (

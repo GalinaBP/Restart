@@ -870,21 +870,6 @@ a.procedure-stage:hover {
   color: var(--muted);
 }
 
-/* A few things worth knowing about the stage. Same muted register as the description — this is
-   explanation, not a call to action. */
-.procedure-stage-points {
-  margin: 0.5rem 0 0;
-  padding-left: 1.1rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.55;
-  text-align: left;
-}
-
-.procedure-stage-points li + li {
-  margin-top: 0.4rem;
-}
-
 /* How long the stage usually takes. Quiet and secondary — it sets expectations during a
    months-long process, it is never a promise. */
 .procedure-stage-timing {
@@ -1083,31 +1068,18 @@ a.procedure-stage:hover {
   align-self: flex-start;
 }
 
-/* --- «Поиск финансового управляющего»: the stage as its own small step-by-step screen ---- */
+/* --- «Поиск финансового управляющего»: the stage on a screen of its own ------------------ */
 
-/* Reuses the stage cards of the stepper above; only the step number is new. Numbers are drawn
-   rather than left to the <ol> marker, so they sit inside the card next to the title. */
-.manager-steps {
-  margin-top: 0.8rem;
-}
-
-.manager-step-number {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 999px;
-  border: 1px solid var(--pill-border);
-  font-size: 0.8rem;
-  font-weight: 800;
-}
-
-.procedure-stage-done .manager-step-number {
-  color: #04231a;
-  background: var(--accent-from);
-  border-color: var(--accent-from);
+/* The organisation already recorded, above the button that leads back to the form — so the
+   screen answers «а я это уже указывал?» without a trip into the step. */
+.manager-chosen {
+  margin: 0.6rem 0 0;
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.6rem;
+  background: rgba(52, 211, 153, 0.16);
+  color: var(--accent-from);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 /* --- Section form ---------------------------------------------------------------- */
