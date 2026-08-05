@@ -8,8 +8,7 @@ import {
   type JourneyStageView,
   type RecordStageInput,
 } from '../api/procedure';
-import { sectionLabel, stageLabel } from '../api/labels';
-import SectionHelp from './SectionHelp';
+import { stageLabel } from '../api/labels';
 import { sortCorrespondence } from './sortCorrespondence';
 import StageEditor from './StageEditor';
 
@@ -17,9 +16,10 @@ import StageEditor from './StageEditor';
  * «Поиск финансового управляющего» — the stage on a screen of its own.
  *
  * The screen is about ONE action: naming the organisation (СРО) the court will appoint the
- * manager from. Everything else here only supports it — why a manager is needed at all, and how
- * to choose the organisation. Money is not repeated here: the amounts belong to «Пошлина и
- * депозит», and asking for the deposit twice made this screen read like a list of errands.
+ * manager from. It explains why a manager is needed and then offers a single button; how to
+ * choose the organisation is explained on the step itself, next to the fields it is about. Money
+ * is not repeated here either — the amounts belong to «Пошлина и депозит», and asking for the
+ * deposit twice made this screen read like a list of errands.
  *
  * Below the action, out of its way, sit the two things that stay useful for months afterwards:
  * marking that the court has appointed the manager, and the correspondence journal.
@@ -38,7 +38,6 @@ export default function ManagerPage() {
   const navigate = useNavigate();
   const [caseId, setCaseId] = useState<string | null>(null);
   const [stage, setStage] = useState<JourneyStageView | null>(null);
-  const [sro, setSro] = useState<SectionEntry | null>(null);
   const [correspondence, setCorrespondence] = useState<SectionEntry[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -53,14 +52,12 @@ export default function ManagerPage() {
         return;
       }
       setCaseId(existing.id);
-      const [journey, sroSection, correspondenceSection] = await Promise.all([
+      const [journey, correspondenceSection] = await Promise.all([
         getJourney(existing.id),
-        getSection(existing.id, 'MANAGER_SRO'),
         getSection(existing.id, 'MANAGER_CORRESPONDENCE'),
       ]);
       setStage(journey.stages.find((s) => s.stage === 'MANAGER_SELECTION') ?? null);
-      // An unfilled section is the common case on both of these — guard for it.
-      setSro(sroSection.data && !Array.isArray(sroSection.data) ? sroSection.data : null);
+      // No correspondence recorded yet is the common case — guard for it.
       setCorrespondence(
         Array.isArray(correspondenceSection.data) ? correspondenceSection.data : null,
       );
@@ -114,8 +111,6 @@ export default function ManagerPage() {
   }
 
   const label = stageLabel('MANAGER_SELECTION');
-  const sroLabel = sectionLabel('MANAGER_SRO');
-  const chosen = typeof sro?.name === 'string' && sro.name.trim() !== '' ? sro.name : null;
   const latest = sortCorrespondence(correspondence)[0];
 
   return (
@@ -125,33 +120,29 @@ export default function ManagerPage() {
         <Link to="/procedure" className="check-back">← Весь путь</Link>
       </header>
       <p className="check-placeholder" role="note">Черновик — проверяется юристом</p>
-      <p className="check-hint">{label.description}</p>
 
+      {/* The stage's one-line description is not repeated here: it introduces the stage on «Весь
+          путь», and the section below says the same thing at length. */}
       {label.about && (
         <section className="journey-part">
           <h2 className="journey-part-title">{label.about.title}</h2>
-          <p className="check-hint">{label.about.text}</p>
+          <p className="journey-part-text">{label.about.text}</p>
           {label.timing && <p className="procedure-stage-timing">{label.timing}</p>}
         </section>
       )}
 
-      {/* The one action of this screen. Its instructions come from the step's own labels, so the
-          how-to reads the same here and on the form itself. */}
-      <section className="journey-part">
-        <h2 className="journey-part-title">{sroLabel.title}</h2>
-        {sroLabel.hint && <p className="check-hint">{sroLabel.hint}</p>}
-        <SectionHelp blocks={sroLabel.help} />
-        {chosen && <p className="manager-chosen">Вы указали: {chosen}</p>}
-        {/* `back` brings the user home to this screen once the step is saved — the data steps
-            otherwise walk on through the questionnaire, which is a different screen's flow. */}
-        <Link
-          className="landing-cta journey-continue"
-          to="/journey/MANAGER_SRO"
-          state={{ back: '/manager' }}
-        >
-          {chosen ? 'Проверить организацию' : 'Указать организацию'}
-        </Link>
-      </section>
+      {/* The one action of this screen: a single button. How to choose the organisation is
+          explained on the step itself, next to the fields it is about — repeating it here only
+          made the user read the same instructions twice before they could act.
+          `back` brings them home to this screen once the step is saved — the data steps otherwise
+          walk on through the questionnaire, which is a different screen's flow. */}
+      <Link
+        className="landing-cta journey-continue"
+        to="/journey/MANAGER_SRO"
+        state={{ back: '/manager' }}
+      >
+        Указать организацию
+      </Link>
 
       {/* Weeks later, and only while the backend says the stage is the user's to record. */}
       {stage.editable && (

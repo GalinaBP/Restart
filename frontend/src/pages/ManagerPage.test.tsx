@@ -16,17 +16,15 @@ const JOURNEY = {
   ],
 };
 
-const EMPTY_SRO = { key: 'MANAGER_SRO', order: 16, repeatable: false, fields: [], data: null, issues: [] };
 const EMPTY_LOG = { key: 'MANAGER_CORRESPONDENCE', order: 23, repeatable: true, fields: [], data: null, issues: [] };
 
 function stubFetch(routes: { match: (url: string, init?: RequestInit) => boolean; status: number; body: unknown }[]) {
   const calls: { url: string; method: string; body?: string }[] = [];
-  // The screen loads the journey and two sections together; tests that don't care
+  // The screen loads the journey and the correspondence journal; tests that don't care
   // about one get it empty for free, and can still override by declaring their own route first.
   const withDefaults = [...routes,
     { match: (url: string) => url.endsWith('/cases/current'), status: 200, body: CASE },
     { match: (url: string) => url.endsWith('/journey'), status: 200, body: JOURNEY },
-    { match: (url: string) => url.endsWith('/sections/MANAGER_SRO'), status: 200, body: EMPTY_SRO },
     { match: (url: string) => url.endsWith('/sections/MANAGER_CORRESPONDENCE'), status: 200, body: EMPTY_LOG }];
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -68,22 +66,13 @@ describe('ManagerPage', () => {
 
     // Why a manager is needed at all, then the single action: naming the organisation.
     expect(screen.getByText('Зачем нужен финансовый управляющий')).toBeInTheDocument();
-    expect(screen.getByText('Кто будет вести ваше дело')).toBeInTheDocument();
     const cta = screen.getByRole('link', { name: 'Указать организацию' });
     expect(cta).toHaveAttribute('href', '/journey/MANAGER_SRO');
 
+    // The how-to lives on the step itself, next to the fields — not repeated before the button.
+    expect(screen.queryByText('Как выбрать эту организацию?')).not.toBeInTheDocument();
     // Paying the deposit belongs to «Пошлина и депозит» and is not asked for a second time here.
     expect(screen.queryByRole('link', { name: /Отметить оплату/ })).not.toBeInTheDocument();
-  });
-
-  it('carries the how-to for choosing the organisation, the same one the form shows', async () => {
-    stubFetch([]);
-    renderAtManager();
-
-    await screen.findByText('Поиск финансового управляющего');
-    expect(screen.getByText('Как выбрать эту организацию?')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Открыть реестр арбитражных управляющих/ }))
-      .toHaveAttribute('href', 'https://bankrot.fedresurs.ru');
   });
 
   it('explains why a manager is needed, and leaves the money to the fees screen', async () => {
@@ -96,19 +85,6 @@ describe('ManagerPage', () => {
     // Amounts live on «Пошлина и депозит»; this screen names no sum, so none can go stale here.
     expect(screen.queryByText(/₽/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Сумма черновая/)).not.toBeInTheDocument();
-  });
-
-  it('says which organisation is already recorded', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/sections/MANAGER_SRO'), status: 200,
-        body: { ...EMPTY_SRO, data: { name: 'СРО «Содействие»', address: 'г. Москва' } } },
-    ]);
-    renderAtManager();
-
-    expect(await screen.findByText(/Вы указали: СРО «Содействие»/)).toBeInTheDocument();
-    // The button stops asking for something the user has already done.
-    expect(screen.getByRole('link', { name: 'Проверить организацию' }))
-      .toHaveAttribute('href', '/journey/MANAGER_SRO');
   });
 
   it('records the appointment on the stage itself', async () => {
