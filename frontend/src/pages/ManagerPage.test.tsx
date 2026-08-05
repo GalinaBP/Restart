@@ -16,31 +16,17 @@ const JOURNEY = {
   ],
 };
 
-/** Amounts are unreviewed placeholders in fees.yml, so allConfirmed is false (AI-021). */
-const FEES = {
-  lines: [
-    { item: 'STATE_DUTY', amount: 300, confirmed: false, statutoryBasis: 'ст. 333.21 НК РФ (ПЛЕЙСХОЛДЕР)' },
-    { item: 'MANAGER_DEPOSIT', amount: 25000, confirmed: false, statutoryBasis: 'ст. 20.6 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-  ],
-  total: 25300,
-  allConfirmed: false,
-  effectiveFrom: '2026-06-21',
-};
-
 const EMPTY_SRO = { key: 'MANAGER_SRO', order: 16, repeatable: false, fields: [], data: null, issues: [] };
-const EMPTY_PAYMENTS = { key: 'PAYMENTS', order: 17, repeatable: false, fields: [], data: null, issues: [] };
 const EMPTY_LOG = { key: 'MANAGER_CORRESPONDENCE', order: 23, repeatable: true, fields: [], data: null, issues: [] };
 
 function stubFetch(routes: { match: (url: string, init?: RequestInit) => boolean; status: number; body: unknown }[]) {
   const calls: { url: string; method: string; body?: string }[] = [];
-  // The screen loads the journey, the fees and three sections together; tests that don't care
+  // The screen loads the journey and two sections together; tests that don't care
   // about one get it empty for free, and can still override by declaring their own route first.
   const withDefaults = [...routes,
     { match: (url: string) => url.endsWith('/cases/current'), status: 200, body: CASE },
     { match: (url: string) => url.endsWith('/journey'), status: 200, body: JOURNEY },
-    { match: (url: string) => url.endsWith('/fees'), status: 200, body: FEES },
     { match: (url: string) => url.endsWith('/sections/MANAGER_SRO'), status: 200, body: EMPTY_SRO },
-    { match: (url: string) => url.endsWith('/sections/PAYMENTS'), status: 200, body: EMPTY_PAYMENTS },
     { match: (url: string) => url.endsWith('/sections/MANAGER_CORRESPONDENCE'), status: 200, body: EMPTY_LOG }];
   vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -71,63 +57,61 @@ function renderAtManager() {
 }
 
 describe('ManagerPage', () => {
-  it('shows the loading state, then the three steps with the first one as the next action', async () => {
+  it('shows the loading state, then the one action the stage asks for', async () => {
     stubFetch([]);
-    const { container } = renderAtManager();
+    renderAtManager();
 
     expect(screen.getByText('Секунду…')).toBeInTheDocument();
 
     expect(await screen.findByText('Поиск финансового управляющего')).toBeInTheDocument();
     expect(screen.getByText('Черновик — проверяется юристом')).toBeInTheDocument();
 
-    const steps = container.querySelectorAll('.manager-steps > li');
-    expect(steps).toHaveLength(3);
-    expect(steps[0].textContent).toContain('Выбрать организацию');
-    expect(steps[1].textContent).toContain('Внести деньги на работу управляющего');
-    expect(steps[2].textContent).toContain('Дождаться, когда управляющего утвердят');
-
-    // Nothing is done yet, and only the first unfinished step is highlighted.
-    expect(screen.getByText('Пройдено 0 из 3. Шаги идут по порядку, спешить некуда.'))
-      .toBeInTheDocument();
-    expect(steps[0].className).toContain('procedure-stage-current');
-    expect(steps[1].className).not.toContain('procedure-stage-current');
-
-    // One action offered at the top — the next step, per the one-action rule.
+    // Why a manager is needed at all, then the single action: naming the organisation.
+    expect(screen.getByText('Зачем нужен финансовый управляющий')).toBeInTheDocument();
+    expect(screen.getByText('Кто будет вести ваше дело')).toBeInTheDocument();
     const cta = screen.getByRole('link', { name: 'Указать организацию' });
     expect(cta).toHaveAttribute('href', '/journey/MANAGER_SRO');
+
+    // Paying the deposit belongs to «Пошлина и депозит» and is not asked for a second time here.
+    expect(screen.queryByRole('link', { name: /Отметить оплату/ })).not.toBeInTheDocument();
   });
 
-  it('substitutes the deposit amount from fees.yml and flags it as a draft', async () => {
+  it('carries the how-to for choosing the organisation, the same one the form shows', async () => {
     stubFetch([]);
     renderAtManager();
 
     await screen.findByText('Поиск финансового управляющего');
-    // The copy carries a placeholder, never a number of its own — 25 000,00 ₽ comes from fees.yml.
-    // (ru-RU groups with a non-breaking space, which the DOM text keeps.)
-    expect(screen.getByText(/25\s000,00 ₽ на депозит суда/)).toBeInTheDocument();
-    expect(screen.queryByText('{managerDeposit}')).not.toBeInTheDocument();
-    expect(screen.getAllByText(/Сумма черновая/).length).toBeGreaterThan(0);
+    expect(screen.getByText('Как выбрать эту организацию?')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Открыть реестр арбитражных управляющих/ }))
+      .toHaveAttribute('href', 'https://bankrot.fedresurs.ru');
   });
 
-  it('closes the steps that the case data already answers and moves the next action on', async () => {
+  it('explains why a manager is needed, and leaves the money to the fees screen', async () => {
+    stubFetch([]);
+    renderAtManager();
+
+    await screen.findByText('Поиск финансового управляющего');
+    expect(screen.getByText('Зачем нужен финансовый управляющий')).toBeInTheDocument();
+    expect(screen.getByText(/обязательный участник процедуры банкротства/)).toBeInTheDocument();
+    // Amounts live on «Пошлина и депозит»; this screen names no sum, so none can go stale here.
+    expect(screen.queryByText(/₽/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Сумма черновая/)).not.toBeInTheDocument();
+  });
+
+  it('says which organisation is already recorded', async () => {
     stubFetch([
       { match: (url) => url.endsWith('/sections/MANAGER_SRO'), status: 200,
         body: { ...EMPTY_SRO, data: { name: 'СРО «Содействие»', address: 'г. Москва' } } },
     ]);
-    const { container } = renderAtManager();
+    renderAtManager();
 
-    await screen.findByText('Поиск финансового управляющего');
-    expect(screen.getByText('Пройдено 1 из 3. Шаги идут по порядку, спешить некуда.'))
-      .toBeInTheDocument();
-
-    const steps = container.querySelectorAll('.manager-steps > li');
-    expect(steps[0].className).toContain('procedure-stage-done');
-    expect(steps[1].className).toContain('procedure-stage-current');
-    expect(screen.getByRole('link', { name: 'Отметить оплату' }))
-      .toHaveAttribute('href', '/journey/PAYMENTS');
+    expect(await screen.findByText(/Вы указали: СРО «Содействие»/)).toBeInTheDocument();
+    // The button stops asking for something the user has already done.
+    expect(screen.getByRole('link', { name: 'Проверить организацию' }))
+      .toHaveAttribute('href', '/journey/MANAGER_SRO');
   });
 
-  it('records the appointment on the stage itself and re-renders it as done', async () => {
+  it('records the appointment on the stage itself', async () => {
     const done = {
       ...JOURNEY,
       stages: JOURNEY.stages.map((s) => ({ ...s, status: 'DONE', completedOn: '2026-08-04' })),
@@ -137,7 +121,7 @@ describe('ManagerPage', () => {
         status: 200, body: done },
     ]);
     const user = userEvent.setup();
-    const { container } = renderAtManager();
+    renderAtManager();
 
     await screen.findByText('Поиск финансового управляющего');
     await user.selectOptions(screen.getByRole('combobox'), 'DONE');
@@ -148,31 +132,20 @@ describe('ManagerPage', () => {
     expect(JSON.parse(put!.body!)).toEqual({
       status: 'DONE', startedOn: null, completedOn: null, note: null,
     });
-
-    // Only that step closes — the organisation and the deposit are still unanswered, and this
-    // screen never guesses them from the stage status.
-    const steps = container.querySelectorAll('.manager-steps > li');
-    expect(steps[2].className).toContain('procedure-stage-done');
-    expect(screen.getByText('Пройдено 1 из 3. Шаги идут по порядку, спешить некуда.'))
-      .toBeInTheDocument();
   });
 
-  it('says so plainly once every step of the stage is behind the user', async () => {
+  it('offers no way to record a stage the backend derives', async () => {
     stubFetch([
-      { match: (url) => url.endsWith('/sections/MANAGER_SRO'), status: 200,
-        body: { ...EMPTY_SRO, data: { name: 'СРО «Содействие»' } } },
-      { match: (url) => url.endsWith('/sections/PAYMENTS'), status: 200,
-        body: { ...EMPTY_PAYMENTS, data: { depositPaidOn: '2026-08-01' } } },
       { match: (url) => url.endsWith('/journey'), status: 200, body: {
         ...JOURNEY,
-        stages: JOURNEY.stages.map((s) => ({ ...s, status: 'DONE' })),
+        stages: JOURNEY.stages.map((s) => ({ ...s, editable: false })),
       } },
     ]);
     renderAtManager();
 
-    expect(await screen.findByText(/Все шаги этого этапа пройдены/)).toBeInTheDocument();
-    // Nothing is asked of the user any more, so no «next action» button is offered.
-    expect(screen.queryByRole('link', { name: 'Указать организацию' })).not.toBeInTheDocument();
+    await screen.findByText('Поиск финансового управляющего');
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.queryByText('Когда управляющего утвердят')).not.toBeInTheDocument();
   });
 
   it('shows the newest correspondence entry and leads to the journal', async () => {

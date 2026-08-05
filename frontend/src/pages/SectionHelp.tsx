@@ -1,0 +1,40 @@
+import type { HelpBlock } from '../api/labels';
+
+/**
+ * The collapsed how-tos of a data step: a question, numbered steps, an optional link and note.
+ *
+ * Shared by the step form itself and by the screens that introduce a step before sending the user
+ * into it (the manager screen) — the instructions must read identically in both places, and there
+ * is only one copy of them, in `labels.ts`.
+ *
+ * The link opens in a new tab: the user is mid-flow and must not lose it.
+ */
+export default function SectionHelp({ blocks }: { blocks: HelpBlock[] | undefined }) {
+  if (!blocks) return null;
+
+  return (
+    <>
+      {blocks.map((block) => (
+        <details key={block.summary} className="check-fact section-help">
+          <summary>{block.summary}</summary>
+          <ol className="section-help-steps">
+            {block.steps.map((step) => <li key={step}>{step}</li>)}
+          </ol>
+          {block.link && (
+            <p>
+              <a
+                className="section-help-link"
+                href={block.link.href}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {block.link.text}
+              </a>
+            </p>
+          )}
+          {block.note && <p>{block.note}</p>}
+        </details>
+      ))}
+    </>
+  );
+}

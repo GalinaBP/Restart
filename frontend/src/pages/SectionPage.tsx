@@ -8,6 +8,7 @@ import type {
 import { CASE_DATA_SECTIONS, sectionLabel } from '../api/labels';
 import { issueFor as findIssue, toApi, toForm, type FormEntry } from './sectionForm';
 import { SectionField } from './SectionField';
+import SectionHelp from './SectionHelp';
 
 /**
  * One data-collection step. The form is rendered entirely from the backend's field metadata
@@ -167,27 +168,7 @@ export default function SectionPage() {
       <h1 className="check-question">{label.title}</h1>
       {label.hint && <p className="check-hint">{label.hint}</p>}
       {label.caution && <p className="section-caution" role="note">{label.caution}</p>}
-      {label.help?.map((block) => (
-        <details key={block.summary} className="check-fact section-help">
-          <summary>{block.summary}</summary>
-          <ol className="section-help-steps">
-            {block.steps.map((step) => <li key={step}>{step}</li>)}
-          </ol>
-          {block.link && (
-            <p>
-              <a
-                className="section-help-link"
-                href={block.link.href}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {block.link.text}
-              </a>
-            </p>
-          )}
-          {block.note && <p>{block.note}</p>}
-        </details>
-      ))}
+      <SectionHelp blocks={label.help} />
       {saved && issues.length > 0 && (
         <p className="section-saved-note" role="status">
           Сохранили! Осталось поправить пару мест — они подсвечены ниже.

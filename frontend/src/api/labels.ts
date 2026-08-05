@@ -337,11 +337,11 @@ export interface StageLabel {
   title: string;
   description: string;
   /**
-   * A few things worth knowing about the stage, one per line, under the description.
-   * `{managerDeposit}` is substituted with the amount from `fees.yml` — the one source of truth
-   * for money — so the copy can never drift from what the fees screen and documents say.
+   * A paragraph explaining what the stage is for, shown on the stage's own screen under a heading
+   * of its own. Never money: amounts belong to `fees.yml` and are shown by the fees breakdown, so
+   * the copy cannot drift from what the documents say.
    */
-  points?: string[];
+  about?: { title: string; text: string };
   /**
    * Roughly how long this stage takes, so the wait is expected rather than alarming. Always
    * hedged («обычно», «примерно») — courts differ and these are observations from real cases,
@@ -362,11 +362,15 @@ const STAGE_LABELS: Record<string, StageLabel> = {
   MANAGER_SELECTION: {
     title: 'Поиск финансового управляющего',
     description: 'Без управляющего банкротство не начнётся. Вы называете в заявлении организацию (СРО), а суд утверждает управляющего из её участников.',
-    points: [
-      'Что делает: проверяет документы, изучает долги и имущество, общается с кредиторами и судом и следит, чтобы всё шло по правилам.',
-      'Сколько стоит: {managerDeposit} за процедуру. Сумму устанавливает закон, она одинакова по всей России.',
-      'Когда платить: до подачи заявления, на депозит суда. Суд передаст эти деньги управляющему, когда назначит его.',
-    ],
+    about: {
+      title: 'Зачем нужен финансовый управляющий',
+      text: 'Финансовый управляющий — обязательный участник процедуры банкротства. После '
+        + 'назначения судом он свяжется с вами, запросит необходимые документы и проверит '
+        + 'сведения о ваших доходах, долгах, имуществе и счетах. В ходе процедуры управляющий '
+        + 'взаимодействует с кредиторами, банками и государственными органами, а по её '
+        + 'завершении готовит отчёт для суда. На основании этого отчёта суд принимает решение '
+        + 'о завершении банкротства и списании долгов.',
+    },
     timing: 'После того как суд примет заявление, у организации есть пять дней, чтобы назвать кандидатуру. На практике это занимает до нескольких недель.',
   },
   FEES_AND_DEPOSIT: {
