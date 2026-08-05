@@ -669,6 +669,14 @@ button:disabled {
   max-width: none;
 }
 
+/* Plain explanatory prose inside a section — body text, not the yellow hint box. At paragraph
+   length that box reads as a warning; this is just an explanation. */
+.journey-part-text {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .journey-part-link {
   margin-top: 0.7rem;
   color: var(--accent-to);
@@ -1069,18 +1077,6 @@ a.procedure-stage:hover {
 }
 
 /* --- «Поиск финансового управляющего»: the stage on a screen of its own ------------------ */
-
-/* The organisation already recorded, above the button that leads back to the form — so the
-   screen answers «а я это уже указывал?» without a trip into the step. */
-.manager-chosen {
-  margin: 0.6rem 0 0;
-  padding: 0.5rem 0.8rem;
-  border-radius: 0.6rem;
-  background: rgba(52, 211, 153, 0.16);
-  color: var(--accent-from);
-  font-size: 0.9rem;
-  font-weight: 600;
-}
 
 /* --- Section form ---------------------------------------------------------------- */
 
