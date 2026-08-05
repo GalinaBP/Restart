@@ -119,7 +119,9 @@ export default function ManagerPage() {
         <section className="journey-part">
           <h2 className="journey-part-title">{label.about.title}</h2>
           <p className="journey-part-text">{label.about.text}</p>
-          {label.timing && <p className="procedure-stage-timing">{label.timing}</p>}
+          {label.about.timing && (
+            <p className="procedure-stage-timing">{label.about.timing}</p>
+          )}
         </section>
       )}
 

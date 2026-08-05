@@ -190,7 +190,7 @@ describe('ProcedurePage', () => {
     expect(screen.queryByText(/Суммы черновые/)).not.toBeInTheDocument();
   });
 
-  it('keeps the manager stage recordable here, and links out to its screen', async () => {
+  it('leaves the manager stage to its own screen, with nothing to fill in here', async () => {
     stubFetch([
       { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
       { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
@@ -199,13 +199,14 @@ describe('ProcedurePage', () => {
 
     await screen.findByText('Весь путь');
 
-    // MANAGER_SELECTION is the current, editable stage, so its panel is already open: its own
-    // screen owns the one action, the status and the journal stay here.
-    expect(screen.getByRole('link', { name: /Про этап и организацию/ }))
-      .toHaveAttribute('href', '/manager');
-    expect(screen.getByRole('link', { name: /Переписка с управляющим/ }))
-      .toHaveAttribute('href', '/journey/MANAGER_CORRESPONDENCE');
-    expect(screen.getByRole('button', { name: 'Записать' })).toBeInTheDocument();
+    // MANAGER_SELECTION is the current, editable stage, so its panel is already open — and all
+    // it offers is the way in. Its status form and its journal link live on that screen's side.
+    expect(screen.getByRole('link', { name: /Начать/ })).toHaveAttribute('href', '/manager');
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Записать' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Переписка с управляющим/ })).not.toBeInTheDocument();
+    // The stage's timing belongs to its own screen too — the map carries one line per stage.
+    expect(screen.queryByText(/у организации есть пять дней/)).not.toBeInTheDocument();
   });
 
   it('sends the filing stage on to the step that records submission', async () => {
