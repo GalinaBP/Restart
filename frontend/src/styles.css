@@ -229,6 +229,96 @@ button:disabled {
   margin: 0;
 }
 
+/* «Как это работает» and «Честно о главном»: the two things a visitor needs before they trust a
+   stranger with a bankruptcy — what happens after the button, and what this service will and will
+   not do. Quiet blocks under the fold; the call to action above stays the only bright thing. */
+.landing-block {
+  width: 100%;
+  max-width: 32rem;
+  margin-top: 1.4rem;
+  text-align: left;
+}
+
+.landing-block-title {
+  margin: 0 0 0.7rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.landing-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.landing-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.landing-step-number {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  background: var(--accent-from);
+  color: #04231a;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.landing-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.landing-step-title {
+  font-weight: 700;
+}
+
+.landing-step-text {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.landing-trust {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.landing-trust li {
+  position: relative;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+/* A small green dot instead of a bullet — the accent marks facts here, not actions. */
+.landing-trust li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6rem;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--accent-from);
+}
+
 /* A quiet starry sign-off: warm yellow stars over a faint starfield of tiny dots. The dots are
    texture, not an accent fill — the green-only, no-gradient rule still owns buttons and links. */
 .landing-starry {
