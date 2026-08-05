@@ -2,47 +2,42 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
 import { currentCase, getSection, type SectionEntry } from '../api/cases';
-import {
-  getJourney,
-  recordStage,
-  type JourneyStageView,
-  type RecordStageInput,
-} from '../api/procedure';
-import { stageLabel } from '../api/labels';
-import { sortCorrespondence } from './sortCorrespondence';
-import StageEditor from './StageEditor';
+import { stageLabel, STATUS_LABELS } from '../api/labels';
 
 /**
  * «Поиск финансового управляющего» — the stage on a screen of its own.
  *
  * The screen is about ONE action: naming the organisation (СРО) the court will appoint the
- * manager from. It explains why a manager is needed and then offers a single button; how to
- * choose the organisation is explained on the step itself, next to the fields it is about. Money
- * is not repeated here either — the amounts belong to «Пошлина и депозит», and asking for the
- * deposit twice made this screen read like a list of errands.
+ * manager from. It explains why a manager is needed and then shows that single step. How to
+ * choose the organisation is explained on the step itself, next to the fields it is about; money
+ * is not repeated here either — the amounts belong to «Пошлина и депозит».
  *
- * Below the action, out of its way, sit the two things that stay useful for months afterwards:
- * marking that the court has appointed the manager, and the correspondence journal.
- *
- * Nothing about the manager is stored here: the СРО lives in its own data step, the appointment is
- * the journey stage itself. This screen only gathers them.
+ * Everything about the stage that is not this one action stays on «Весь путь»: recording that the
+ * court has appointed the manager, and the correspondence journal. This screen stores nothing of
+ * its own — the СРО lives in its own data step, and this only reads it to say whether the step is
+ * behind the user.
  */
 
-/** 'YYYY-MM-DD' → 'DD.MM.YYYY', the date format used everywhere else in the app. */
-function formatRuDate(iso: string): string {
-  const [year, month, day] = iso.split('-');
-  return `${day}.${month}.${year}`;
-}
+/**
+ * The one step this stage asks for. It is a step card rather than a bare button so the screen can
+ * say whether it is behind the user — the organisation is named once, months before anything else
+ * happens, and «уже указал или нет?» is the question people come back with.
+ */
+const SRO_STEP = {
+  title: 'Выбрать организацию',
+  description: 'Организацию (СРО) вы называете в заявлении сами — из её участников суд '
+    + 'утвердит вашего управляющего. Название и адрес нужны точно как в реестре.',
+  route: '/journey/MANAGER_SRO',
+  linkLabel: 'Указать организацию',
+};
 
 export default function ManagerPage() {
   const navigate = useNavigate();
+  /** null until the case is known — until then the redirect to «Ваше дело» may be under way. */
   const [caseId, setCaseId] = useState<string | null>(null);
-  const [stage, setStage] = useState<JourneyStageView | null>(null);
-  const [correspondence, setCorrespondence] = useState<SectionEntry[] | null>(null);
+  const [sro, setSro] = useState<SectionEntry | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  /** Confirms the last recording of the stage — the form stays put, so it says so itself. */
-  const [recorded, setRecorded] = useState(false);
 
   // Deliberately no synchronous setState here: the effect calls this directly, and the initial
   // state already is "loading". The retry handler resets the flags itself before calling.
@@ -54,17 +49,9 @@ export default function ManagerPage() {
         return;
       }
       setCaseId(existing.id);
-      // The journal is a side note on this screen — losing it must not take the screen down with
-      // it, the way the stage itself would.
-      const [journey, correspondenceSection] = await Promise.all([
-        getJourney(existing.id),
-        getSection(existing.id, 'MANAGER_CORRESPONDENCE').catch(() => null),
-      ]);
-      setStage(journey.stages.find((s) => s.stage === 'MANAGER_SELECTION') ?? null);
-      // No correspondence recorded yet is the common case — guard for it.
-      setCorrespondence(
-        Array.isArray(correspondenceSection?.data) ? correspondenceSection.data : null,
-      );
+      const sroSection = await getSection(existing.id, 'MANAGER_SRO');
+      // An unfilled section is the common case here — guard for it.
+      setSro(sroSection.data && !Array.isArray(sroSection.data) ? sroSection.data : null);
     } catch {
       setFailed(true);
     } finally {
@@ -80,14 +67,6 @@ export default function ManagerPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount: state changes only after await
     void load();
   }, [navigate, load]);
-
-  const save = async (input: RecordStageInput) => {
-    if (!caseId) return;
-    const updated = await recordStage(caseId, 'MANAGER_SELECTION', input);
-    setStage(updated.stages.find((s) => s.stage === 'MANAGER_SELECTION') ?? null);
-    // The form stays open on this screen, so nothing else would tell the user it worked.
-    setRecorded(true);
-  };
 
   if (loading) {
     return (
@@ -118,12 +97,13 @@ export default function ManagerPage() {
 
   // No case at all sends the user to «Ваше дело»; that redirect is already under way, so render
   // nothing rather than flashing a failure that did not happen.
-  if (!stage) {
+  if (!caseId) {
     return null;
   }
 
   const label = stageLabel('MANAGER_SELECTION');
-  const latest = sortCorrespondence(correspondence)[0];
+  // A blank name closes nothing — the step is done only once an organisation is actually named.
+  const stepDone = typeof sro?.name === 'string' && sro.name.trim() !== '';
 
   return (
     <main className="journey">
@@ -143,56 +123,29 @@ export default function ManagerPage() {
         </section>
       )}
 
-      {/* The one action of this screen: a single button. How to choose the organisation is
-          explained on the step itself, next to the fields it is about — repeating it here only
-          made the user read the same instructions twice before they could act.
-          `back` brings them home to this screen once the step is saved — the data steps otherwise
-          walk on through the questionnaire, which is a different screen's flow. */}
-      <Link
-        className="landing-cta journey-continue"
-        to="/journey/MANAGER_SRO"
-        state={{ back: '/manager' }}
-      >
-        Указать организацию
-      </Link>
-
-      {/* Weeks later, and only while the backend says the stage is the user's to record. */}
-      {stage.editable && (
-        <section className="journey-part">
-          <h2 className="journey-part-title">Когда управляющего утвердят</h2>
-          <p className="check-hint">
-            Суд примет заявление, организация назовёт кандидатуру, а суд утвердит управляющего.
-            Как только это произойдёт — отметьте здесь.
-          </p>
-          {recorded && (
-            <p className="section-saved-note" role="status">
-              Отметили. Это видно и на «Весь путь».
-            </p>
-          )}
-          <StageEditor view={stage} onSave={save} submitLabel="Сохранить" />
-        </section>
-      )}
-
-      <section className="journey-part">
-        <h2 className="journey-part-title">Переписка с управляющим</h2>
-        <p className="check-hint">
-          Ваш личный журнал: что прислал управляющий, когда и по какому поводу. Ничего не блокирует
-          — но за месяцы дела письма легко теряются.
-        </p>
-        {latest && typeof latest.date === 'string' && (
-          <p className="procedure-correspondence-latest">
-            Последняя запись: {formatRuDate(latest.date)}
-            {latest.type ? ` — ${latest.type}` : ''}
-          </p>
-        )}
-        <Link
-          to="/journey/MANAGER_CORRESPONDENCE"
-          className="journey-part-link"
-          state={{ back: '/manager' }}
-        >
-          {latest ? 'Открыть журнал →' : 'Добавить первую запись →'}
-        </Link>
-      </section>
+      {/* The one action of this screen. How to choose the organisation is explained on the step
+          itself, next to the fields it is about — repeating it here only made the user read the
+          same instructions twice before they could act. `back` brings them home to this screen
+          once the step is saved: the data steps otherwise walk on through the questionnaire,
+          which is a different screen's flow. */}
+      <ul className="procedure-list manager-steps">
+        <li className={`procedure-stage ${stepDone ? 'procedure-stage-done' : 'procedure-stage-current'}`}>
+          <span className="procedure-stage-head">
+            <span className="procedure-stage-title">{SRO_STEP.title}</span>
+            <span className={`procedure-status procedure-status-${stepDone ? 'done' : 'not-started'}`}>
+              {stepDone ? STATUS_LABELS.DONE.title : STATUS_LABELS.NOT_STARTED.title}
+            </span>
+          </span>
+          <p className="check-hint procedure-stage-desc">{SRO_STEP.description}</p>
+          <Link
+            to={SRO_STEP.route}
+            className="procedure-detail-link"
+            state={{ back: '/manager' }}
+          >
+            {SRO_STEP.linkLabel} →
+          </Link>
+        </li>
+      </ul>
     </main>
   );
 }
