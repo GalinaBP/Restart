@@ -190,23 +190,22 @@ describe('ProcedurePage', () => {
     expect(screen.queryByText(/Суммы черновые/)).not.toBeInTheDocument();
   });
 
-  it('sends the manager stage on to its own step-by-step screen', async () => {
+  it('keeps the manager stage recordable here, and links out to its screen', async () => {
     stubFetch([
       { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
       { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
     ]);
-    const user = userEvent.setup();
     renderAtProcedure();
 
-    // The stage is three actions weeks apart, so the card links out instead of expanding —
-    // and offers no way to record the stage here.
-    const link = await screen.findByRole('link', { name: /Поиск финансового управляющего/ });
-    expect(link).toHaveAttribute('href', '/manager');
-    expect(screen.queryByRole('button', { name: /Поиск финансового управляющего/ }))
-      .not.toBeInTheDocument();
+    await screen.findByText('Весь путь');
 
-    await user.click(link);
-    expect(await screen.findByText('manager-screen')).toBeInTheDocument();
+    // MANAGER_SELECTION is the current, editable stage, so its panel is already open: its own
+    // screen owns the one action, the status and the journal stay here.
+    expect(screen.getByRole('link', { name: /Про этап и организацию/ }))
+      .toHaveAttribute('href', '/manager');
+    expect(screen.getByRole('link', { name: /Переписка с управляющим/ }))
+      .toHaveAttribute('href', '/journey/MANAGER_CORRESPONDENCE');
+    expect(screen.getByRole('button', { name: 'Записать' })).toBeInTheDocument();
   });
 
   it('sends the filing stage on to the step that records submission', async () => {

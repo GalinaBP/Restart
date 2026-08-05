@@ -33,13 +33,13 @@ import StageEditor from './StageEditor';
 
 /**
  * Stages big enough to be a screen of their own: the card links straight there instead of
- * expanding, because the stage is more than one action spread over weeks. «Подготовка документов»
- * is the questionnaire; «Поиск финансового управляющего» explains the stage, collects the
- * organisation, and keeps the appointment note and the correspondence journal.
+ * expanding, because the stage is a whole flow rather than one toggle. «Подготовка документов» is
+ * the questionnaire. «Поиск финансового управляющего» has a screen too, but only for its one
+ * action — the rest of that stage (its status, the correspondence journal) is recorded here, so
+ * its card stays an ordinary expandable one with a link inside.
  */
 const STAGE_SCREENS: Partial<Record<JourneyStageKey, string>> = {
   DOCUMENT_PREPARATION: '/journey',
-  MANAGER_SELECTION: '/manager',
 };
 
 /**
@@ -49,6 +49,10 @@ const STAGE_SCREENS: Partial<Record<JourneyStageKey, string>> = {
  * COURT_DECISION links both to the case's court details and to its hearings).
  */
 const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: string }[]>> = {
+  MANAGER_SELECTION: [
+    { route: '/manager', label: 'Про этап и организацию' },
+    { route: '/journey/MANAGER_CORRESPONDENCE', label: 'Переписка с управляющим' },
+  ],
   FEES_AND_DEPOSIT: [{ route: '/journey/PAYMENTS', label: 'Отметить оплату' }],
   FILING: [{ route: '/journey/FILING_SUBMISSION', label: 'Отметить подачу' }],
   COURT_DECISION: [
@@ -280,9 +284,8 @@ function StageCard({
     </span>
   );
 
-  // A stage with a screen of its own — send the user straight there rather than offering a
-  // dead-end expansion. The manager stage keeps its «последняя запись» line here: it is the one
-  // thing that must catch the eye without opening anything.
+  // A stage whose whole flow is a screen of its own — send the user straight there rather than
+  // offering a dead-end expansion.
   const screen = STAGE_SCREENS[view.stage];
   if (screen) {
     return (
@@ -290,12 +293,6 @@ function StageCard({
         <Link to={screen} className={cardClass}>
           {head}
           <p className="check-hint procedure-stage-desc">{label.description}</p>
-          {view.stage === 'MANAGER_SELECTION' && typeof correspondence[0]?.date === 'string' && (
-            <span className="procedure-correspondence-latest">
-              Последняя запись: {formatRuDate(correspondence[0].date)}
-              {correspondence[0].type ? ` — ${correspondence[0].type}` : ''}
-            </span>
-          )}
         </Link>
       </li>
     );
@@ -329,6 +326,15 @@ function StageCard({
         <p className="procedure-hearing-upcoming">
           Ближайшее заседание: {formatRuDate(upcomingHearing.date)}
           {upcomingHearing.subject ? ` — ${upcomingHearing.subject}` : ''}
+        </p>
+      )}
+      {/* Prominent even collapsed, mirroring the hearing line above (backlog AI-026): the most
+          recent manager correspondence must not get lost over the months a procedure takes.
+          Shown only when at least one entry has been recorded. */}
+      {view.stage === 'MANAGER_SELECTION' && typeof correspondence[0]?.date === 'string' && (
+        <p className="procedure-correspondence-latest">
+          Последняя запись: {formatRuDate(correspondence[0].date)}
+          {correspondence[0].type ? ` — ${correspondence[0].type}` : ''}
         </p>
       )}
       {/* Prominent even collapsed, mirroring the hearing line above (backlog AI-025): the

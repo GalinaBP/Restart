@@ -1078,6 +1078,12 @@ a.procedure-stage:hover {
 
 /* --- «Поиск финансового управляющего»: the stage on a screen of its own ------------------ */
 
+/* The stage's single step, drawn with the stage cards of the stepper above so a step looks the
+   same wherever the user meets it. */
+.manager-steps {
+  margin-top: 0.9rem;
+}
+
 /* --- Section form ---------------------------------------------------------------- */
 
 .section {
