@@ -338,10 +338,11 @@ export interface StageLabel {
   description: string;
   /**
    * A paragraph explaining what the stage is for, shown on the stage's own screen under a heading
-   * of its own. Never money: amounts belong to `fees.yml` and are shown by the fees breakdown, so
-   * the copy cannot drift from what the documents say.
+   * of its own — never on the map, where the one-line `description` is all a card needs. Its
+   * `timing` belongs to the same block, for the same reason. Never money: amounts belong to
+   * `fees.yml` and are shown by the fees breakdown, so the copy cannot drift from the documents.
    */
-  about?: { title: string; text: string };
+  about?: { title: string; text: string; timing?: string };
   /**
    * Roughly how long this stage takes, so the wait is expected rather than alarming. Always
    * hedged («обычно», «примерно») — courts differ and these are observations from real cases,
@@ -370,8 +371,9 @@ const STAGE_LABELS: Record<string, StageLabel> = {
         + 'взаимодействует с кредиторами, банками и государственными органами, а по её '
         + 'завершении готовит отчёт для суда. На основании этого отчёта суд принимает решение '
         + 'о завершении банкротства и списании долгов.',
+      timing: 'После того как суд примет заявление, у организации есть пять дней, чтобы назвать '
+        + 'кандидатуру. На практике это занимает до нескольких недель.',
     },
-    timing: 'После того как суд примет заявление, у организации есть пять дней, чтобы назвать кандидатуру. На практике это занимает до нескольких недель.',
   },
   FEES_AND_DEPOSIT: {
     title: 'Пошлина и депозит',

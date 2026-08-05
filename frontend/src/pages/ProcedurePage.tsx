@@ -48,11 +48,15 @@ const STAGE_SCREENS: Partial<Record<JourneyStageKey, string>> = {
  * place instead of dead-ending on a click. A stage may link to more than one screen (AI-023:
  * COURT_DECISION links both to the case's court details and to its hearings).
  */
+/**
+ * Stages this screen does not ask the user to record by hand: their card only points at the
+ * screen that owns the stage, and offering a status form next to that link asked the same person
+ * for the same thing twice. The backend still marks them editable — this is a UI decision.
+ */
+const STAGES_WITHOUT_RECORDING: JourneyStageKey[] = ['MANAGER_SELECTION'];
+
 const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: string }[]>> = {
-  MANAGER_SELECTION: [
-    { route: '/manager', label: 'Про этап и организацию' },
-    { route: '/journey/MANAGER_CORRESPONDENCE', label: 'Переписка с управляющим' },
-  ],
+  MANAGER_SELECTION: [{ route: '/manager', label: 'Начать' }],
   FEES_AND_DEPOSIT: [{ route: '/journey/PAYMENTS', label: 'Отметить оплату' }],
   FILING: [{ route: '/journey/FILING_SUBMISSION', label: 'Отметить подачу' }],
   COURT_DECISION: [
@@ -364,7 +368,9 @@ function StageCard({
           {view.stage === 'COURT_DECISION' && (
             <ProcedurePicker chosen={procedureType} onChoose={onChooseProcedure} />
           )}
-          <StageEditor view={view} onSave={onSave} />
+          {!STAGES_WITHOUT_RECORDING.includes(view.stage) && (
+            <StageEditor view={view} onSave={onSave} />
+          )}
         </div>
       )}
     </li>
