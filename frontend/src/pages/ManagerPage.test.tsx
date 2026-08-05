@@ -110,6 +110,41 @@ describe('ManagerPage', () => {
     });
   });
 
+  it('says out loud that the stage was recorded — the form stays put otherwise', async () => {
+    const done = {
+      ...JOURNEY,
+      stages: JOURNEY.stages.map((s) => ({ ...s, status: 'DONE' })),
+    };
+    stubFetch([
+      { match: (url, init) => url.endsWith('/journey/MANAGER_SELECTION') && init?.method === 'PUT',
+        status: 200, body: done },
+    ]);
+    const user = userEvent.setup();
+    renderAtManager();
+
+    await screen.findByText('Поиск финансового управляющего');
+    expect(screen.queryByText(/Отметили/)).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByRole('combobox'), 'DONE');
+    await user.click(screen.getByRole('button', { name: 'Сохранить' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Отметили');
+  });
+
+  it('still opens when the correspondence journal cannot be loaded', async () => {
+    stubFetch([
+      { match: (url) => url.endsWith('/sections/MANAGER_CORRESPONDENCE'), status: 500,
+        body: { status: 500, code: 'UNKNOWN', message: 'boom' } },
+    ]);
+    renderAtManager();
+
+    // The journal is a side note here; the stage itself is what the screen is for.
+    expect(await screen.findByText('Зачем нужен финансовый управляющий')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Указать организацию' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Добавить первую запись/ })).toBeInTheDocument();
+    expect(screen.queryByText('Что-то пошло не так')).not.toBeInTheDocument();
+  });
+
   it('offers no way to record a stage the backend derives', async () => {
     stubFetch([
       { match: (url) => url.endsWith('/journey'), status: 200, body: {

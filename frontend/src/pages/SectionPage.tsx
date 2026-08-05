@@ -164,7 +164,11 @@ export default function SectionPage() {
 
   return (
     <main className="section">
-      <Link to={back ?? '/journey'} className="check-back">← К списку шагов</Link>
+      {/* «К списку шагов» is only true of the questionnaire. A step opened from a screen that
+          owns it has no list behind it — it goes back where it came from. */}
+      <Link to={back ?? '/journey'} className="check-back">
+        {back ? '← Назад' : '← К списку шагов'}
+      </Link>
       <h1 className="check-question">{label.title}</h1>
       {label.hint && <p className="check-hint">{label.hint}</p>}
       {label.caution && <p className="section-caution" role="note">{label.caution}</p>}
@@ -213,8 +217,10 @@ export default function SectionPage() {
         ) : (
           section.fields.map((field) => renderField(field, 0))
         )}
+        {/* «и дальше» promises the next step of the questionnaire — there is none when the step
+            was opened from a screen of its own, and the save returns there instead. */}
         <button type="submit" className="landing-cta" disabled={pending}>
-          {pending ? 'Сохраняем…' : 'Сохранить и дальше'}
+          {pending ? 'Сохраняем…' : (back ? 'Сохранить' : 'Сохранить и дальше')}
         </button>
       </form>
     </main>

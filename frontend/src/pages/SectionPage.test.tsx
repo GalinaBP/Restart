@@ -103,11 +103,13 @@ describe('SectionPage', () => {
     // both the back link and a clean save belong to it, not to the questionnaire.
     renderAt('PASSPORT', '/manager');
 
-    expect(await screen.findByRole('link', { name: /К списку шагов/ }))
+    // No step list stands behind this one, so neither the link nor the button promises one.
+    expect(await screen.findByRole('link', { name: '← Назад' }))
       .toHaveAttribute('href', '/manager');
+    expect(screen.queryByRole('link', { name: /К списку шагов/ })).not.toBeInTheDocument();
 
     await user.type(screen.getByLabelText('Серия — 4 цифры'), '4519');
-    await user.click(screen.getByRole('button', { name: 'Сохранить и дальше' }));
+    await user.click(screen.getByRole('button', { name: 'Сохранить' }));
 
     expect(await screen.findByText('manager-screen')).toBeInTheDocument();
   });

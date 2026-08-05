@@ -41,6 +41,8 @@ export default function ManagerPage() {
   const [correspondence, setCorrespondence] = useState<SectionEntry[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  /** Confirms the last recording of the stage — the form stays put, so it says so itself. */
+  const [recorded, setRecorded] = useState(false);
 
   // Deliberately no synchronous setState here: the effect calls this directly, and the initial
   // state already is "loading". The retry handler resets the flags itself before calling.
@@ -52,14 +54,16 @@ export default function ManagerPage() {
         return;
       }
       setCaseId(existing.id);
+      // The journal is a side note on this screen — losing it must not take the screen down with
+      // it, the way the stage itself would.
       const [journey, correspondenceSection] = await Promise.all([
         getJourney(existing.id),
-        getSection(existing.id, 'MANAGER_CORRESPONDENCE'),
+        getSection(existing.id, 'MANAGER_CORRESPONDENCE').catch(() => null),
       ]);
       setStage(journey.stages.find((s) => s.stage === 'MANAGER_SELECTION') ?? null);
       // No correspondence recorded yet is the common case — guard for it.
       setCorrespondence(
-        Array.isArray(correspondenceSection.data) ? correspondenceSection.data : null,
+        Array.isArray(correspondenceSection?.data) ? correspondenceSection.data : null,
       );
     } catch {
       setFailed(true);
@@ -81,6 +85,8 @@ export default function ManagerPage() {
     if (!caseId) return;
     const updated = await recordStage(caseId, 'MANAGER_SELECTION', input);
     setStage(updated.stages.find((s) => s.stage === 'MANAGER_SELECTION') ?? null);
+    // The form stays open on this screen, so nothing else would tell the user it worked.
+    setRecorded(true);
   };
 
   if (loading) {
@@ -91,7 +97,7 @@ export default function ManagerPage() {
     );
   }
 
-  if (failed || !stage) {
+  if (failed) {
     return (
       <main className="check">
         <p className="check-question">Что-то пошло не так</p>
@@ -108,6 +114,12 @@ export default function ManagerPage() {
         </button>
       </main>
     );
+  }
+
+  // No case at all sends the user to «Ваше дело»; that redirect is already under way, so render
+  // nothing rather than flashing a failure that did not happen.
+  if (!stage) {
+    return null;
   }
 
   const label = stageLabel('MANAGER_SELECTION');
@@ -152,6 +164,11 @@ export default function ManagerPage() {
             Суд примет заявление, организация назовёт кандидатуру, а суд утвердит управляющего.
             Как только это произойдёт — отметьте здесь.
           </p>
+          {recorded && (
+            <p className="section-saved-note" role="status">
+              Отметили. Это видно и на «Весь путь».
+            </p>
+          )}
           <StageEditor view={stage} onSave={save} submitLabel="Сохранить" />
         </section>
       )}
