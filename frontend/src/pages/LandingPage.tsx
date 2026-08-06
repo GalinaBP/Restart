@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { CALM_CARDS, CALM_INTRO } from './calmContent';
 
 /**
  * Landing screen per the product constitution: one message, one primary action, a calm promise of
@@ -33,6 +34,13 @@ const STEPS: { title: string; text: string }[] = [
     text: 'По одному действию за раз. Документы для суда соберём из ваших ответов.',
   },
 ];
+
+/**
+ * The bank script from «Спокойно», shown as-is. Taken from the section rather than retyped: a
+ * visitor who copies it here and one who opens the section must get the same words, and the
+ * section is where the lawyer review will land.
+ */
+const BANK_SCRIPT = CALM_CARDS.find((card) => card.script)?.script ?? '';
 
 /** Only claims that hold for this build — see the file comment. */
 const TRUST: string[] = [
@@ -78,6 +86,17 @@ export default function LandingPage() {
             </li>
           ))}
         </ol>
+      </section>
+
+      {/* The one piece of help a visitor can use before they decide anything — «Спокойно» is open
+          without an account, so the landing hands over a real script instead of describing it.
+          The copy comes from calmContent.ts, so the page and the section cannot drift apart. */}
+      <section className="landing-block">
+        <h2 className="landing-block-title">Звонят банки и коллекторы?</h2>
+        <p className="landing-block-text">{CALM_INTRO}</p>
+        <p className="landing-script-lead">Например, что ответить банку:</p>
+        <blockquote className="landing-script">{BANK_SCRIPT}</blockquote>
+        <Link to="/calm" className="landing-block-link">Больше готовых ответов →</Link>
       </section>
 
       <section className="landing-block">
