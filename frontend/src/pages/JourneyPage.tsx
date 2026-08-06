@@ -8,7 +8,7 @@ import {
   type CaseInfo,
   type SectionStatus,
 } from '../api/cases';
-import { CASE_DATA_SECTIONS, OWN_DOCUMENTS } from '../api/labels';
+import { CASE_DATA_SECTIONS, OWN_DOCUMENTS, WORK_DOCUMENTS, type WorkStatus } from '../api/labels';
 
 /**
  * The case home screen, in three parts: the data we ask for, the documents we build from it, and
@@ -24,6 +24,8 @@ export default function JourneyPage() {
   const [steps, setSteps] = useState<SectionStatus[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  /** Which papers about income to list; null until the user says. Not stored — it only picks a list. */
+  const [work, setWork] = useState<WorkStatus | null>(null);
 
   // Deliberately no synchronous setState here: the effect calls this directly, and the initial
   // state already is "loading". Retry handlers reset the flags themselves before calling.
@@ -179,6 +181,45 @@ export default function JourneyPage() {
             </li>
           ))}
         </ul>
+
+        {/* What proves your income — and what proves you have none — comes from different offices,
+            so the rest of the list waits for one answer. Nothing is preselected: guessing it from
+            the free-text employment step would hand the user the wrong errands. */}
+        <div className="journey-work-choice">
+          <p className="journey-work-question">Вы сейчас работаете?</p>
+          <div className="journey-work-options" role="group" aria-label="Вы сейчас работаете?">
+            <button
+              type="button"
+              className={`check-option${work === 'WORKING' ? ' check-option-selected' : ''}`}
+              aria-pressed={work === 'WORKING'}
+              onClick={() => setWork('WORKING')}
+            >
+              Работаю
+            </button>
+            <button
+              type="button"
+              className={`check-option${work === 'NOT_WORKING' ? ' check-option-selected' : ''}`}
+              aria-pressed={work === 'NOT_WORKING'}
+              onClick={() => setWork('NOT_WORKING')}
+            >
+              Не работаю
+            </button>
+          </div>
+          {work === null ? (
+            <p className="check-hint">
+              Ответьте — и мы допишем сюда бумаги о доходах именно для вашего случая.
+            </p>
+          ) : (
+            <ul className="journey-own-docs">
+              {WORK_DOCUMENTS[work].map((doc) => (
+                <li key={doc.title}>
+                  <span className="journey-own-doc-title">{doc.title}</span>
+                  <span className="journey-own-doc-where">{doc.where}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </section>
     </main>
   );

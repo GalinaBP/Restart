@@ -72,6 +72,34 @@ describe('JourneyPage', () => {
       .toBeInTheDocument();
   });
 
+  it('asks whether the user works, and lists the papers that answer proves', async () => {
+    stubFetch({
+      '/cases/current': { status: 200, body: CASE },
+      '/cases/case-1/sections': { status: 200, body: STEPS },
+    });
+    const user = userEvent.setup();
+    renderSignedIn();
+
+    // Everyone needs these, so they are on screen before anything is asked.
+    expect(await screen.findByText('Паспорт')).toBeInTheDocument();
+    // Nothing about income is guessed for the user.
+    expect(screen.getByText('Вы сейчас работаете?')).toBeInTheDocument();
+    expect(screen.queryByText('Трудовая книжка')).not.toBeInTheDocument();
+    expect(screen.queryByText('Справка из центра занятости')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Работаю' }));
+    expect(screen.getByText('Трудовая книжка')).toBeInTheDocument();
+    expect(screen.getByText('Справки о доходах (2-НДФЛ) за три года')).toBeInTheDocument();
+    expect(screen.queryByText('Справка из центра занятости')).not.toBeInTheDocument();
+
+    // The answer can be corrected — the other branch replaces the first, never adds to it.
+    await user.click(screen.getByRole('button', { name: 'Не работаю' }));
+    expect(screen.getByText('Справка из центра занятости')).toBeInTheDocument();
+    expect(screen.getByText('Выписка из трудовой книжки')).toBeInTheDocument();
+    expect(screen.queryByText('Трудовая книжка')).not.toBeInTheDocument();
+    expect(screen.queryByText('Справки о доходах (2-НДФЛ) за три года')).not.toBeInTheDocument();
+  });
+
   it('links up to the stage overview (AI-019)', async () => {
     stubFetch({
       '/cases/current': { status: 200, body: CASE },
