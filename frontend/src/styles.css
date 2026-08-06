@@ -290,6 +290,41 @@ button:disabled {
   line-height: 1.5;
 }
 
+.landing-block-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.landing-script-lead {
+  margin: 0.9rem 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* A ready answer, quoted the way «Спокойно» shows it: a quiet panel, no accent colour — it is
+   help, not a call to action, and the green button above must stay the only bright thing. */
+.landing-script {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+  line-height: 1.6;
+}
+
+.landing-block-link {
+  display: inline-block;
+  margin-top: 0.8rem;
+  color: var(--accent-to);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.landing-block-link:hover {
+  text-decoration: underline;
+}
+
 .landing-trust {
   margin: 0;
   padding: 0;
