@@ -56,21 +56,72 @@ export const CASE_DATA_SECTIONS: readonly string[] = [
   'VEHICLES',
 ];
 
+/** A paper the user gets elsewhere: what it is, and where it is issued. */
+export interface OwnDocument {
+  title: string;
+  where: string;
+}
+
+/** Whether the user is working right now — the one answer that changes this list. */
+export type WorkStatus = 'WORKING' | 'NOT_WORKING';
+
 /**
  * Papers no one can generate for the user: they are issued by banks, employers and the state.
  * Ordering follows the attachment list of the application. PLACEHOLDER pending lawyer review.
+ *
+ * These are asked of everyone. What proves your income — and what proves you have none — depends
+ * on whether you are working, so those live in `WORK_DOCUMENTS` and are chosen by the user: the
+ * questionnaire asks about employment in free text, which is no basis for deciding what the court
+ * will want to see.
  */
-export const OWN_DOCUMENTS: { title: string; where: string }[] = [
+export const OWN_DOCUMENTS: OwnDocument[] = [
   { title: 'Паспорт', where: 'Копии всех заполненных страниц.' },
   { title: 'СНИЛС и выписка с лицевого счёта', where: 'Выписку заказывают на Госуслугах или в СФР.' },
   { title: 'ИНН', where: 'Свидетельство или распечатка из личного кабинета налоговой.' },
-  { title: 'Трудовая книжка', where: 'Бумажная или выписка из электронной — Госуслуги, СФР.' },
-  { title: 'Справки о доходах (2-НДФЛ) за три года', where: 'У работодателя или в личном кабинете налоговой.' },
   { title: 'Выписки по счетам и картам', where: 'В приложении или отделении каждого банка.' },
   { title: 'Документы по долгам', where: 'Договоры, справки об остатке, отчёт из бюро кредитных историй.' },
   { title: 'Документы о семье', where: 'Свидетельства о браке, разводе, рождении детей — если они есть.' },
   { title: 'Квитанции об оплате', where: 'Госпошлина и депозит на вознаграждение управляющего.' },
 ];
+
+/**
+ * The part of the list that depends on whether the user is working. Both branches prove the same
+ * thing to the court — what you earn, or that you do not earn — just from different offices.
+ * PLACEHOLDER pending lawyer review, like everything rule-like here.
+ */
+export const WORK_DOCUMENTS: Record<WorkStatus, OwnDocument[]> = {
+  WORKING: [
+    { title: 'Трудовая книжка', where: 'Бумажная или выписка из электронной — Госуслуги, СФР.' },
+    {
+      title: 'Справки о доходах (2-НДФЛ) за три года',
+      where: 'У работодателя или в личном кабинете налоговой.',
+    },
+    {
+      title: 'Справка о зарплате за последние месяцы',
+      where: 'В бухгалтерии — её просят, когда суд смотрит текущий доход.',
+    },
+  ],
+  NOT_WORKING: [
+    {
+      title: 'Выписка из трудовой книжки',
+      where: 'Госуслуги или СФР: покажет последнюю запись о работе. Бумажную приложите, если она '
+        + 'у вас на руках.',
+    },
+    {
+      title: 'Сведения о доходах за три года',
+      where: 'В личном кабинете налоговой. Если дохода не было, это тоже видно — так и приложите.',
+    },
+    {
+      title: 'Справка из центра занятости',
+      where: 'Если вы стоите на учёте: о постановке и размере пособия. Если не стоите — этой '
+        + 'справки просто не будет.',
+    },
+    {
+      title: 'Справка о пенсии или пособиях',
+      where: 'В СФР или на Госуслугах — если вы их получаете.',
+    },
+  ],
+};
 
 export const SECTION_LABELS: Record<string, SectionLabel> = {
   PERSONAL_DETAILS: { title: 'Немного о вас' },

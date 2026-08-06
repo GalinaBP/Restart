@@ -814,6 +814,33 @@ button:disabled {
 }
 
 /* Papers issued elsewhere: a reference list, not steps to click — so no card, no chevron. */
+/* The part of the list that depends on one answer: «работаете или нет». Set apart by a rule
+   rather than a box — it is a continuation of the list above, not a different subject. */
+.journey-work-choice {
+  width: 100%;
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--pill-border);
+}
+
+.journey-work-question {
+  margin: 0 0 0.6rem;
+  font-weight: 700;
+}
+
+.journey-work-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+/* Two short answers side by side: the eligibility option pill, sized to its text. */
+.journey-work-options .check-option {
+  width: auto;
+  flex: 0 1 auto;
+  padding: 0.6rem 1.3rem;
+}
+
 .journey-own-docs {
   width: 100%;
   margin: 0.7rem 0 0;
