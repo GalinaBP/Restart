@@ -13,10 +13,9 @@ describe('App', () => {
     // The page opens on the visitor's situation, not on what the service technically is.
     expect(screen.getByText(/Начните путь к списанию долгов/)).toBeInTheDocument();
     expect(screen.getByText(/Долги растут, звонят банки/)).toBeInTheDocument();
-    expect(
-      screen.getByText('Сервис для самостоятельного судебного банкротства'),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Проверить мою ситуацию' })).toBeInTheDocument();
+    expect(screen.getByRole('button', {
+      name: 'Проверить, подходит ли мне самостоятельное банкротство',
+    })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Войти' })).toBeInTheDocument();
   });
 
@@ -42,8 +41,8 @@ describe('App', () => {
 
     // The trust block promises nothing it cannot keep: no discharge, no counts, no testimonials.
     expect(screen.getByRole('heading', { name: 'Честно о главном' })).toBeInTheDocument();
-    expect(screen.getByText(/Мы не обещаем, что долги спишут/)).toBeInTheDocument();
-    expect(screen.getByText(/документы вы подаёте сами/)).toBeInTheDocument();
+    expect(screen.getByText(/Решение о списании долгов принимает только суд/)).toBeInTheDocument();
+    expect(screen.getByText(/это вы делаете сами/)).toBeInTheDocument();
     expect(screen.queryByText(/человек прошли/)).not.toBeInTheDocument();
   });
 });

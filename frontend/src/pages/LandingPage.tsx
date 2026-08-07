@@ -6,8 +6,8 @@ import { CALM_CARDS, CALM_INTRO } from './calmContent';
  * step-by-step guidance. No legal terminology in the reassurance copy.
  *
  * It sells the outcome, not the procedure: the visitor is not shopping for «банкротство», they
- * want the calls to stop and the next step to be obvious. So the page opens on their situation,
- * says what happens here in three steps, and only then names what the service technically is.
+ * want the calls to stop and the next step to be obvious. So the page opens on their situation
+ * and says what happens here in three steps.
  *
  * The trust block is deliberately made of things that are TRUE of this build and checkable in the
  * code — the check is anonymous and stateless, a case is visible only to its owner, the documents
@@ -27,11 +27,11 @@ const STEPS: { title: string; text: string }[] = [
   },
   {
     title: 'Получите план',
-    text: 'Увидите всю процедуру целиком и то, на каком шаге вы сейчас.',
+    text: 'Увидите всю процедуру целиком и то, на каком этапе вы сейчас.',
   },
   {
     title: 'Пойдёте по шагам',
-    text: 'По одному действию за раз. Документы для суда соберём из ваших ответов.',
+    text: 'Заявление, списки и описи мы соберём сами — из ваших ответов.',
   },
 ];
 
@@ -45,9 +45,10 @@ const BANK_SCRIPT = CALM_CARDS.find((card) => card.script)?.script ?? '';
 /** Only claims that hold for this build — see the file comment. */
 const TRUST: string[] = [
   'Проверка анонимная: пока вы не заведёте дело, мы не спрашиваем ни имени, ни телефона.',
-  'Ваше дело видите только вы. Мы ничего не отправляем в суд за вас — документы вы подаёте сами.',
-  'Мы не обещаем, что долги спишут: это решает суд. Говорим об этом честно на каждом шаге.',
-  'Юридические тексты пока черновые — их проверяет юрист, и мы помечаем это прямо в интерфейсе.',
+  'Ваше дело полностью анонимно: доступ к нему есть только у вас. Мы не подаём документы в суд '
+    + 'за вас — это вы делаете сами.',
+  'Решение о списании долгов принимает только суд. Мы не обещаем результат и честно говорим об этом.',
+  'Некоторые юридические материалы находятся на проверке юриста. Мы помечаем их прямо в интерфейсе.',
 ];
 
 export default function LandingPage() {
@@ -69,9 +70,9 @@ export default function LandingPage() {
         банкротства без сложного юридического языка.
       </p>
       <button type="button" className="landing-cta" onClick={() => navigate('/check')}>
-        Проверить мою ситуацию
+        Проверить, подходит ли мне самостоятельное банкротство
       </button>
-      <p className="landing-note">2 минуты, без регистрации</p>
+      <p className="landing-note">2 минуты • анонимно • без регистрации</p>
 
       <section className="landing-block">
         <h2 className="landing-block-title">Как это работает</h2>
@@ -99,19 +100,15 @@ export default function LandingPage() {
         <Link to="/calm" className="landing-block-link">Больше готовых ответов →</Link>
       </section>
 
-      <section className="landing-block">
+      {/* The last word on the page, so it wears the starry panel the sign-off used to: this is
+          what a visitor weighing «а не развод ли это?» should be left looking at. */}
+      <section className="landing-block landing-block-starry">
         <h2 className="landing-block-title">Честно о главном</h2>
         <ul className="landing-trust">
           {TRUST.map((line) => <li key={line}>{line}</li>)}
         </ul>
       </section>
 
-      <p className="landing-tagline">Сервис для самостоятельного судебного банкротства</p>
-      <p className="landing-starry">
-        <span className="landing-star" aria-hidden="true">✦</span>
-        Дальше — не бюрократия, а маршрут. Мы подсветим каждый шаг, чтобы вы не шли наугад.
-        <span className="landing-star" aria-hidden="true">✦</span>
-      </p>
     </main>
   );
 }

@@ -11,9 +11,11 @@ bankruptcy procedure step by step, as a journey rather than bureaucracy. The pro
 - Plain language everywhere — **no legal terminology in anything user-facing** (UI copy, error
   messages). Tone: "Сейчас нужно получить выписку", never "В соответствии с ФЗ…".
 - One action per screen; only the next step is shown.
-- Narrow ICP: 20–35, unmarried, no car/real estate/business, consumer debts 350k–3M ₽, up to 5
-  creditors (constitution.docx updated to match on 2026-08-03). Complex cases
-  (assets, deals, divorce, business) must be detected early and routed to a lawyer — honestly.
+- Narrow ICP: unmarried, no car/real estate/business, ordinary consumer debts, a clean history
+  behind them. Complex cases (assets, deals, divorce, business) must be detected early and routed
+  to a lawyer — honestly. **The size of the debt is no longer part of the ICP** (2026-08-07): the
+  screening collects it but never decides on it, and the old 350k–3M window and the ≤5-creditor
+  limit are gone from the rules — `../constitution.docx` still says otherwise and needs updating.
 - The app never promises guaranteed discharge of debts.
 
 > Legal rules and questionnaire content are **placeholders pending lawyer review** — flag that when

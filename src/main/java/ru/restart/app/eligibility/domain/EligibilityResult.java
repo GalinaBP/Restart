@@ -20,9 +20,9 @@ public record EligibilityResult(EligibilityDecision decision, List<String> reaso
         return new EligibilityResult(EligibilityDecision.NEEDS_LAWYER, reasons);
     }
 
-    /** Debt too small for a court bankruptcy to be worthwhile — Restart is not the right tool. */
-    public static EligibilityResult debtTooSmall() {
-        return new EligibilityResult(EligibilityDecision.DEBT_TOO_SMALL, List.of());
+    /** Bankruptcy would not give this person what they came for — and a lawyer would not change it. */
+    public static EligibilityResult notRecommended(List<String> reasons) {
+        return new EligibilityResult(EligibilityDecision.NOT_RECOMMENDED, reasons);
     }
 
     /** Cannot cover the mandatory procedure costs — the court will not start without them. */
