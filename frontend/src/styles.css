@@ -325,6 +325,21 @@ button:disabled {
   text-decoration: underline;
 }
 
+/* The starry panel, moved from the old sign-off to the block that closes the page: warm yellow
+   border over a faint starfield. Decoration only — the green accent still owns every action. */
+.landing-block-starry {
+  padding: 1rem 1.3rem;
+  border: 1px solid rgba(252, 211, 77, 0.2);
+  border-radius: 1.25rem;
+  background-color: rgba(252, 211, 77, 0.045);
+  background-image:
+    radial-gradient(1.4px 1.4px at 14% 26%, var(--star), transparent 60%),
+    radial-gradient(1px 1px at 34% 72%, var(--star), transparent 60%),
+    radial-gradient(1.6px 1.6px at 62% 22%, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(1px 1px at 82% 64%, var(--star), transparent 60%),
+    radial-gradient(1.2px 1.2px at 91% 32%, rgba(255, 255, 255, 0.6), transparent 60%);
+}
+
 .landing-trust {
   margin: 0;
   padding: 0;
