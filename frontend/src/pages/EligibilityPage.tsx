@@ -8,64 +8,43 @@ import {
 
 /**
  * The 2-minute eligibility check. It opens with a plain-language "what bankruptcy means"
- * checklist (the consequences screen), then walks five grouped screens of questions.
+ * checklist (the consequences screen), then walks grouped screens of questions.
  * All decision logic lives in the backend; this screen only collects answers.
+ *
+ * The order of the questions is the story of the debts: how much and of what kind → whether the
+ * person can pay → when the debts arose and whether more was borrowed after the trouble started →
+ * what they own → business → deals → family → courts and money → special obligations → costs →
+ * what they want to do. Two follow-ups appear only when the answer before them calls for it.
  *
  * PLACEHOLDER: the consequences and the questions are pending lawyer review.
  */
 
-/** Boolean answer fields a question option can switch on. */
-type BoolField =
-  | 'hasCar'
-  | 'hasExtraRealEstate'
-  | 'hasBusiness'
-  | 'marriedOrDivorcing'
-  | 'soldOrGiftedAssetsRecently'
-  | 'onlyConsumerDebts'
-  | 'hasForeignAssets'
-  | 'hasLawsuits'
-  | 'hasEnforcementProceedings'
-  | 'movedMoneyBeforeFiling'
-  | 'hasAlimonyDebt'
-  | 'hasLifeHealthHarmDebt'
-  | 'hasEconomicCriminalCase'
-  | 'guaranteedOthersDebt'
-  | 'incomeUnofficial'
-  | 'largeThirdPartyDeposits';
-
-type Patch = Partial<EligibilityAnswers>;
-
-interface SingleOption {
-  key: string;
+/** One tappable answer. Options carry no emoji — only questions and group headings do. */
+interface Option {
+  value: string;
   label: string;
-  patch: Patch;
 }
 
-/** An option with no field is the exclusive "nothing of the sort" choice. */
-interface MultiOption {
-  key: string;
-  label: string;
-  field?: BoolField;
+interface BaseQuestion {
+  id: string;
+  /** Which answer field this question fills in. */
+  field: keyof EligibilityAnswers;
+  emoji: string;
+  text: string;
+  note?: string;
+  options: Option[];
+  /** Shown only when the answers so far call for it. */
+  when?: (picked: Picked) => boolean;
 }
 
-interface SingleQuestion {
+interface SingleQuestion extends BaseQuestion {
   kind: 'single';
-  id: string;
-  emoji: string;
-  text: string;
-  note?: string;
-  options: SingleOption[];
 }
 
-interface MultiQuestion {
+interface MultiQuestion extends BaseQuestion {
   kind: 'multi';
-  id: string;
-  emoji: string;
-  text: string;
-  note?: string;
-  /** Every field this question owns — all reset to false before the picks are applied. */
-  fields: BoolField[];
-  options: MultiOption[];
+  /** The "nothing of the sort" answer — exclusive with every other option, both ways. */
+  exclusive: string;
 }
 
 type Question = SingleQuestion | MultiQuestion;
@@ -76,6 +55,11 @@ interface Group {
   questions: Question[];
 }
 
+/** questionId → chosen option values (a single-choice question keeps exactly one). */
+type Picked = Record<string, string[]>;
+
+const chose = (picked: Picked, id: string, value: string) => (picked[id] ?? []).includes(value);
+
 const GROUPS: Group[] = [
   {
     emoji: '💸',
@@ -83,45 +67,95 @@ const GROUPS: Group[] = [
     questions: [
       {
         kind: 'single',
-        id: 'debt',
+        id: 'debtRange',
+        field: 'debtRange',
         emoji: '💰',
         text: 'Сколько у вас долгов примерно?',
         options: [
-          { key: 'under', label: 'До 350 тыс ₽', patch: { debtRange: 'UNDER_350K' } },
-          {
-            key: 'mid',
-            label: '350 тыс – 3 млн ₽',
-            patch: { debtRange: 'FROM_350K_TO_3M' },
-          },
-          { key: 'over', label: 'Больше 3 млн ₽', patch: { debtRange: 'OVER_3M' } },
+          { value: 'UNDER_500K', label: 'До 500 тыс. ₽' },
+          { value: 'FROM_500K_TO_1M', label: '500 тыс. – 1 млн ₽' },
+          { value: 'FROM_1M_TO_3M', label: '1–3 млн ₽' },
+          { value: 'OVER_3M', label: 'Больше 3 млн ₽' },
+          { value: 'UNKNOWN', label: 'Не знаю' },
         ],
       },
       {
-        kind: 'single',
-        id: 'debtKind',
+        kind: 'multi',
+        id: 'debtTypes',
+        field: 'debtTypes',
         emoji: '🧾',
-        text: 'Из чего состоят ваши долги?',
+        text: 'Какие у вас долги?',
+        note: 'Можно выбрать несколько вариантов.',
+        exclusive: 'UNKNOWN',
         options: [
-          {
-            key: 'consumer',
-            label: 'Кредиты, карты, микрозаймы, рассрочки',
-            patch: { onlyConsumerDebts: true },
-          },
-          {
-            key: 'other',
-            label: 'Есть ещё другие долги (налоги, долги людям, штрафы и т.д.)',
-            patch: { onlyConsumerDebts: false },
-          },
+          { value: 'CREDITS', label: 'Кредиты и кредитные карты' },
+          { value: 'MICROLOANS', label: 'Микрозаймы' },
+          { value: 'INSTALMENTS', label: 'Рассрочки' },
+          { value: 'TAXES', label: 'Налоги' },
+          { value: 'PRIVATE_PERSONS', label: 'Долги людям' },
+          { value: 'ALIMONY', label: 'Алименты' },
+          { value: 'LIFE_HEALTH_HARM', label: 'Возмещение вреда жизни или здоровью' },
+          { value: 'OTHER', label: 'Другое' },
+          { value: 'UNKNOWN', label: 'Не знаю' },
+        ],
+      },
+    ],
+  },
+  {
+    emoji: '📉',
+    title: 'Платежи',
+    questions: [
+      {
+        kind: 'single',
+        id: 'paymentStatus',
+        field: 'paymentStatus',
+        emoji: '📆',
+        text: 'Что сейчас происходит с платежами по долгам?',
+        options: [
+          { value: 'ON_TIME', label: 'Плачу всё вовремя' },
+          { value: 'SOME_OVERDUE', label: 'Есть отдельные просрочки' },
+          { value: 'CANNOT_PAY_MOST', label: 'Не могу платить по большинству долгов' },
+          { value: 'NOT_PAYING_FOR_MONTHS', label: 'Не плачу уже несколько месяцев' },
+          { value: 'NEW_LOANS_FOR_OLD', label: 'Беру новые займы, чтобы платить старые' },
         ],
       },
       {
         kind: 'single',
-        id: 'creditors',
-        emoji: '👥',
-        text: 'Скольким банкам, компаниям или людям вы должны?',
+        id: 'loanAge',
+        field: 'loanAge',
+        emoji: '🕰️',
+        text: 'Когда вы брали основные кредиты?',
         options: [
-          { key: 'few', label: '5 или меньше', patch: { manyCreditors: false } },
-          { key: 'many', label: 'Больше 5', patch: { manyCreditors: true } },
+          { value: 'OVER_YEAR_AGO', label: 'Больше года назад' },
+          { value: 'WITHIN_LAST_YEAR', label: 'В течение последнего года' },
+          { value: 'LAST_3_MONTHS', label: 'В последние 3 месяца' },
+          { value: 'DONT_REMEMBER', label: 'Не помню' },
+        ],
+      },
+      {
+        kind: 'single',
+        id: 'knewCouldNotRepay',
+        field: 'knewCouldNotRepay',
+        emoji: '🤔',
+        text: 'Вы брали новые кредиты или займы, уже понимая, что не сможете их погашать?',
+        when: (picked) => chose(picked, 'loanAge', 'LAST_3_MONTHS'),
+        options: [
+          { value: 'NO', label: 'Нет' },
+          { value: 'YES', label: 'Да' },
+          { value: 'UNSURE', label: 'Не уверен(а)' },
+        ],
+      },
+      {
+        kind: 'single',
+        id: 'newLoansAfterTrouble',
+        field: 'newLoansAfterTrouble',
+        emoji: '🔁',
+        text: 'После того как начались серьёзные проблемы с платежами, '
+          + 'вы брали новые кредиты или займы?',
+        options: [
+          { value: 'NO', label: 'Нет' },
+          { value: 'YES', label: 'Да' },
+          { value: 'UNSURE', label: 'Не помню' },
         ],
       },
     ],
@@ -133,153 +167,179 @@ const GROUPS: Group[] = [
       {
         kind: 'multi',
         id: 'property',
-        emoji: '🚗',
-        text: 'Есть ли у вас что-то ценное в собственности?',
-        note: 'Можно выбрать несколько вариантов',
-        fields: ['hasCar', 'hasExtraRealEstate'],
+        field: 'property',
+        emoji: '🔑',
+        text: 'Есть ли у вас имущество?',
+        note: 'Можно выбрать несколько вариантов.',
+        exclusive: 'NOTHING',
         options: [
-          { key: 'car', label: 'Машина или мотоцикл', field: 'hasCar' },
-          {
-            key: 'realEstate',
-            label: 'Недвижимость (кроме единственного жилья)',
-            field: 'hasExtraRealEstate',
-          },
-          { key: 'none', label: 'Ничего такого нет' },
+          { value: 'NOTHING', label: 'Ничего, кроме обычных личных вещей' },
+          { value: 'VEHICLE', label: 'Автомобиль или мотоцикл' },
+          { value: 'HOME', label: 'Квартира или дом' },
+          { value: 'LAND', label: 'Земельный участок' },
+          { value: 'PROPERTY_SHARE', label: 'Доля в недвижимости' },
+          { value: 'OTHER', label: 'Другое имущество' },
+          { value: 'UNKNOWN', label: 'Не знаю' },
         ],
       },
       {
         kind: 'single',
-        id: 'business',
+        id: 'businessStatus',
+        field: 'businessStatus',
         emoji: '💼',
-        text: 'Есть ли у вас бизнес?',
-        note: 'Самозанятость без ИП здесь не считается бизнесом: банкротство проходит как '
-          + 'у обычного человека, по общим правилам.',
+        text: 'Есть ли у вас или был недавно статус ИП или бизнес?',
         options: [
-          { key: 'no', label: 'Нет', patch: { hasBusiness: false } },
-          {
-            key: 'selfEmployed',
-            label: 'Я самозанятый, ИП не оформлял(а)',
-            patch: { hasBusiness: false },
-          },
-          {
-            key: 'yes',
-            label: 'Да, я ИП или владею компанией',
-            patch: { hasBusiness: true },
-          },
+          { value: 'NONE', label: 'Нет' },
+          { value: 'SELF_EMPLOYED', label: 'Я самозанятый, но ИП не оформлял(а)' },
+          { value: 'CURRENT_ENTREPRENEUR', label: 'Я сейчас ИП' },
+          { value: 'RECENTLY_CLOSED_ENTREPRENEUR', label: 'Я недавно закрыл(а) ИП' },
+          { value: 'COMPANY_OWNER', label: 'Владею компанией или долей в компании' },
         ],
       },
     ],
   },
   {
     emoji: '📋',
-    title: 'Ваша ситуация',
+    title: 'Сделки и семья',
     questions: [
       {
         kind: 'single',
-        id: 'deals',
-        emoji: '🎁',
-        text: 'Были ли за последние 3 года крупные сделки?',
-        note: 'Например: продажа квартиры, машины, дарение имущества.',
+        id: 'soldOrGiftedAssets',
+        field: 'soldOrGiftedAssets',
+        emoji: '🤝',
+        text: 'За последние 3 года вы продавали или дарили имущество?',
         options: [
-          { key: 'no', label: 'Нет', patch: { soldOrGiftedAssetsRecently: false } },
-          { key: 'yes', label: 'Да', patch: { soldOrGiftedAssetsRecently: true } },
-        ],
-      },
-      {
-        kind: 'single',
-        id: 'marriage',
-        emoji: '💍',
-        text: 'Вы состоите в браке или развелись в последние 3 года?',
-        options: [
-          { key: 'no', label: 'Нет', patch: { marriedOrDivorcing: false } },
-          { key: 'married', label: 'Да, состою в браке', patch: { marriedOrDivorcing: true } },
-          {
-            key: 'divorced',
-            label: 'Да, развёлся(лась) менее 3 лет назад',
-            patch: { marriedOrDivorcing: true },
-          },
+          { value: 'NO', label: 'Нет' },
+          { value: 'YES', label: 'Да' },
+          { value: 'UNSURE', label: 'Не уверен(а)' },
         ],
       },
       {
         kind: 'multi',
-        id: 'foreign',
-        emoji: '🌍',
-        text: 'Есть ли что-то из этого?',
-        note: 'Можно выбрать несколько вариантов',
-        fields: ['hasForeignAssets', 'hasLawsuits', 'hasEnforcementProceedings'],
+        id: 'dealAssets',
+        field: 'dealAssets',
+        emoji: '📦',
+        text: 'Что именно вы продавали или дарили?',
+        note: 'Можно выбрать несколько вариантов.',
+        when: (picked) => chose(picked, 'soldOrGiftedAssets', 'YES'),
+        exclusive: 'DONT_REMEMBER',
         options: [
-          {
-            key: 'abroad',
-            label: 'Имущество или счета за границей',
-            field: 'hasForeignAssets',
-          },
-          {
-            key: 'lawsuits',
-            label: 'Против вас уже идёт суд — по долгам или по имуществу',
-            field: 'hasLawsuits',
-          },
-          {
-            key: 'bailiffs',
-            label: 'Приставы уже взыскивают с вас долг',
-            field: 'hasEnforcementProceedings',
-          },
-          { key: 'none', label: 'Ничего из этого' },
+          { value: 'REAL_ESTATE', label: 'Квартиру или дом' },
+          { value: 'LAND', label: 'Землю' },
+          { value: 'VEHICLE', label: 'Автомобиль' },
+          { value: 'OTHER_PROPERTY', label: 'Другое имущество' },
+          { value: 'MONEY', label: 'Деньги или другое' },
+          { value: 'DONT_REMEMBER', label: 'Не помню' },
+        ],
+      },
+      {
+        kind: 'single',
+        id: 'maritalStatus',
+        field: 'maritalStatus',
+        emoji: '💍',
+        text: 'Состоите ли вы сейчас в браке или были в браке в последние 3 года?',
+        options: [
+          { value: 'NO', label: 'Нет' },
+          { value: 'MARRIED', label: 'Да, сейчас в браке' },
+          { value: 'DIVORCED_WITHIN_3_YEARS', label: 'Да, развёлся(лась) менее 3 лет назад' },
         ],
       },
     ],
   },
   {
     emoji: '🔎',
-    title: 'Важные детали',
+    title: 'Суды и счета',
     questions: [
       {
-        kind: 'multi',
-        id: 'risks',
-        emoji: '🔎',
-        text: 'Было ли у вас что-то из этого?',
-        note: 'Отметьте всё, что подходит. Если ничего — выберите последний вариант.',
-        fields: [
-          'movedMoneyBeforeFiling',
-          'hasAlimonyDebt',
-          'hasLifeHealthHarmDebt',
-          'hasEconomicCriminalCase',
-          'guaranteedOthersDebt',
-          'incomeUnofficial',
-          'largeThirdPartyDeposits',
-        ],
+        kind: 'single',
+        id: 'hasForeignAssets',
+        field: 'hasForeignAssets',
+        emoji: '🌍',
+        text: 'Есть ли у вас имущество или банковские счета за пределами России?',
         options: [
+          { value: 'false', label: 'Нет' },
+          { value: 'true', label: 'Да' },
+        ],
+      },
+      {
+        kind: 'single',
+        id: 'hasLawsuits',
+        field: 'hasLawsuits',
+        emoji: '⚖️',
+        text: 'Есть ли сейчас судебные дела, связанные с вашими долгами или имуществом?',
+        options: [
+          { value: 'NO', label: 'Нет' },
+          { value: 'YES', label: 'Да' },
+          { value: 'UNSURE', label: 'Не знаю' },
+        ],
+      },
+      {
+        kind: 'single',
+        id: 'hasEnforcementProceedings',
+        field: 'hasEnforcementProceedings',
+        emoji: '📬',
+        text: 'Есть ли сейчас исполнительные производства у приставов?',
+        note: 'Это обычная ситуация при долгах — ответ ни на что не повлияет, '
+          + 'но помогает понять картину.',
+        options: [
+          { value: 'NO', label: 'Нет' },
+          { value: 'YES', label: 'Да' },
+          { value: 'UNSURE', label: 'Не знаю' },
+        ],
+      },
+    ],
+  },
+  {
+    emoji: '💳',
+    title: 'Деньги и обязательства',
+    questions: [
+      {
+        kind: 'single',
+        id: 'unusualMoneyOperations',
+        field: 'unusualMoneyOperations',
+        emoji: '💸',
+        text: 'За последний год были крупные или необычные операции по вашим счетам?',
+        options: [
+          { value: 'NO', label: 'Нет' },
+          { value: 'YES', label: 'Да' },
+          { value: 'UNSURE', label: 'Не уверен(а)' },
+        ],
+      },
+      {
+        kind: 'multi',
+        id: 'moneyOperations',
+        field: 'moneyOperations',
+        emoji: '🧮',
+        text: 'Что происходило?',
+        note: 'Можно выбрать несколько вариантов.',
+        when: (picked) => chose(picked, 'unusualMoneyOperations', 'YES'),
+        exclusive: 'OTHER',
+        options: [
+          { value: 'LARGE_CASH_WITHDRAWALS', label: 'Снимал(а) крупные суммы наличными' },
+          { value: 'TRANSFERS_TO_OTHERS', label: 'Переводил(а) деньги другим людям' },
+          { value: 'RECEIPTS_FROM_OTHERS', label: 'Получал(а) крупные суммы от других людей' },
+          { value: 'BETWEEN_OWN_ACCOUNTS', label: 'Переводил(а) деньги между своими счетами' },
+          { value: 'OTHER', label: 'Другое' },
+        ],
+      },
+      {
+        kind: 'multi',
+        id: 'specialCircumstances',
+        field: 'specialCircumstances',
+        emoji: '⚠️',
+        text: 'Есть ли у вас что-то из этого?',
+        note: 'Можно выбрать несколько вариантов.',
+        exclusive: 'NONE',
+        options: [
+          { value: 'ALIMONY_DEBT', label: 'Есть долги по алиментам' },
+          { value: 'LIFE_HEALTH_HARM_DEBT', label: 'Есть долг за вред жизни или здоровью' },
           {
-            key: 'movedMoney',
-            label: 'Снимали или переводили крупные суммы со счетов в последнее время',
-            field: 'movedMoneyBeforeFiling',
-          },
-          { key: 'alimony', label: 'Есть долги по алиментам', field: 'hasAlimonyDebt' },
-          {
-            key: 'harm',
-            label: 'Есть долги за вред здоровью или жизни человека',
-            field: 'hasLifeHealthHarmDebt',
-          },
-          {
-            key: 'criminal',
+            value: 'ECONOMIC_CRIMINAL_CASE',
             label: 'Есть уголовное дело, связанное с деньгами или бизнесом',
-            field: 'hasEconomicCriminalCase',
           },
-          {
-            key: 'guarantee',
-            label: 'Поручались по чужому кредиту',
-            field: 'guaranteedOthersDebt',
-          },
-          {
-            key: 'income',
-            label: 'Доход неофициальный или его сложно подтвердить',
-            field: 'incomeUnofficial',
-          },
-          {
-            key: 'deposits',
-            label: 'На счёт приходили крупные суммы от других людей',
-            field: 'largeThirdPartyDeposits',
-          },
-          { key: 'none', label: 'Ничего из этого нет' },
+          { value: 'GUARANTOR', label: 'Я поручитель по чужому кредиту' },
+          { value: 'OTHER_UNUSUAL', label: 'Есть другое необычное обязательство' },
+          { value: 'NONE', label: 'Ничего из этого' },
         ],
       },
     ],
@@ -290,123 +350,90 @@ const GROUPS: Group[] = [
     questions: [
       {
         kind: 'single',
-        id: 'costs',
-        emoji: '💳',
-        text: 'Готовы ли вы к обязательным расходам?',
-        note: 'Даже если делать всё самостоятельно, будут обязательные платежи: депозит для '
-          + 'суда, публикации, письма. Обычно это 45–100 тыс ₽.',
+        id: 'costsReadiness',
+        field: 'costsReadiness',
+        emoji: '🧾',
+        text: 'Готовы ли вы оплатить обязательные расходы процедуры?',
+        note: 'Даже при самостоятельной подаче есть обязательные расходы: работа управляющего, '
+          + 'публикации, почта. Точная сумма зависит от ситуации.',
         options: [
-          {
-            key: 'ready',
-            label: 'Да, готов(а) к таким расходам',
-            patch: { notReadyForCosts: false },
-          },
-          {
-            key: 'notReady',
-            label: 'Нет, таких денег сейчас нет',
-            patch: { notReadyForCosts: true },
-          },
+          { value: 'READY', label: 'Да' },
+          { value: 'UNSURE', label: 'Пока не уверен(а)' },
+          { value: 'NO_MONEY', label: 'Сейчас денег на это нет' },
         ],
       },
       {
         kind: 'single',
-        id: 'path',
-        emoji: '🚀',
-        text: 'Как хотите пройти процедуру?',
+        id: 'preferredPath',
+        field: 'preferredPath',
+        emoji: '🧭',
+        text: 'Что вы хотите сделать сейчас?',
         options: [
-          {
-            key: 'self',
-            label: 'Хочу всё сделать сам через приложение',
-            patch: { preferredPath: 'SELF_SERVICE' },
-          },
-          {
-            key: 'lawyer',
-            label: 'Хочу помощь юриста',
-            patch: { preferredPath: 'LAWYER' },
-          },
-          {
-            key: 'exploring',
-            label: 'Пока просто хочу разобраться',
-            patch: { preferredPath: 'EXPLORING' },
-          },
+          { value: 'SELF_SERVICE', label: 'Хочу пройти всё самостоятельно' },
+          { value: 'LAWYER', label: 'Хочу помощь юриста' },
+          { value: 'EXPLORING', label: 'Пока просто хочу разобраться' },
         ],
       },
     ],
   },
 ];
 
-/**
- * Consequences of court bankruptcy — each with a plain-language explanation revealed on tap.
- * PLACEHOLDER — wording and the exact legal periods are pending lawyer review.
- */
 const CONSEQUENCES: { title: string; detail: string }[] = [
   {
     title: 'Имущество могут продать на торгах.',
-    detail: 'За исключением имущества, которое защищено законом (например, единственного жилья, '
-      + 'если оно не находится в ипотеке). Вырученные средства направляются на погашение долгов '
-      + 'перед кредиторами.',
+    detail: 'Единственное жильё обычно остаётся с вами. Всё остальное ценное — машина, вторая '
+      + 'квартира, дорогая техника — может уйти на торги, чтобы рассчитаться с долгами.',
   },
   {
     title: 'В течение 5 лет нужно сообщать о банкротстве при получении кредита или займа.',
-    detail: 'Если вы обращаетесь за кредитом или займом, вы обязаны уведомить кредитора о том, '
-      + 'что проходили процедуру банкротства.',
+    detail: 'Отказать вам не обязаны, но знать об этом банк должен. Проще говоря: новые кредиты '
+      + 'какое-то время будут даваться тяжелее.',
   },
   {
     title: 'Действуют ограничения на руководящие должности.',
-    detail: 'В течение 3 лет нельзя руководить юридическим лицом, в течение 5 лет — страховой '
-      + 'компанией, микрофинансовой организацией, НПФ или инвестиционным фондом, а в течение '
-      + '10 лет — банком.',
+    detail: 'Три года нельзя руководить компанией. Работать по найму, в том числе на хорошей '
+      + 'должности, это не мешает.',
   },
   {
     title: 'Повторное банкротство возможно только через 5 лет.',
-    detail: 'В течение этого срока нельзя повторно обратиться в суд с заявлением о собственном '
-      + 'банкротстве.',
+    detail: 'Если долги появятся снова, пройти процедуру ещё раз получится не сразу.',
   },
   {
     title: 'Во время процедуры финансами распоряжается финансовый управляющий.',
-    detail: 'Он контролирует счета, имущество и сделки должника, а также проводит расчёты с '
-      + 'кредиторами в порядке, установленном законом.',
+    detail: 'Он контролирует счета и крупные операции, пока идёт дело. Это временно и касается '
+      + 'только периода процедуры.',
   },
   {
     title: 'Не все долги списываются.',
-    detail: 'Не подлежат списанию, например, алименты, требования о возмещении вреда жизни или '
-      + 'здоровью и некоторые другие обязательства, перечисленные в законе.',
+    detail: 'Алименты и возмещение вреда жизни или здоровью остаются с вами в любом случае.',
   },
   {
     title: 'Если вы были ИП, статус предпринимателя прекращается.',
-    detail: 'После признания банкротом регистрация в качестве ИП прекращается, а повторно '
-      + 'зарегистрироваться в качестве ИП можно только через 5 лет. Самозанятости без ИП это '
-      + 'не касается: такое банкротство проходит как у обычного человека, по общим правилам.',
+    detail: 'И год после этого зарегистрировать ИП снова не получится.',
   },
 ];
 
-/** questionId → chosen option keys (a single-choice question keeps exactly one). */
-type Picked = Record<string, string[]>;
+/** Every question that is actually on screen right now — the follow-ups appear as answers land. */
+function visibleQuestions(group: Group, picked: Picked): Question[] {
+  return group.questions.filter((question) => !question.when || question.when(picked));
+}
 
+/** Turns the taps into the payload the backend expects. */
 function buildAnswers(picked: Picked): EligibilityAnswers {
-  let answers: Patch = {};
+  const answers: Record<string, unknown> = {};
   for (const group of GROUPS) {
-    for (const question of group.questions) {
+    for (const question of visibleQuestions(group, picked)) {
       const chosen = picked[question.id] ?? [];
-      if (question.kind === 'single') {
-        const option = question.options.find((o) => o.key === chosen[0]);
-        if (option) {
-          answers = { ...answers, ...option.patch };
-        }
+      if (question.kind === 'multi') {
+        answers[question.field] = chosen;
+      } else if (question.field === 'hasForeignAssets') {
+        answers[question.field] = chosen[0] === 'true';
       } else {
-        for (const field of question.fields) {
-          answers = { ...answers, [field]: false };
-        }
-        for (const key of chosen) {
-          const option = question.options.find((o) => o.key === key);
-          if (option?.field) {
-            answers = { ...answers, [option.field]: true };
-          }
-        }
+        answers[question.field] = chosen[0];
       }
     }
   }
-  return answers as EligibilityAnswers;
+  return answers as unknown as EligibilityAnswers;
 }
 
 export default function EligibilityPage() {
@@ -430,22 +457,21 @@ export default function EligibilityPage() {
     }
   };
 
-  const choose = (question: Question, key: string) => {
+  const choose = (question: Question, value: string) => {
     setIncomplete(false);
     setPicked((current) => {
       if (question.kind === 'single') {
-        return { ...current, [question.id]: [key] };
+        return { ...current, [question.id]: [value] };
       }
       const chosen = current[question.id] ?? [];
-      const option = question.options.find((o) => o.key === key);
       // The "nothing of the sort" option is exclusive both ways.
-      if (!option?.field) {
-        return { ...current, [question.id]: [key] };
+      if (value === question.exclusive) {
+        return { ...current, [question.id]: [value] };
       }
-      const withoutNone = chosen.filter((k) => question.options.find((o) => o.key === k)?.field);
-      const next = withoutNone.includes(key)
-        ? withoutNone.filter((k) => k !== key)
-        : [...withoutNone, key];
+      const withoutExclusive = chosen.filter((v) => v !== question.exclusive);
+      const next = withoutExclusive.includes(value)
+        ? withoutExclusive.filter((v) => v !== value)
+        : [...withoutExclusive, value];
       return { ...current, [question.id]: next };
     });
   };
@@ -477,8 +503,9 @@ export default function EligibilityPage() {
   }
 
   const group = GROUPS[groupIndex];
+  const questions = visibleQuestions(group, picked);
   const isLast = groupIndex === GROUPS.length - 1;
-  const groupAnswered = group.questions.every((q) => (picked[q.id] ?? []).length > 0);
+  const groupAnswered = questions.every((q) => (picked[q.id] ?? []).length > 0);
 
   const goNext = () => {
     if (!groupAnswered) {
@@ -514,7 +541,7 @@ export default function EligibilityPage() {
         {group.emoji} {group.title} · шаг {groupIndex + 1} из {GROUPS.length}
       </p>
 
-      {group.questions.map((question) => {
+      {questions.map((question) => {
         const chosen = picked[question.id] ?? [];
         return (
           <fieldset key={question.id} className="q">
@@ -525,11 +552,11 @@ export default function EligibilityPage() {
             <div className="check-options">
               {question.options.map((option) => (
                 <button
-                  key={option.key}
+                  key={option.value}
                   type="button"
-                  aria-pressed={chosen.includes(option.key)}
-                  className={`check-option${chosen.includes(option.key) ? ' check-option-selected' : ''}`}
-                  onClick={() => choose(question, option.key)}
+                  aria-pressed={chosen.includes(option.value)}
+                  className={`check-option${chosen.includes(option.value) ? ' check-option-selected' : ''}`}
+                  onClick={() => choose(question, option.value)}
                 >
                   {option.label}
                 </button>
@@ -607,8 +634,8 @@ function ResultScreen({ result }: { result: EligibilityResult }) {
       <main className="check">
         <h1 className="check-question">Пока лучше подождать: будут обязательные расходы</h1>
         <p className="check-hint">
-          Даже при самостоятельном банкротстве суд не начнёт процедуру без обязательных
-          платежей — это депозит, публикации и письма, обычно 45–100 тысяч ₽.
+          Суд не начнёт процедуру без обязательных платежей — это работа управляющего, публикации
+          и письма.
         </p>
         <p className="check-hint">
           Вернитесь, когда получится отложить эту сумму, — со всем остальным мы поможем.
@@ -617,17 +644,19 @@ function ResultScreen({ result }: { result: EligibilityResult }) {
       </main>
     );
   }
-  if (result.decision === 'DEBT_TOO_SMALL') {
+  if (result.decision === 'NOT_RECOMMENDED') {
     return (
       <main className="check">
-        <h1 className="check-question">Для такого долга банкротство обычно не нужно</h1>
+        <h1 className="check-question">Похоже, банкротство вам сейчас не поможет</h1>
+        <p className="check-hint">Вот почему:</p>
+        <ul className="check-reasons">
+          {result.reasons.map((reason) => (
+            <li key={reason}>{reason}</li>
+          ))}
+        </ul>
         <p className="check-hint">
-          При долге меньше 350 тысяч ₽ проходить банкротство чаще всего невыгодно: процедура
-          долгая и с последствиями, а с такой суммой обычно можно справиться проще.
-        </p>
-        <p className="check-hint">
-          Поэтому «Рестарт» здесь не поможет. Если долг вырастет или ситуация изменится —
-          возвращайтесь.
+          Мы могли бы провести вас по шагам, но это было бы нечестно: процедура не даст того,
+          ради чего вы её начинаете. Если ситуация изменится — возвращайтесь.
         </p>
         <Link to="/" className="check-back">На главную</Link>
       </main>

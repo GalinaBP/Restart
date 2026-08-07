@@ -43,58 +43,66 @@ class EligibilityControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    /** A plain consumer case; the flag turns on one complexity marker (a car). */
     private static String body(String debtRange, boolean anyMarker) {
         return """
                 {
                   "debtRange": "%s",
-                  "hasCar": %2$b,
-                  "hasExtraRealEstate": false,
-                  "hasBusiness": false,
-                  "marriedOrDivorcing": false,
-                  "soldOrGiftedAssetsRecently": false,
-                  "onlyConsumerDebts": true,
+                  "debtTypes": ["CREDITS"],
+                  "paymentStatus": "CANNOT_PAY_MOST",
+                  "loanAge": "OVER_YEAR_AGO",
+                  "newLoansAfterTrouble": "NO",
+                  "property": [%2$s],
+                  "businessStatus": "NONE",
+                  "soldOrGiftedAssets": "NO",
+                  "maritalStatus": "NO",
                   "hasForeignAssets": false,
-                  "hasLawsuits": false,
-                  "hasEnforcementProceedings": false,
-                  "movedMoneyBeforeFiling": false,
-                  "hasAlimonyDebt": false,
-                  "hasLifeHealthHarmDebt": false,
-                  "hasEconomicCriminalCase": false,
-                  "guaranteedOthersDebt": false,
-                  "incomeUnofficial": false,
-                  "largeThirdPartyDeposits": false,
-                  "manyCreditors": false,
-                  "notReadyForCosts": false,
+                  "hasLawsuits": "NO",
+                  "hasEnforcementProceedings": "NO",
+                  "unusualMoneyOperations": "NO",
+                  "specialCircumstances": ["NONE"],
+                  "costsReadiness": "READY",
                   "preferredPath": "SELF_SERVICE"
                 }
-                """.formatted(debtRange, anyMarker);
+                """.formatted(debtRange, anyMarker ? "\"VEHICLE\"" : "\"NOTHING\"");
     }
 
     @Test
     void fittingCaseIsOkAnonymously() throws Exception {
         mockMvc.perform(post("/api/v1/eligibility/check")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body("FROM_350K_TO_3M", false)))
+                        .content(body("FROM_500K_TO_1M", false)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.decision").value("SELF_SERVICE_OK"))
                 .andExpect(jsonPath("$.reasons").isEmpty());
     }
 
     @Test
-    void smallDebtReturnsDebtTooSmall() throws Exception {
+    void debtsThatSurviveBankruptcyAreNotRecommended() throws Exception {
         mockMvc.perform(post("/api/v1/eligibility/check")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body("UNDER_350K", false)))
+                        .content(body("FROM_500K_TO_1M", false)
+                                .replace("[\"CREDITS\"]", "[\"CREDITS\", \"ALIMONY\"]")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.decision").value("DEBT_TOO_SMALL"))
-                .andExpect(jsonPath("$.reasons").isEmpty());
+                .andExpect(jsonPath("$.decision").value("NOT_RECOMMENDED"))
+                .andExpect(jsonPath("$.reasons[0]").isNotEmpty());
+    }
+
+    @Test
+    void theSmallestDebtStillFits() throws Exception {
+        // The size of the debt decides nothing on its own — it is collected, not judged.
+        mockMvc.perform(post("/api/v1/eligibility/check")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("UNDER_500K", false)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.decision").value("SELF_SERVICE_OK"));
     }
 
     @Test
     void complexCaseReturnsReasons() throws Exception {
         mockMvc.perform(post("/api/v1/eligibility/check")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body("FROM_350K_TO_3M", true)))
+                        .content(body("FROM_500K_TO_1M", true)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.decision").value("NEEDS_LAWYER"))
                 .andExpect(jsonPath("$.reasons[0]").isNotEmpty());
@@ -104,7 +112,7 @@ class EligibilityControllerTest {
     void missingAnswerIsValidationError() throws Exception {
         mockMvc.perform(post("/api/v1/eligibility/check")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"debtRange\":\"FROM_350K_TO_3M\"}"))
+                        .content("{\"debtRange\":\"FROM_500K_TO_1M\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.fieldErrors").isNotEmpty());

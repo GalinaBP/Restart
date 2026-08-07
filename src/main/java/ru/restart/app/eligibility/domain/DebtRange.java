@@ -1,12 +1,17 @@
 package ru.restart.app.eligibility.domain;
 
 /**
- * Coarse debt-size buckets around the product's 350k–3M ₽ focus (see the constitution). Ranges
- * instead of exact amounts: the user answers in one tap and no financial data is collected at
- * this stage.
+ * Coarse debt-size buckets. Ranges instead of exact amounts: the user answers in one tap and no
+ * financial data is collected at this stage.
+ *
+ * <p>The size of the debt <strong>never decides the outcome on its own</strong>. It says nothing
+ * about whether a person can carry the procedure themselves, which is the only thing this check
+ * tries to find out. PLACEHOLDER pending lawyer review.
  */
 public enum DebtRange {
-    UNDER_350K,
-    FROM_350K_TO_3M,
-    OVER_3M
+    UNDER_500K,
+    FROM_500K_TO_1M,
+    FROM_1M_TO_3M,
+    OVER_3M,
+    UNKNOWN
 }

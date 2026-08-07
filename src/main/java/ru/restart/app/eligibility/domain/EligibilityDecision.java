@@ -7,10 +7,11 @@ public enum EligibilityDecision {
     /** The case has complexity markers; per the constitution we honestly route to a lawyer. */
     NEEDS_LAWYER,
     /**
-     * The debt is so small that a court bankruptcy is usually not worthwhile. Restart is not the
-     * right tool — but this is honestly <em>not</em> a "needs a lawyer" case.
+     * Bankruptcy is unlikely to give this person what they came for — the debts that weigh on them
+     * are not written off, or there is nothing here a bankruptcy would solve. Honestly
+     * <em>not</em> a "needs a lawyer" case: a lawyer would change nothing.
      */
-    DEBT_TOO_SMALL,
+    NOT_RECOMMENDED,
     /**
      * The person cannot cover the mandatory procedure costs (court deposit, publications,
      * postage). The court will not start without them, and a lawyer would only cost more —
