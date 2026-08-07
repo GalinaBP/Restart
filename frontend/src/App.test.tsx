@@ -11,7 +11,7 @@ describe('App', () => {
     );
     expect(screen.getByRole('heading', { name: 'Рестарт' })).toBeInTheDocument();
     // The page opens on the visitor's situation, not on what the service technically is.
-    expect(screen.getByText(/Начните новую финансовую жизнь/)).toBeInTheDocument();
+    expect(screen.getByText(/Начните путь к списанию долгов/)).toBeInTheDocument();
     expect(screen.getByText(/Долги растут, звонят банки/)).toBeInTheDocument();
     expect(
       screen.getByText('Сервис для самостоятельного судебного банкротства'),
@@ -28,7 +28,7 @@ describe('App', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Как это работает' })).toBeInTheDocument();
-    ['Ответите на вопросы', 'Получите план', 'Пойдёте по шагам'].forEach((step) => {
+    ['Ответьте на несколько вопросов', 'Получите план', 'Пойдёте по шагам'].forEach((step) => {
       expect(screen.getByText(step)).toBeInTheDocument();
     });
 
