@@ -22,12 +22,12 @@ import { CALM_CARDS, CALM_INTRO } from './calmContent';
 /** What happens after the button, in the order it happens. */
 const STEPS: { title: string; text: string }[] = [
   {
-    title: 'Ответите на вопросы',
-    text: 'Короткая проверка: подходит ли вам путь без юриста. Анонимно, без регистрации.',
+    title: 'Ответьте на несколько вопросов',
+    text: 'Короткая проверка: можно ли пройти процедуру без юриста. Анонимно, без регистрации.',
   },
   {
     title: 'Получите план',
-    text: 'Увидите весь путь целиком и то, на каком шаге вы сейчас.',
+    text: 'Увидите всю процедуру целиком и то, на каком шаге вы сейчас.',
   },
   {
     title: 'Пойдёте по шагам',
@@ -63,7 +63,7 @@ export default function LandingPage() {
         Войти
       </button>
       <h1 className="landing-brand">Рестарт</h1>
-      <p className="landing-lead">Начните новую финансовую жизнь&nbsp;🚀</p>
+      <p className="landing-lead">Начните путь к списанию долгов&nbsp;🚀</p>
       <p className="landing-sub">
         Долги растут, звонят банки, а что делать дальше — непонятно? Пошагово пройдите процедуру
         банкротства без сложного юридического языка.
