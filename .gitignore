@@ -11,6 +11,13 @@ hs_err_pid*
 replay_pid*
 
 ###############################################################################
+# Build output (Node / frontend)
+###############################################################################
+# Matches at any depth: frontend/node_modules and the node_modules/.vite cache
+# Vite leaves in the repo root when it is run from there.
+node_modules/
+
+###############################################################################
 # Secrets & environment (NEVER commit real secrets)
 ###############################################################################
 .env
