@@ -26,7 +26,7 @@ describe('App', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Как это работает' })).toBeInTheDocument();
-    ['Ответьте на несколько вопросов', 'Получите план', 'Пойдёте по шагам'].forEach((step) => {
+    ['Ответьте на несколько вопросов', 'Получите план', 'Пройдёте процедуру по шагам'].forEach((step) => {
       expect(screen.getByText(step)).toBeInTheDocument();
     });
 
