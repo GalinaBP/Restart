@@ -35,18 +35,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Web-slice test with the real security chain and real use cases; only the repository is mocked.
- * The caller is authenticated by planting the shared {@link AuthenticatedUser} principal directly —
- * token mechanics belong to the auth module and are tested there, not re-imported here.
- */
 @WebMvcTest(CaseController.class)
 @Import({CaseService.class, SecurityContextCurrentUser.class, SecurityConfig.class,
         RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class,
         GlobalExceptionHandler.class, ClockConfig.class, CaseControllerTest.EnableSecurity.class})
 class CaseControllerTest {
 
-    /** See EligibilityControllerTest: Boot 4's web slice needs security switched on explicitly. */
     @TestConfiguration
     @EnableWebSecurity
     static class EnableSecurity {

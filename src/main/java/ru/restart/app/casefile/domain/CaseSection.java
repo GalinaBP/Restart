@@ -3,12 +3,6 @@ package ru.restart.app.casefile.domain;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * The collected data of one section of one case. The payload is kept as the JSON the client
- * submitted (an object, or an array of entry objects for repeatable sections) — field-name
- * screening happens in the application layer against {@link SectionDefinition}; deep value
- * validation is the validation engine's job (backlog AI-003).
- */
 public class CaseSection {
 
     private final UUID id;
@@ -27,7 +21,6 @@ public class CaseSection {
         return new CaseSection(UUID.randomUUID(), caseId, key, payloadJson);
     }
 
-    /** The same section with a replaced payload (used on re-submission of a step). */
     public CaseSection withPayload(String newPayloadJson) {
         return new CaseSection(id, caseId, key, newPayloadJson);
     }

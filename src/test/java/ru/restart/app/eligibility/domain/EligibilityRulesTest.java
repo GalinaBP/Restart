@@ -10,11 +10,6 @@ class EligibilityRulesTest {
 
     private final EligibilityRules rules = new EligibilityRules();
 
-    /**
-     * Fluent builder over the wide answers record — starts from a straightforward fitting case
-     * and each call changes exactly one answer, so tests read by intent and a future question
-     * never touches the existing call sites.
-     */
     private static final class Case {
         private DebtRange debtRange = DebtRange.FROM_500K_TO_1M;
         private List<DebtType> debtTypes = List.of(DebtType.CREDITS);
@@ -181,8 +176,6 @@ class EligibilityRulesTest {
 
     @Test
     void notRecommendedWinsOverEverythingElse() {
-        // A case that is unaffordable AND complicated AND pointless is told the useful thing:
-        // the procedure will not write these debts off, so saving up or lawyering up changes nothing.
         EligibilityResult result = evaluate(Case.fitting()
                 .debts(DebtType.CREDITS, DebtType.ALIMONY)
                 .owns(PropertyItem.VEHICLE)
@@ -216,7 +209,6 @@ class EligibilityRulesTest {
 
     @Test
     void freshLoansAloneAreNotAProblem() {
-        // The age of the loans decides nothing — only the answer about good faith does.
         assertThat(evaluate(Case.fitting().loans(LoanAge.LAST_3_MONTHS, YesNoUnsure.NO)).decision())
                 .isEqualTo(EligibilityDecision.SELF_SERVICE_OK);
         assertThat(evaluate(Case.fitting().loans(LoanAge.DONT_REMEMBER, null)).decision())
@@ -327,11 +319,9 @@ class EligibilityRulesTest {
 
     @Test
     void borrowingToServiceOldDebtsIsSaidOutLoudOnlyAlongsideARealReason() {
-        // On its own it is not a verdict: plenty of people juggle payments that way.
         assertThat(evaluate(Case.fitting().payments(PaymentStatus.NEW_LOANS_FOR_OLD)).decision())
                 .isEqualTo(EligibilityDecision.SELF_SERVICE_OK);
 
-        // Once the case is going to a lawyer anyway, it belongs in the picture they are given.
         EligibilityResult result = evaluate(Case.fitting()
                 .payments(PaymentStatus.NEW_LOANS_FOR_OLD)
                 .abroad());
@@ -349,8 +339,6 @@ class EligibilityRulesTest {
                 .abroad());
 
         assertThat(result.reasons()).hasSize(5);
-        // No statute citations: «ст. 213.4», «п. 2», «127-ФЗ», «Пленум» — that language is for the
-        // lawyer review, never for the person reading the verdict.
         assertThat(result.reasons()).allSatisfy(reason -> assertThat(reason)
                 .doesNotContain("127-ФЗ")
                 .doesNotContain("Пленум")

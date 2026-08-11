@@ -16,12 +16,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * End-to-end account lifecycle over real HTTP against a real MySQL (Flyway-migrated): register →
- * duplicate rejected → login → me → refresh. Ordered because each step builds on the account
- * created first. (Boot 4 dropped TestRestTemplate; plain RestClient with a no-throw status handler
- * plays its role.)
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AuthFlowIntegrationTest extends AbstractIntegrationTest {
 
@@ -40,7 +34,6 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
     void setUpClient() {
         rest = RestClient.builder()
                 .baseUrl("http://localhost:" + port)
-                // Assertions inspect the status themselves; 4xx must not throw.
                 .defaultStatusHandler(status -> true, (request, response) -> { })
                 .build();
     }

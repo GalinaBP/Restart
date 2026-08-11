@@ -2,8 +2,6 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
-// This jsdom build does not expose localStorage; provide a minimal in-memory shim so the
-// app's tokenStore works under test.
 if (typeof globalThis.localStorage === 'undefined') {
   const store = new Map<string, string>();
   const shim: Storage = {

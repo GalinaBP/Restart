@@ -2,7 +2,6 @@ import type { FieldMeta } from '../api/cases';
 import { fieldLabel } from '../api/labels';
 import { inputType } from './sectionForm';
 
-/** One field of one entry: a checkbox for booleans, a typed text input otherwise. */
 export function SectionField({
   sectionKey,
   field,

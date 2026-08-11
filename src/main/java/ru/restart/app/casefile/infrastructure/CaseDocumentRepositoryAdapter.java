@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/** JPA-backed implementation of the generated-documents port; save is an upsert on the id. */
 @Component
 class CaseDocumentRepositoryAdapter implements CaseDocumentRepository {
 

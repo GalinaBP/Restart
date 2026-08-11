@@ -2,11 +2,6 @@ package ru.restart.app.common.error;
 
 import org.springframework.http.HttpStatus;
 
-/**
- * Base type for domain/application-level failures that map to a deterministic HTTP response.
- * Business modules throw subclasses of this; the {@link GlobalExceptionHandler} translates them
- * into an {@link ApiError} without exposing framework internals.
- */
 public abstract class BusinessException extends RuntimeException {
 
     private final ErrorCode errorCode;

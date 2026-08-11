@@ -22,37 +22,10 @@ import { flagClaims, type FlaggedClaim } from './flagClaims';
 import { sortCorrespondence } from './sortCorrespondence';
 import StageEditor from './StageEditor';
 
-/**
- * The stage overview (backlog AI-019): every stage of the court procedure in order, with the
- * current one highlighted and a plain-language description of each. Some stages are derived from
- * the case data itself — screening, document preparation, since AI-021 the fees stage (follows
- * the payments step) and since AI-022 the filing stage (follows the submission step) — and
- * cannot be recorded by hand: the backend refuses that with a 409, and this screen never offers
- * the control in the first place.
- */
-
-/**
- * Stages big enough to be a screen of their own: the card links straight there instead of
- * expanding, because the stage is a whole flow rather than one toggle. «Подготовка документов» is
- * the questionnaire. «Поиск финансового управляющего» has a screen too, but only for its one
- * action — the rest of that stage (its status, the correspondence journal) is recorded here, so
- * its card stays an ordinary expandable one with a link inside.
- */
 const STAGE_SCREENS: Partial<Record<JourneyStageKey, string>> = {
   DOCUMENT_PREPARATION: '/journey',
 };
 
-/**
- * Stages that already have a screen of their own. The later tickets of this epic
- * (AI-025…AI-029) add theirs here as they land; a stage missing from this map simply expands in
- * place instead of dead-ending on a click. A stage may link to more than one screen (AI-023:
- * COURT_DECISION links both to the case's court details and to its hearings).
- */
-/**
- * Stages this screen does not ask the user to record by hand: their card only points at the
- * screen that owns the stage, and offering a status form next to that link asked the same person
- * for the same thing twice. The backend still marks them editable — this is a UI decision.
- */
 const STAGES_WITHOUT_RECORDING: JourneyStageKey[] = ['MANAGER_SELECTION'];
 
 const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: string }[]>> = {
@@ -69,7 +42,6 @@ const STAGE_DETAILS: Partial<Record<JourneyStageKey, { route: string; label: str
   ],
 };
 
-/** «1 позднее срока, 1 оспаривается» — calm, count-based, never alarming (backlog AI-025). */
 function flaggedClaimsSummary(flagged: FlaggedClaim[]): string | null {
   const lateCount = flagged.filter((claim) => claim.late).length;
   const disputedCount = flagged.filter((claim) => claim.disputed).length;
@@ -80,8 +52,6 @@ function flaggedClaimsSummary(flagged: FlaggedClaim[]): string | null {
   return `Есть требования с пометками: ${parts.join(', ')}`;
 }
 
-/** Today as a local 'YYYY-MM-DD' string — matches the plain ISO dates the backend stores, and
- *  sidesteps the timezone traps of comparing `Date` objects. */
 function todayIso(): string {
   const now = new Date();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -89,7 +59,6 @@ function todayIso(): string {
   return `${now.getFullYear()}-${month}-${day}`;
 }
 
-/** 'YYYY-MM-DD' → 'DD.MM.YYYY', the date format used everywhere else in the app. */
 function formatRuDate(iso: string): string {
   const [year, month, day] = iso.split('-');
   return `${day}.${month}.${year}`;
@@ -108,8 +77,6 @@ export default function ProcedurePage() {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
 
-  // Deliberately no synchronous setState here: the effect calls this directly, and the initial
-  // state already is "loading". Retry handlers reset the flags themselves before calling.
   const load = useCallback(async () => {
     try {
       const existing = await currentCase();
@@ -128,14 +95,10 @@ export default function ProcedurePage() {
       ]);
       setJourney(view);
       setFees(feeSchedule);
-      // No hearing recorded yet is the common case for months of the process — guard for it.
       setHearings(Array.isArray(hearingsSection.data) ? hearingsSection.data : null);
       setClaimDeadline(deadline);
-      // No claim filed yet is the common case early in the procedure — guard for it.
       setFiledClaims(Array.isArray(claimsSection.data) ? claimsSection.data : null);
-      // No correspondence recorded yet is the common case — guard for it.
       setCorrespondence(Array.isArray(correspondenceSection.data) ? correspondenceSection.data : null);
-      // Open the one stage that needs attention right now, when it has something to fill in.
       const current = view.stages.find((s) => s.current && s.editable);
       if (current) setExpanded(current.stage);
     } catch {
@@ -161,7 +124,6 @@ export default function ProcedurePage() {
     setExpanded(null);
   };
 
-  /** Records (or corrects, or clears) the court's decision and reveals that branch. */
   const chooseProcedure = async (procedureType: ProcedureBranch | null) => {
     if (!caseId) return;
     setJourney(await recordProcedureType(caseId, procedureType));
@@ -288,8 +250,6 @@ function StageCard({
     </span>
   );
 
-  // A stage whose whole flow is a screen of its own — send the user straight there rather than
-  // offering a dead-end expansion.
   const screen = STAGE_SCREENS[view.stage];
   if (screen) {
     return (
@@ -302,9 +262,6 @@ function StageCard({
     );
   }
 
-  // Derived stages mirror the case data — nothing here to set by hand — but some still have a
-  // screen that feeds them: «Пошлина и депозит» follows the payments step, «Подача в суд»
-  // follows the submission step.
   if (!view.editable) {
     return (
       <li className={cardClass}>
@@ -324,26 +281,18 @@ function StageCard({
       <button type="button" className="procedure-stage-toggle" aria-expanded={expanded} onClick={onToggle}>
         {head}
       </button>
-      {/* Prominent even collapsed (backlog AI-023): a months-long court process must not let an
-          upcoming hearing date get lost. */}
       {view.stage === 'COURT_DECISION' && upcomingHearing && (
         <p className="procedure-hearing-upcoming">
           Ближайшее заседание: {formatRuDate(upcomingHearing.date)}
           {upcomingHearing.subject ? ` — ${upcomingHearing.subject}` : ''}
         </p>
       )}
-      {/* Prominent even collapsed, mirroring the hearing line above (backlog AI-026): the most
-          recent manager correspondence must not get lost over the months a procedure takes.
-          Shown only when at least one entry has been recorded. */}
       {view.stage === 'MANAGER_SELECTION' && typeof correspondence[0]?.date === 'string' && (
         <p className="procedure-correspondence-latest">
           Последняя запись: {formatRuDate(correspondence[0].date)}
           {correspondence[0].type ? ` — ${correspondence[0].type}` : ''}
         </p>
       )}
-      {/* Prominent even collapsed, mirroring the hearing line above (backlog AI-025): the
-          deadline for creditors to file their claims must not get lost over the months a
-          procedure takes. Shown only once a publication date makes it computable. */}
       {view.stage === 'CREDITOR_CLAIMS' && claimDeadline?.deadlineDate && (
         <p className="procedure-claim-deadline">
           Срок предъявления требований: {formatRuDate(claimDeadline.deadlineDate)}
@@ -377,11 +326,6 @@ function StageCard({
   );
 }
 
-/**
- * Records which procedure the court applied (backlog AI-024), revealing that branch of the
- * journey and hiding the other two. Correctable, and clearable back to «ещё не решено»: the app
- * never guesses the outcome, and a user who recorded the wrong one must be able to fix it.
- */
 function ProcedurePicker({
   chosen,
   onChoose,
@@ -447,11 +391,6 @@ function ProcedurePicker({
   );
 }
 
-/**
- * What the filing costs (backlog AI-021). While any amount is still an unreviewed placeholder the
- * figures are labelled a draft and the user is sent to the court's own site — this is the one
- * screen where a wrong number costs real money.
- */
 function FeeBreakdown({ fees }: { fees: FeeScheduleView }) {
   const money = (value: number) =>
     value.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

@@ -11,14 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-/**
- * Fine-grained architecture rules that complement Spring Modulith's module-boundary checks. These
- * assert the internal layering convention (domain → application → infrastructure) and keep the
- * {@code common} module free of dependencies on business modules.
- *
- * <p>Rules use {@code allowEmptyShould(true)} so they remain green while modules are still being
- * scaffolded, and start biting as soon as the relevant packages exist.
- */
 class LayeredArchitectureTest {
 
     private static final String ROOT = "ru.restart.app";
@@ -42,8 +34,6 @@ class LayeredArchitectureTest {
 
     @Test
     void domainMustNotDependOnWebOrPersistenceFrameworks() {
-        // Neutral pagination value types (org.springframework.data.domain: Page/Pageable/Sort) are
-        // allowed in domain repository interfaces; JPA and web frameworks are not.
         ArchRule rule = noClasses()
                 .that().resideInAPackage("..domain..")
                 .should().dependOnClassesThat().resideInAnyPackage(
@@ -66,8 +56,6 @@ class LayeredArchitectureTest {
 
     @Test
     void commonMustNotDependOnBusinessModules() {
-        // Phrased as "any project package that is not common or the root" so the rule automatically
-        // covers every business module we add, without maintaining a list here.
         DescribedPredicate<JavaClass> aBusinessModuleClass =
                 JavaClass.Predicates.resideInAPackage(ROOT + ".(*)..")
                         .and(DescribedPredicate.not(

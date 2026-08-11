@@ -7,20 +7,9 @@ import { CASE_DATA_SECTIONS, sectionLabel } from '../api/labels';
 import { issueFor, toApi, toForm, type FormEntry } from './sectionForm';
 import { SectionField } from './SectionField';
 
-/**
- * «Информация о вас» as one page: every data section on a single screen, a progress bar counting
- * the filled ones, and one save at the bottom. The step-by-step wizard stays for anyone arriving
- * at a single section — this screen is for filling the whole thing in one sitting.
- *
- * Only sections whose values actually changed are sent, one after another: each save regenerates
- * the documents on the backend, so firing all thirteen at once would be wasteful and racy.
- */
-
-/** Everything loaded for one section, plus the form state edited on top of it. */
 interface Block {
   content: SectionContent;
   entries: FormEntry[];
-  /** Serialised payload as loaded, to tell a real edit from an untouched section on save. */
   pristine: string;
 }
 
@@ -39,7 +28,6 @@ function blockOf(content: SectionContent): Block {
   return block;
 }
 
-/** A section counts as filled once it holds any value at all — same rule as the case screen. */
 function isFilled(block: Block): boolean {
   const payload = payloadOf(block);
   return Array.isArray(payload)
@@ -139,7 +127,6 @@ export default function AboutYouPage() {
     try {
       const collected: Record<string, SectionIssue[]> = {};
       const updated: Block[] = [];
-      // Sequential on purpose: every save regenerates the документы on the backend.
       for (const block of blocks) {
         const payload = payloadOf(block);
         if (JSON.stringify(payload) === block.pristine) {
@@ -157,7 +144,6 @@ export default function AboutYouPage() {
         navigate('/journey');
       }
     } catch {
-      // Keep the form and everything typed; only tell the user and let them retry the save.
       setSaveFailed(true);
     } finally {
       setPending(false);

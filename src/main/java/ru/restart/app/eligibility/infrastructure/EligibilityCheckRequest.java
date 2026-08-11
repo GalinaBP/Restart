@@ -19,15 +19,6 @@ import ru.restart.app.eligibility.domain.YesNoUnsure;
 
 import java.util.List;
 
-/**
- * Request body of the eligibility check. Every answer is {@code @NotNull} so a missing one is a
- * validation error rather than silently defaulting; the multiple-choice questions are
- * {@code @NotEmpty} because "ничего из этого" is itself an option there.
- *
- * <p>The follow-up answers are optional on purpose — they are only asked when the parent answer
- * calls for them: {@code knewCouldNotRepay} when the loans are three months old or less,
- * {@code dealAssets} after "yes" to deals, {@code moneyOperations} after "yes" to unusual activity.
- */
 public record EligibilityCheckRequest(
         @NotNull DebtRange debtRange,
         @NotEmpty List<DebtType> debtTypes,

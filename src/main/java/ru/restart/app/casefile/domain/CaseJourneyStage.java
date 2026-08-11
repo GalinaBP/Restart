@@ -5,15 +5,6 @@ import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * What the user has recorded about one stage of their case (backlog AI-018): how far it has got,
- * when it started and finished, and a free-form note (hearing date, manager's name, a receipt
- * number — whatever the user needs to remember).
- *
- * <p>Only stages that are <em>not</em> derived get a row: the screening and document-preparation
- * stages read their status off the case itself, so recording them by hand could contradict what
- * the case actually shows. Immutable, like the other aggregates in this module.
- */
 public class CaseJourneyStage {
 
     private final UUID id;
@@ -45,7 +36,6 @@ public class CaseJourneyStage {
                 completedOn, note, now);
     }
 
-    /** The same stage row with newly recorded progress; the identity and case never change. */
     public CaseJourneyStage updatedTo(StageStatus newStatus, LocalDate newStartedOn,
                                       LocalDate newCompletedOn, String newNote, Instant now) {
         return new CaseJourneyStage(id, caseId, stage, newStatus, newStartedOn, newCompletedOn,

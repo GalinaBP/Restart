@@ -6,7 +6,6 @@ import ru.restart.app.casefile.domain.StageStatus;
 
 import java.time.LocalDate;
 
-/** Recording where a stage stands. Dates and note are optional — the status is the point. */
 public record RecordStageRequest(
         @NotNull(message = "Укажите, на чём сейчас этот шаг")
         StageStatus status,

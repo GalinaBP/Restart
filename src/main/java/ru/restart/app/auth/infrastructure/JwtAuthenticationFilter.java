@@ -13,12 +13,6 @@ import ru.restart.app.common.security.AuthenticatedUser;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Reads {@code Authorization: Bearer <access token>} and, when valid, populates the security
- * context with the shared {@link AuthenticatedUser} principal. An invalid or absent token simply
- * leaves the request anonymous — protected URLs then get the standard 401 from the entry point, so
- * this filter never writes a response itself.
- */
 class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";

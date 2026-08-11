@@ -11,11 +11,6 @@ import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * The PDF must be a real, text-extractable PDF with working Cyrillic (the embedded DejaVu font —
- * PDFBox's built-in fonts cannot encode it), paginate long documents, and survive characters the
- * font lacks instead of failing the whole filing package.
- */
 class PdfDocumentWriterTest {
 
     private final PdfDocumentWriter writer = new PdfDocumentWriter();
@@ -59,7 +54,6 @@ class PdfDocumentWriterTest {
         byte[] pdf = writer.write(new RenderedDocument(DocumentType.CREDITOR_LIST,
                 "2026-06-21.1", longLine));
 
-        // All words survive; PDFTextStripper sees them across the wrapped lines.
         assertThat(extractText(pdf).replaceAll("\\s+", " ")).contains("кредитор кредитор");
     }
 

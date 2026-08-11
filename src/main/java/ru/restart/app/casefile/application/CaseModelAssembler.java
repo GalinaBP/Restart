@@ -19,18 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Maps collected (and already validated) case data into the template model contract of the
- * {@code doctemplate} module: every displayed value preformatted as a string, every key present.
- * Formatting decisions live here, not in templates — the renderer is logic-less by design.
- *
- * <p>Runs only behind the validation gate, so required fields exist and values parse; optional
- * blanks become "—" so a court document never shows an empty gap.
- */
 @Component
 public class CaseModelAssembler {
 
-    /** Shown when the registration region cannot be matched to a court — honest, never a guess. */
     static final String COURT_PLACEHOLDER =
             "Арбитражный суд по месту регистрации должника — [УТОЧНЯЕТСЯ]";
     private static final String ABSENT = "—";
@@ -72,18 +63,15 @@ public class CaseModelAssembler {
         return model;
     }
 
-    /** What the filing costs, from {@code fees.yml} (AI-021). */
     private Map<String, Object> fees() {
         FeeSchedule schedule = feeSchedule.current();
         return Map.of(
                 "stateDuty", formatMoney(schedule.line(FeeItem.STATE_DUTY).amount()),
                 "managerDeposit", formatMoney(schedule.line(FeeItem.MANAGER_DEPOSIT).amount()),
                 "total", formatMoney(schedule.total()),
-                // Drives the "these figures are a draft" block in the payment instructions:
                 "unconfirmed", schedule.hasUnconfirmedAmounts());
     }
 
-    /** What the user has recorded about paying (AI-021); blanks show as "—", never as a gap. */
     private Map<String, Object> payments(JsonNode node) {
         return Map.of(
                 "stateDutyPaidOn", ruDateOrAbsent(text(node, "stateDutyPaidOn")),
@@ -92,7 +80,6 @@ public class CaseModelAssembler {
                 "depositReference", orAbsent(text(node, "depositReference")));
     }
 
-    /** The СРО the financial manager is to be approved from (AI-020). */
     private Map<String, Object> sro(JsonNode node) {
         return Map.of(
                 "name", text(node, "name"),
@@ -129,7 +116,6 @@ public class CaseModelAssembler {
         return applicant;
     }
 
-    /** «Иванова Анна Сергеевна» → «А. С. Иванова» — the form used next to a signature line. */
     private static String shortName(String lastName, String firstName, String middleName) {
         StringBuilder initials = new StringBuilder();
         if (!firstName.isBlank()) {
@@ -211,10 +197,6 @@ public class CaseModelAssembler {
         return items;
     }
 
-    /**
-     * The main income plus any further sources (rent, side work, alimony…). {@code totalIncome} is
-     * their sum, so a document never asks the reader to add the figures up.
-     */
     private void income(JsonNode monthly, JsonNode other, Map<String, Object> model) {
         BigDecimal total = monthly.get("amount").decimalValue();
         List<Map<String, Object>> otherIncome = new ArrayList<>();
@@ -232,13 +214,10 @@ public class CaseModelAssembler {
         model.put("totalIncome", formatMoney(total));
     }
 
-    // --- value helpers ------------------------------------------------------------
-
     private static Iterable<JsonNode> iterate(JsonNode entries) {
         return entries == null ? List.of() : entries;
     }
 
-    /** The field's text, or "" when the field is absent/null — never a NullPointerException. */
     private static String text(JsonNode node, String field) {
         JsonNode value = node == null ? null : node.get(field);
         if (value == null || value.isNull()) {
@@ -271,7 +250,6 @@ public class CaseModelAssembler {
         return value == null || value.isNull() ? ABSENT : money(value);
     }
 
-    /** 1250000.5 → «1 250 000,50»: space-grouped, comma decimal, always two decimals. */
     static String formatMoney(BigDecimal amount) {
         String plain = amount.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString();
         String[] parts = plain.split("\\.");

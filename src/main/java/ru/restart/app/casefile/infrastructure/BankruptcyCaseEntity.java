@@ -15,7 +15,6 @@ import ru.restart.app.common.persistence.BaseEntity;
 
 import java.util.UUID;
 
-/** JPA mapping of {@code bankruptcy_case} (see {@code V2__create_bankruptcy_case.sql}). */
 @Entity
 @Table(name = "bankruptcy_case")
 public class BankruptcyCaseEntity extends BaseEntity {
@@ -37,13 +36,11 @@ public class BankruptcyCaseEntity extends BaseEntity {
     @Column(name = "status", nullable = false, length = 32)
     private CaseStatus status;
 
-    /** Null until the court decides which procedure applies (AI-018). */
     @Enumerated(EnumType.STRING)
     @Column(name = "procedure_type", length = 32)
     private ProcedureType procedureType;
 
     protected BankruptcyCaseEntity() {
-        // JPA
     }
 
     BankruptcyCaseEntity(UUID id, UUID userId, CaseType caseType, CaseStatus status,

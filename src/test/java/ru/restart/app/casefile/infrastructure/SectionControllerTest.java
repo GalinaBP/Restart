@@ -44,10 +44,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Web-slice test with the real security chain, real services, and the real YAML registry; the
- * repositories are mocked. Covers the API contract of the data-collection workflow.
- */
 @WebMvcTest(SectionController.class)
 @Import({SectionService.class, ValidationService.class, CaseService.class,
         DocumentGenerationService.class, CaseModelAssembler.class, YamlCourtDirectory.class, YamlFeeScheduleRegistry.class,
@@ -57,7 +53,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         SectionControllerTest.EnableSecurity.class})
 class SectionControllerTest {
 
-    /** See EligibilityControllerTest: Boot 4's web slice needs security switched on explicitly. */
     @TestConfiguration
     @EnableWebSecurity
     static class EnableSecurity {
@@ -74,8 +69,6 @@ class SectionControllerTest {
     @MockitoBean
     private CaseSectionRepository sections;
 
-    // AI-008 collaborators: no documents exist in these tests (Mockito's empty-list default
-    // keeps the regeneration path dormant), templates are never rendered.
     @MockitoBean
     private CaseDocumentRepository documents;
 
@@ -132,7 +125,6 @@ class SectionControllerTest {
                 .andExpect(jsonPath("$.key").value("PASSPORT"))
                 .andExpect(jsonPath("$.data.series").value("1234"))
                 .andExpect(jsonPath("$.fields[0].name").isNotEmpty())
-                // Saving is never blocked, but the still-missing required fields come back as issues.
                 .andExpect(jsonPath("$.issues[?(@.field == 'issueDate')].code")
                         .value(org.hamcrest.Matchers.hasItem("REQUIRED_FIELD_MISSING")));
     }

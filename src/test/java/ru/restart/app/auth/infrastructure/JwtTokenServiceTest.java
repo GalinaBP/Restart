@@ -15,10 +15,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
-/**
- * Pure-unit coverage of token issue/verify: roundtrips, expiry, secret separation, and the
- * fail-fast on weak secrets. Uses fixed clocks so expiry is tested deterministically.
- */
 class JwtTokenServiceTest {
 
     private static final String ACCESS_SECRET = "test-access-secret-0123456789-0123456789-0123456789";
@@ -67,14 +63,12 @@ class JwtTokenServiceTest {
         JwtTokenService later = serviceAt(NOW.plus(Duration.ofMinutes(16)));
 
         assertThat(later.parseAccessToken(tokens.accessToken())).isEmpty();
-        // The refresh token lives 30 days, so it still parses.
         assertThat(later.parseRefreshToken(tokens.refreshToken())).hasValue(account.id());
     }
 
     @Test
     void garbageAndTamperedTokensAreRejected() {
         JwtTokenService service = serviceAt(NOW);
-        // Alter the payload segment so the signature no longer matches the content.
         String[] parts = service.issue(account).accessToken().split("\\.");
         String tampered = parts[0] + ".A" + parts[1] + "." + parts[2];
 

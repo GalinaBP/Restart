@@ -19,22 +19,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Web-slice test: anonymous access, validation of missing answers, and the two decision shapes.
- * Imports the shared security/error configuration so the test exercises the real URL rules and
- * the real ApiError contract.
- */
 @WebMvcTest(EligibilityController.class)
 @Import({EligibilityService.class, SecurityConfig.class, RestAuthenticationEntryPoint.class,
         RestAccessDeniedHandler.class, GlobalExceptionHandler.class, ClockConfig.class,
         EligibilityControllerTest.EnableSecurity.class})
 class EligibilityControllerTest {
 
-    /**
-     * Boot 4's {@code @WebMvcTest} slice does not enable Spring Security's {@code HttpSecurity}
-     * machinery by itself; this switches it on so the imported {@link SecurityConfig} (the real
-     * URL rules) can build its filter chain.
-     */
     @TestConfiguration
     @EnableWebSecurity
     static class EnableSecurity {
@@ -43,7 +33,6 @@ class EligibilityControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    /** A plain consumer case; the flag turns on one complexity marker (a car). */
     private static String body(String debtRange, boolean anyMarker) {
         return """
                 {
@@ -90,7 +79,6 @@ class EligibilityControllerTest {
 
     @Test
     void theSmallestDebtStillFits() throws Exception {
-        // The size of the debt decides nothing on its own — it is collected, not judged.
         mockMvc.perform(post("/api/v1/eligibility/check")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body("UNDER_500K", false)))

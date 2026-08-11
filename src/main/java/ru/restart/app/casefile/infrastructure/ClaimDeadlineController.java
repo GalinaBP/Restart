@@ -11,12 +11,6 @@ import ru.restart.app.common.web.ApiPaths;
 
 import java.util.UUID;
 
-/**
- * The claim-filing deadline (backlog AI-025): how many calendar days after the ЕФРСБ publication
- * creditors have to file their claims, and — once a publication date is on file — the deadline
- * itself. The period comes from {@code casefile/claim-deadline.yml}, a statutory number treated
- * with the same discipline as the filing fees (AI-021). Scoped to a case — the caller must own it.
- */
 @RestController
 @RequestMapping(ApiPaths.API_V1 + "/cases/{caseId}/claim-deadline")
 @Tag(name = "Claim deadline", description = "Deadline for creditors to file claims with the court")

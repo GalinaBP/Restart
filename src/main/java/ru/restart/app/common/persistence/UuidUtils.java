@@ -3,10 +3,6 @@ package ru.restart.app.common.persistence;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
-/**
- * Helpers for the platform-wide convention of storing UUIDs as MySQL {@code BINARY(16)}. Kept in one
- * place so the byte ordering is identical everywhere it is used.
- */
 public final class UuidUtils {
 
     private UuidUtils() {

@@ -14,17 +14,6 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
-/**
- * The backlog's regression requirement: "existing generated documents remain unchanged when
- * unrelated templates are updated." Each document rendered from the reference case is compared
- * byte-for-byte against a checked-in golden file, so editing one template can never silently
- * change another document's output.
- *
- * <p>Workflow for an INTENDED template change: delete the affected golden file(s) under
- * {@code src/test/resources/doctemplate/golden/<version>/}, run the test once (it regenerates the
- * file and fails asking for review), review the diff in git, run again — green. The regenerated
- * golden then documents the change in the PR.
- */
 class GoldenFileRegressionTest {
 
     private static final Path GOLDEN_DIR = Path.of("src", "test", "resources", "doctemplate", "golden");

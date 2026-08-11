@@ -15,23 +15,10 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-/**
- * Binds a correlation id to every request: it reuses an inbound {@code X-Correlation-Id} header when
- * present <em>and safe</em>, otherwise generates one. The id is exposed via MDC (for structured
- * logging) and echoed back in the response header. Runs first so downstream logs are always
- * correlated.
- *
- * <p>The inbound header is attacker-controlled, so it is accepted only when it matches a strict
- * pattern (bounded length, no control characters). This prevents log forging / response-header
- * injection and — because the value is also persisted into the {@code audit_events.correlation_id}
- * column — stops an over-length id from failing the audit insert and rolling back the audited
- * business operation.
- */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorrelationIdFilter extends OncePerRequestFilter {
 
-    /** Accept only printable ASCII id characters, bounded to the audit column width. */
     private static final Pattern SAFE_CORRELATION_ID =
             Pattern.compile("[A-Za-z0-9._-]{1," + CorrelationId.MAX_LENGTH + "}");
 

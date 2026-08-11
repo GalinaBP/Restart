@@ -26,19 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * The guided journey through the court procedure (backlog AI-018).
- *
- * <p>Two kinds of stage meet here. <strong>Derived</strong> stages (screening, document
- * preparation) read their status off the case itself, so the journey map can never disagree with
- * what the case actually contains — the Document Builder keeps working exactly as before and
- * simply shows up as one stage of the larger journey. Every other stage happens out in the real
- * world (a payment, a court hearing, a manager's report), so only the user can say where it
- * stands; those are recorded through {@link #recordStage}.
- *
- * <p>Ownership is enforced through {@link CaseService}, per the module's convention: someone
- * else's case is answered exactly like a case that does not exist.
- */
 @Service
 public class JourneyService {
 
@@ -65,7 +52,6 @@ public class JourneyService {
         this.clock = clock;
     }
 
-    /** The journey of the caller's case: which stages apply, where each stands, what is next. */
     @Transactional(readOnly = true)
     public JourneyView journeyOf(UUID caseId) {
         BankruptcyCase bankruptcyCase = cases.get(caseId);
@@ -83,7 +69,6 @@ public class JourneyService {
             StageStatus status = definition.derived()
                     ? derivedStatus(definition.key(), caseId)
                     : progress == null ? StageStatus.NOT_STARTED : progress.status();
-            // The first stage that is not finished is the one to work on now.
             boolean isCurrent = current == null && status != StageStatus.DONE;
             if (isCurrent) {
                 current = definition.key();
@@ -98,10 +83,6 @@ public class JourneyService {
         return new JourneyView(views, procedure, Optional.ofNullable(current));
     }
 
-    /**
-     * Records where a stage stands. Rejects derived stages: their status comes from the case data,
-     * and letting it be overwritten would make the journey map lie about the case.
-     */
     @Transactional
     public JourneyView recordStage(UUID caseId, JourneyStage stage, StageStatus status,
                                    LocalDate startedOn, LocalDate completedOn, String note) {
@@ -119,10 +100,6 @@ public class JourneyService {
         return journeyOf(caseId);
     }
 
-    /**
-     * Records the procedure the court applied, switching the journey to that branch (AI-024).
-     * {@code null} clears it — the user may have recorded the wrong one.
-     */
     @Transactional
     public JourneyView recordProcedureType(UUID caseId, ProcedureType procedureType) {
         BankruptcyCase bankruptcyCase = cases.get(caseId);
@@ -130,10 +107,6 @@ public class JourneyService {
         return journeyOf(caseId);
     }
 
-    /**
-     * Status of a stage the case data already answers. Screening is behind us by construction —
-     * a case only exists once the screening said a self-guided restart fits.
-     */
     private StageStatus derivedStatus(JourneyStage stage, UUID caseId) {
         return switch (stage) {
             case SCREENING -> StageStatus.DONE;
@@ -145,10 +118,6 @@ public class JourneyService {
         };
     }
 
-    /**
-     * A submission date on file → done; nothing recorded → not started (AI-022). Unlike the
-     * fees stage there is no half-way state: the package either reached the court or it didn't.
-     */
     private StageStatus filingStatus(UUID caseId) {
         JsonNode submission = sections.findByCaseIdAndKey(caseId, SectionKey.FILING_SUBMISSION)
                 .map(section -> objectMapper.readTree(section.payloadJson()))
@@ -156,7 +125,6 @@ public class JourneyService {
         return hasText(submission, "submissionDate") ? StageStatus.DONE : StageStatus.NOT_STARTED;
     }
 
-    /** Both payments recorded → done; one of them → in progress (AI-021). */
     private StageStatus paymentStatus(UUID caseId) {
         JsonNode payments = sections.findByCaseIdAndKey(caseId, SectionKey.PAYMENTS)
                 .map(section -> objectMapper.readTree(section.payloadJson()))
@@ -174,7 +142,6 @@ public class JourneyService {
         return value != null && !value.isNull() && !value.asString().isBlank();
     }
 
-    /** Done once the filing documents exist and none of them is outdated (AI-008). */
     private StageStatus documentPreparationStatus(UUID caseId) {
         var generated = documents.findByCaseId(caseId);
         if (!generated.isEmpty() && generated.stream().noneMatch(document -> document.stale())) {

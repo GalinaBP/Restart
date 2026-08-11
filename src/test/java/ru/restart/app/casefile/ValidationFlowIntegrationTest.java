@@ -17,11 +17,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Validation → Data Collection over real HTTP and MySQL (the backlog's integration requirement):
- * saving malformed data is not blocked but reports issues on the exact field; fixing the data
- * clears them from the whole-case report.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ValidationFlowIntegrationTest extends AbstractIntegrationTest {
 
@@ -82,7 +77,6 @@ class ValidationFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(report.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(report.getBody()).containsEntry("valid", false);
         List<Map<String, Object>> issues = (List<Map<String, Object>>) report.getBody().get("issues");
-        // The half-filled passport reports field issues; untouched mandatory sections report empty.
         assertThat(issues)
                 .extracting(i -> i.get("section") + ":" + i.get("code"))
                 .contains("PASSPORT:INVALID_PASSPORT_SERIES", "CREDITORS:SECTION_EMPTY")

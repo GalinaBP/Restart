@@ -18,12 +18,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Loads what a filing costs from {@code casefile/fees.yml} at startup and fails fast on an
- * inconsistent config: every {@link FeeItem} must be configured exactly once with an amount and a
- * statutory reference. Amounts are read as strings into {@link BigDecimal} — money never goes
- * through a double.
- */
 @Component
 class YamlFeeScheduleRegistry implements FeeScheduleRegistry {
 
@@ -45,8 +39,6 @@ class YamlFeeScheduleRegistry implements FeeScheduleRegistry {
             if (amount == null) {
                 throw new IllegalStateException(RESOURCE + ": fee " + item + " has no amount");
             }
-            // An unquoted 25000.00 is parsed as a double and would reach BigDecimal as "25000.0".
-            // Refuse it rather than silently storing money that lost its scale.
             if (amount instanceof Double || amount instanceof Float) {
                 throw new IllegalStateException(RESOURCE + ": amount of " + item
                         + " must be quoted in the YAML so it is not parsed as a floating-point"

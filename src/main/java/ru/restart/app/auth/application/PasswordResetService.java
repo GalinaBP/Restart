@@ -21,19 +21,12 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
 
-/**
- * Forgot-password use cases. Request and confirmation are both enumeration-safe: an unknown email
- * gets the same 204 as a known one, and a bad token gets one uniform error whether it is wrong,
- * expired, or already spent. Tokens live for {@link #TOKEN_TTL}, are single-use, and only their
- * SHA-256 is persisted.
- */
 @Service
 public class PasswordResetService {
 
     private static final Logger log = LoggerFactory.getLogger(PasswordResetService.class);
 
     static final Duration TOKEN_TTL = Duration.ofHours(1);
-    /** 32 random bytes → 43 base64url chars; plenty against online guessing even without rate limits. */
     private static final int TOKEN_BYTES = 32;
 
     private final UserAccountRepository accounts;
@@ -42,7 +35,6 @@ public class PasswordResetService {
     private final Clock clock;
     private final ResetLinkSender sender;
     private final SecureRandom random = new SecureRandom();
-    /** Frontend origin the mailed link points at; resolved once at startup. */
     private final String linkBase;
 
     public PasswordResetService(UserAccountRepository accounts, PasswordResetTokenRepository tokens,
@@ -57,10 +49,6 @@ public class PasswordResetService {
         this.linkBase = resolveLinkBase(linkBaseUrl, corsOrigins);
     }
 
-    /**
-     * Issues a fresh token and hands the reset link to the sender. Silently a no-op for unknown
-     * emails, so the endpoint's response does not reveal which emails are registered.
-     */
     @Transactional
     public void requestReset(String email) {
         UserAccount account = accounts.findByEmail(UserAccount.normalizeEmail(email)).orElse(null);
@@ -75,7 +63,6 @@ public class PasswordResetService {
         sender.send(account.email(), linkBase + "/auth/reset?token=" + rawToken);
     }
 
-    /** Consumes the token and stores the new password hash. One uniform error for any bad token. */
     @Transactional
     public void resetPassword(String rawToken, String newPassword) {
         Instant now = clock.instant();
@@ -104,10 +91,6 @@ public class PasswordResetService {
         }
     }
 
-    /**
-     * Explicit {@code restart.reset.link-base-url} wins; otherwise the first CORS origin — on a
-     * real deployment that is exactly the frontend domain, so no extra configuration is required.
-     */
     private static String resolveLinkBase(String configured, String corsOrigins) {
         String base = !configured.isBlank() ? configured : corsOrigins.split(",")[0];
         base = base.trim();

@@ -11,7 +11,6 @@ import ru.restart.app.common.persistence.BaseEntity;
 import java.time.Instant;
 import java.util.UUID;
 
-/** JPA mapping of {@code password_reset_token} (see {@code V6__create_password_reset_token.sql}). */
 @Entity
 @Table(name = "password_reset_token")
 public class PasswordResetTokenEntity extends BaseEntity {
@@ -35,7 +34,6 @@ public class PasswordResetTokenEntity extends BaseEntity {
     private Instant usedAt;
 
     protected PasswordResetTokenEntity() {
-        // JPA
     }
 
     PasswordResetTokenEntity(UUID id, UUID userId, String tokenHash, Instant expiresAt,
@@ -47,7 +45,6 @@ public class PasswordResetTokenEntity extends BaseEntity {
         this.usedAt = usedAt;
     }
 
-    /** Replaced-in-place on save: markUsed persists over the same primary key. */
     void update(Instant usedAt) {
         this.usedAt = usedAt;
     }

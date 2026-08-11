@@ -1,6 +1,5 @@
 package ru.restart.app.casefile.domain;
 
-/** Machine-readable kinds of validation findings; part of the API contract like {@code ErrorCode}. */
 public enum ValidationCode {
     SECTION_EMPTY,
     REQUIRED_FIELD_MISSING,

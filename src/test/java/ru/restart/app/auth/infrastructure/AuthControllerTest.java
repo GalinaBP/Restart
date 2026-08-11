@@ -36,11 +36,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Web-slice test with the real security chain, real JWT service, and real use cases — only the
- * repository is mocked. Verifies the API contract: status codes, ApiError shape, and that the JWT
- * filter authenticates {@code /auth/me}.
- */
 @WebMvcTest(AuthController.class)
 @Import({AuthService.class, PasswordResetService.class, JwtTokenService.class,
         AuthSecurityConfig.class,
@@ -55,12 +50,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class AuthControllerTest {
 
-    /** See EligibilityControllerTest: Boot 4's web slice needs security switched on explicitly. */
     @TestConfiguration
     @EnableWebSecurity
     static class EnableSecurity {
 
-        /** Stands in for the SMTP/logging delivery beans that live outside the slice. */
         @Bean
         ResetLinkSender noOpResetLinkSender() {
             return (email, resetLink) -> { };

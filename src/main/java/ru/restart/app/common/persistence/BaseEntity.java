@@ -9,11 +9,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
-/**
- * Shared mapped superclass providing UTC audit timestamps. Populated automatically by Spring Data
- * JPA auditing (enabled in {@link ru.restart.app.common.config.JpaConfig}). Concrete entities
- * still declare their own {@code @Id}, since identifier strategy varies per aggregate.
- */
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {

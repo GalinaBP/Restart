@@ -19,10 +19,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-/**
- * Use-case tests with an in-memory repository, the real password encoder, and a stub token
- * service — no mocks of what we own, no Spring context.
- */
 class AuthServiceTest {
 
     private final InMemoryAccounts accounts = new InMemoryAccounts();
@@ -116,8 +112,6 @@ class AuthServiceTest {
         assertThatExceptionOfType(SessionExpiredException.class).isThrownBy(service::me);
     }
 
-    // --- test doubles -----------------------------------------------------------
-
     private static final class InMemoryAccounts implements UserAccountRepository {
         private final Map<UUID, UserAccount> byId = new HashMap<>();
 
@@ -143,7 +137,6 @@ class AuthServiceTest {
         }
     }
 
-    /** Fake tokens that encode just enough (id + email) to assert flows without real JWTs. */
     private static final class StubTokens implements TokenService {
         @Override
         public IssuedTokens issue(UserAccount account) {

@@ -6,7 +6,6 @@ import ProcedurePage from './ProcedurePage';
 
 const CASE = { id: 'case-1', caseType: 'PERSONAL_BANKRUPTCY', status: 'IN_PROGRESS' };
 
-/** Common path only — the court has not decided yet, so no branch-specific stage appears. */
 const JOURNEY_COMMON = {
   procedureType: null,
   currentStage: 'MANAGER_SELECTION',
@@ -20,11 +19,9 @@ const JOURNEY_COMMON = {
     { stage: 'DOCUMENT_PREPARATION', order: 3, branch: null, status: 'IN_PROGRESS',
       startedOn: null, completedOn: null, note: null,
       current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    // Derived from the payments step since AI-021, so the backend sends editable: false.
     { stage: 'FEES_AND_DEPOSIT', order: 4, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
       current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    // Derived from the submission step since AI-022, so the backend sends editable: false.
     { stage: 'FILING', order: 5, branch: null, status: 'NOT_STARTED',
       startedOn: null, completedOn: null, note: null,
       current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
@@ -40,13 +37,11 @@ const JOURNEY_COMMON = {
   ],
 };
 
-/** The court chose REALIZATION — its branch stage appears, the other two branches don't. */
 const JOURNEY_REALIZATION = {
   procedureType: 'REALIZATION',
   currentStage: 'PROPERTY_INVENTORY',
   stages: [
     ...JOURNEY_COMMON.stages.slice(0, 6).map((s) => ({ ...s, status: 'DONE', current: false })),
-    // The realization branch is its own three-stage sequence (AI-024):
     { stage: 'PROPERTY_INVENTORY', order: 10, branch: 'REALIZATION', status: 'IN_PROGRESS',
       startedOn: null, completedOn: null, note: null,
       current: true, editable: true, statutoryBasis: 'ст. 213.26 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
@@ -65,7 +60,6 @@ const JOURNEY_REALIZATION = {
   ],
 };
 
-/** Amounts are unreviewed placeholders in fees.yml, so allConfirmed is false (AI-021). */
 const FEES = {
   lines: [
     { item: 'STATE_DUTY', amount: 300, confirmed: false, statutoryBasis: 'ст. 333.21 НК РФ (ПЛЕЙСХОЛДЕР)' },
@@ -76,34 +70,22 @@ const FEES = {
   effectiveFrom: '2026-06-21',
 };
 
-/**
- * Formats money the way the component does. ru-RU groups thousands with a non-breaking space,
- * which Testing Library collapses to an ordinary one in the DOM text but NOT in the string it is
- * matched against — so the expectation has to be normalised here or nothing ever matches.
- */
 function money(value: number): string {
   const formatted = value.toLocaleString('ru-RU',
     { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return `${formatted} ₽`.replace(/[\u00a0\u202f]/g, ' ');
 }
 
-/** No hearing recorded is the common case — matches what the backend sends for an empty section. */
 const NO_HEARINGS = { key: 'COURT_HEARINGS', order: 20, repeatable: true, fields: [], data: null, issues: [] };
 
-/** No claim filed is the common case early in the procedure. */
 const NO_CLAIMS = { key: 'FILED_CLAIMS', order: 22, repeatable: true, fields: [], data: null, issues: [] };
 
-/** No manager correspondence recorded is the common case — matches what the backend sends for an empty section. */
 const NO_CORRESPONDENCE = { key: 'MANAGER_CORRESPONDENCE', order: 23, repeatable: true, fields: [], data: null, issues: [] };
 
-/** No ЕФРСБ publication recorded yet — nothing to compute a deadline from (backlog AI-025). */
 const NO_DEADLINE = { publicationDate: null, deadlineDate: null, daysFromPublication: 60, confirmed: false };
 
 function stubFetch(routes: { match: (url: string, init?: RequestInit) => boolean; status: number; body: unknown }[]) {
   const calls: { url: string; method: string; body?: string }[] = [];
-  // The page loads the journey, the fees, the hearings, the claim deadline, the filed claims,
-  // and the manager correspondence together; tests that don't care about any of these get them
-  // for free, and can still override by declaring their own route first.
   const withDefaults = [...routes,
     { match: (url: string) => url.endsWith('/fees'), status: 200, body: FEES },
     { match: (url: string) => url.endsWith('/sections/COURT_HEARINGS'), status: 200, body: NO_HEARINGS },
@@ -139,16 +121,11 @@ function renderAtProcedure() {
   );
 }
 
-/** Reads one stage row by its position in the fixture's stages array. */
 function stageRow(container: HTMLElement, index: number): HTMLElement {
   const rows = container.querySelectorAll('.procedure-list > li');
   return rows[index] as HTMLElement;
 }
 
-/**
- * The card inside one stage row — the row itself, except for stages that link to a screen of
- * their own, where the card is the link inside the row. Highlight classes live on the card.
- */
 function stageCard(container: HTMLElement, index: number): HTMLElement {
   const row = stageRow(container, index);
   return row.classList.contains('procedure-stage')
@@ -167,8 +144,6 @@ describe('ProcedurePage', () => {
     expect(await screen.findByText(money(300))).toBeInTheDocument();
     expect(screen.getByText(money(25000))).toBeInTheDocument();
     expect(screen.getByText(money(25300))).toBeInTheDocument();
-    // Unconfirmed figures must never look authoritative — the user might go and pay them.
-    // (Queried by text, not role: the page-level «Черновик» badge is a note too.)
     expect(screen.getByText(/Суммы черновые/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Отметить оплату/ }))
       .toHaveAttribute('href', '/journey/PAYMENTS');
@@ -199,13 +174,10 @@ describe('ProcedurePage', () => {
 
     await screen.findByText('Весь путь');
 
-    // MANAGER_SELECTION is the current, editable stage, so its panel is already open — and all
-    // it offers is the way in. Its status form and its journal link live on that screen's side.
     expect(screen.getByRole('link', { name: /Начать/ })).toHaveAttribute('href', '/manager');
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Записать' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Переписка с управляющим/ })).not.toBeInTheDocument();
-    // The stage's timing belongs to its own screen too — the map carries one line per stage.
     expect(screen.queryByText(/у организации есть пять дней/)).not.toBeInTheDocument();
   });
 
@@ -216,7 +188,6 @@ describe('ProcedurePage', () => {
     ]);
     renderAtProcedure();
 
-    // FILING is derived (not current, not editable), so its link is on screen without a click.
     const link = await screen.findByRole('link', { name: /Отметить подачу/ });
     expect(link).toHaveAttribute('href', '/journey/FILING_SUBMISSION');
   });
@@ -238,11 +209,9 @@ describe('ProcedurePage', () => {
     const user = userEvent.setup();
     renderAtProcedure();
 
-    // Prominent even before the card is expanded — the earlier of the two future hearings wins.
     expect(await screen.findByText(/Ближайшее заседание: 01\.01\.2099 — Более раннее заседание/))
       .toBeInTheDocument();
 
-    // COURT_DECISION is editable, so its links live in the collapsible body.
     await user.click(screen.getByRole('button', { name: /Решение суда/ }));
 
     expect(screen.getByRole('link', { name: /Дело в суде/ }))
@@ -255,7 +224,6 @@ describe('ProcedurePage', () => {
     stubFetch([
       { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
       { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
-      // Falls back to the stub helper's default: COURT_HEARINGS section with no data at all.
     ]);
     renderAtProcedure();
 
@@ -270,7 +238,6 @@ describe('ProcedurePage', () => {
     ]);
     const { container } = renderAtProcedure();
 
-    // Still loading — the fetches haven't resolved on this tick yet.
     expect(screen.getByText('Секунду…')).toBeInTheDocument();
 
     expect(await screen.findByText('Весь путь')).toBeInTheDocument();
@@ -292,7 +259,6 @@ describe('ProcedurePage', () => {
       expect(row.querySelector('.procedure-status')?.textContent?.trim()).toBe(status);
     });
 
-    // Only the current stage carries the highlight and the "Сейчас" badge.
     const current = stageCard(container, 1);
     expect(current.className).toContain('procedure-stage-current');
     expect(current.querySelector('.procedure-current-badge')).toHaveTextContent('Сейчас');
@@ -300,7 +266,6 @@ describe('ProcedurePage', () => {
       expect(stageCard(container, index).className).not.toContain('procedure-stage-current');
     });
 
-    // Branch-specific stages don't show up before the court has decided.
     expect(screen.queryByText('План выплат')).not.toBeInTheDocument();
     expect(screen.queryByText('Продажа имущества')).not.toBeInTheDocument();
     expect(screen.queryByText('Договорённость с кредиторами')).not.toBeInTheDocument();
@@ -316,10 +281,8 @@ describe('ProcedurePage', () => {
 
     await screen.findByText('Весь путь');
 
-    // Screening is derived: no button to record it by hand.
     expect(screen.queryByRole('button', { name: /Проверка перед стартом/ })).not.toBeInTheDocument();
 
-    // Document preparation is derived too, but already has a screen — a plain link there.
     const docPrepLink = screen.getByRole('link', { name: /Подготовка документов/ });
     expect(docPrepLink).toHaveAttribute('href', '/journey');
 
@@ -354,7 +317,6 @@ describe('ProcedurePage', () => {
       status: 'IN_PROGRESS', startedOn: null, completedOn: null, note: null,
     });
 
-    // The panel closes and the badge reflects the recorded status.
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     const row = stageRow(container, 5);
     expect(row.querySelector('.procedure-status')?.textContent?.trim()).toBe('В процессе');
@@ -367,14 +329,11 @@ describe('ProcedurePage', () => {
     ]);
     renderAtProcedure();
 
-    // The realization branch's own stages appear...
     expect(await screen.findByText('Опись имущества')).toBeInTheDocument();
     expect(screen.getByText('Продажа имущества')).toBeInTheDocument();
     expect(screen.getByText('Расчёты с кредиторами')).toBeInTheDocument();
-    // ...and neither of the other two branches leaks in:
     expect(screen.queryByText('План выплат')).not.toBeInTheDocument();
     expect(screen.queryByText('Утверждение соглашения')).not.toBeInTheDocument();
-    // The chosen procedure is named at the top:
     expect(screen.getByText(/Ваша процедура: Реализация имущества/)).toBeInTheDocument();
   });
 
@@ -383,8 +342,6 @@ describe('ProcedurePage', () => {
       { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
       { match: (url, init) => url.endsWith('/procedure-type') && init?.method === 'PUT',
         status: 200, body: JOURNEY_REALIZATION },
-      // First load: common path, court not yet decided. After the PUT the page re-renders from
-      // the response, so this only needs to answer the initial GET.
       { match: (url) => url.endsWith('/case-1/journey'), status: 200, body: JOURNEY_COMMON },
     ]);
     const user = userEvent.setup();
@@ -396,7 +353,6 @@ describe('ProcedurePage', () => {
     const put = calls.find((c) => c.method === 'PUT' && c.url.endsWith('/procedure-type'));
     expect(put).toBeDefined();
     expect(JSON.parse(put!.body as string)).toEqual({ procedureType: 'REALIZATION' });
-    // The response's branch is now on screen:
     expect(await screen.findByText('Опись имущества')).toBeInTheDocument();
   });
 
@@ -438,12 +394,10 @@ describe('ProcedurePage', () => {
     const user = userEvent.setup();
     renderAtProcedure();
 
-    // Prominent even before the card is expanded, mirroring the upcoming-hearing line:
     expect(await screen.findByText(/Срок предъявления требований: 31\.07\.2026/))
       .toBeInTheDocument();
     expect(screen.getByText(/Срок черновой, уточните на сайте суда\/в реестре/))
       .toBeInTheDocument();
-    // One claim filed after the deadline, one disputed — flagged calmly, not as an error:
     expect(screen.getByText(/Есть требования с пометками: 1 позднее срока, 1 оспаривается/))
       .toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
@@ -460,7 +414,6 @@ describe('ProcedurePage', () => {
     stubFetch([
       { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
       { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
-      // Falls back to the stub helper's defaults: no deadline, no filed claims.
     ]);
     renderAtProcedure();
 
@@ -505,7 +458,6 @@ describe('ProcedurePage', () => {
     ]);
     renderAtProcedure();
 
-    // Prominent even before the card is expanded, showing the newest date first:
     expect(await screen.findByText(/Последняя запись: 20\.07\.2026 — Отчёт/))
       .toBeInTheDocument();
   });

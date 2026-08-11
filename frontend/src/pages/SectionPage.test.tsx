@@ -99,11 +99,8 @@ describe('SectionPage', () => {
       return new Response(JSON.stringify(PASSPORT_SECTION), { status: 200 });
     }));
     const user = userEvent.setup();
-    // What «Поиск финансового управляющего» does with its own steps: it owns the step list, so
-    // both the back link and a clean save belong to it, not to the questionnaire.
     renderAt('PASSPORT', '/manager');
 
-    // No step list stands behind this one, so neither the link nor the button promises one.
     expect(await screen.findByRole('link', { name: '← Назад' }))
       .toHaveAttribute('href', '/manager');
     expect(screen.queryByRole('link', { name: /К списку шагов/ })).not.toBeInTheDocument();
@@ -158,7 +155,6 @@ describe('SectionPage', () => {
     await user.type(await screen.findByLabelText('Серия — 4 цифры'), '4519');
     await user.click(screen.getByRole('button', { name: 'Сохранить и дальше' }));
 
-    // No page swap, no data loss — an inline alert and the same form:
     expect(await screen.findByRole('alert')).toHaveTextContent('Не получилось сохранить');
     expect(screen.getByDisplayValue('4519')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Сохранить и дальше' })).toBeEnabled();
@@ -175,7 +171,6 @@ describe('SectionPage', () => {
     const user = userEvent.setup();
     renderAt('CREDITORS');
 
-    // The saved entry is prefilled:
     expect(await screen.findByDisplayValue('ПАО «Банк Восход»')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: '+ Добавить долг' }));

@@ -22,12 +22,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * The forgot-password journey over real HTTP against a real MySQL: request a link (uniform 204
- * for known and unknown emails), spend the token once, and see the old password die and replays
- * bounce. The mailed link is captured through a recording {@link ResetLinkSender} standing in for
- * SMTP/logging delivery.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PasswordResetFlowIntegrationTest extends AbstractIntegrationTest {
 
@@ -57,7 +51,6 @@ class PasswordResetFlowIntegrationTest extends AbstractIntegrationTest {
     void setUpClient() {
         rest = RestClient.builder()
                 .baseUrl("http://localhost:" + port)
-                // Assertions inspect the status themselves; 4xx must not throw.
                 .defaultStatusHandler(status -> true, (request, response) -> { })
                 .build();
     }

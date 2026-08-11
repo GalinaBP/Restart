@@ -16,12 +16,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * The Builder → Templates contract (backlog AI-006 integration requirement): a model assembled
- * from REAL collected case data renders through the REAL active templates. Because the renderer
- * treats a missing model key as an error, this test breaks immediately when a template starts
- * referencing data the assembler does not provide — before any user does.
- */
 class FullCaseRenderingTest {
 
     private final JMustacheTemplateRenderer renderer = new JMustacheTemplateRenderer();
@@ -49,10 +43,10 @@ class FullCaseRenderingTest {
 
         assertThat(text)
                 .contains("Иванова Анна Сергеевна")
-                .contains("4519")                     // passport series
-                .contains("1 250 000,50")             // total from the two creditors
-                .contains("85 000,50")                // monthly income
-                .contains("17.07.2026");              // generation date from the fixed clock
+                .contains("4519")
+                .contains("1 250 000,50")
+                .contains("85 000,50")
+                .contains("17.07.2026");
     }
 
     @Test
@@ -62,7 +56,7 @@ class FullCaseRenderingTest {
         assertThat(text)
                 .contains("ПАО «Банк Восход»")
                 .contains("МФО «Деньги-Быстро»")
-                .contains("ИНН: —")                   // the MFO fixture has no INN
+                .contains("ИНН: —")
                 .contains("Итого кредиторов: 2");
     }
 }

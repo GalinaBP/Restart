@@ -14,11 +14,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-/**
- * Rendering behaviour of the template set: every document renders from the sample case, shared
- * boilerplate really is shared (the partials appear in every output), the version travels with
- * each render, and a broken setup fails fast rather than producing a blank court document.
- */
 class JMustacheTemplateRendererTest {
 
     private final JMustacheTemplateRenderer renderer = new JMustacheTemplateRenderer();
@@ -34,10 +29,8 @@ class JMustacheTemplateRendererTest {
         RenderedDocument document = renderer.render(type, SampleModels.fullCase());
 
         assertThat(document.templateVersion()).isEqualTo("2026-06-21.1");
-        // The draft-warning partial must appear in every document until lawyer sign-off.
         assertThat(document.text()).contains("ШАБЛОН-ПЛЕЙСХОЛДЕР");
         assertThat(document.text()).contains("НЕ ПРЕДНАЗНАЧЕН ДЛЯ ПОДАЧИ В СУД");
-        // No unresolved placeholders leak into output.
         assertThat(document.text()).doesNotContain("{{");
     }
 
@@ -69,7 +62,6 @@ class JMustacheTemplateRendererTest {
         String text = renderer.render(DocumentType.PROPERTY_INFORMATION,
                 SampleModels.fullCase()).text();
 
-        // The sample case (per ICP) has no real estate and no vehicles:
         assertThat(text)
                 .contains("Отсутствует.")
                 .contains("Отсутствуют.")

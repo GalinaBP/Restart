@@ -13,7 +13,6 @@ import ru.restart.app.common.web.CorrelationId;
 
 import java.io.IOException;
 
-/** Emits the {@link ApiError} contract (HTTP 403) when an authenticated user lacks the required role. */
 @Component
 public class RestAccessDeniedHandler implements AccessDeniedHandler {
 

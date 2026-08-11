@@ -5,10 +5,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
 import java.util.List;
 
-/**
- * Uniform error payload returned by every endpoint on failure. Serialised to the shape documented
- * in {@code docs/api.md}. {@code fieldErrors} is omitted entirely when there are none.
- */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record ApiError(
         Instant timestamp,

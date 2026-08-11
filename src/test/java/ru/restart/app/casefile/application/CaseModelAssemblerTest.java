@@ -14,10 +14,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** Mapping and formatting rules from collected JSON to the template model contract. */
 class CaseModelAssemblerTest {
 
-    /** Directory stub: recognises Москва, knows nothing else — both branches get exercised. */
     private final CaseModelAssembler assembler = new CaseModelAssembler(new ObjectMapper(),
             Clock.fixed(Instant.parse("2026-07-17T10:00:00Z"), ZoneOffset.UTC),
             region -> region.toLowerCase().contains("москв")
@@ -55,7 +53,6 @@ class CaseModelAssemblerTest {
                 .containsEntry("index", "1")
                 .containsEntry("debtAmount", "1 000 000,00")
                 .containsEntry("overdueSinceDate", "01.02.2026");
-        // The second creditor has no INN, no debt type and no overdue date — "—", never blank:
         assertThat(creditors.get(1))
                 .containsEntry("index", "2")
                 .containsEntry("inn", "—")
@@ -108,7 +105,6 @@ class CaseModelAssemblerTest {
         Map<String, Object> model = model();
 
         assertThat(model.get("generatedDate")).isEqualTo("17.07.2026");
-        // The fixture is registered in Москва — the directory resolves the court:
         assertThat(model.get("court")).isEqualTo(Map.of("name", "Арбитражный суд города Москвы"));
     }
 

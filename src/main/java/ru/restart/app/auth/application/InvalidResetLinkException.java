@@ -4,10 +4,6 @@ import org.springframework.http.HttpStatus;
 import ru.restart.app.common.error.BusinessException;
 import ru.restart.app.common.error.ErrorCode;
 
-/**
- * The reset token is wrong, expired, or already spent. One message for all three, so the endpoint
- * does not confirm whether a guessed token ever existed.
- */
 public class InvalidResetLinkException extends BusinessException {
 
     public InvalidResetLinkException() {

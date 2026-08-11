@@ -14,11 +14,6 @@ import {
 import { documentLabel, fieldLabel, sectionLabel } from '../api/labels';
 import type { MissingItem } from '../api/types';
 
-/**
- * The finish line: build the filing package and download it. Generation may refuse (the backend's
- * hard gate) — then the missing items are shown as links straight to the step that fixes each one.
- * Stale documents (data changed while invalid) get one honest banner and one button.
- */
 export default function DocumentsPage() {
   const navigate = useNavigate();
   const [caseId, setCaseId] = useState<string | null>(null);
@@ -76,7 +71,6 @@ export default function DocumentsPage() {
     setFailed(false);
     try {
       saveBlob(await exportPackage(caseId), 'restart-filing-package.zip');
-      // Export regenerates on the backend — refresh the list so stale flags clear here too.
       setDocuments(await listDocuments(caseId));
       setMissing([]);
     } catch (error) {
@@ -210,8 +204,6 @@ export default function DocumentsPage() {
           Скачать всё одним архивом
         </button>
       )}
-      {/* Documents in hand, the obvious next question is «и что теперь?» — answer it right here
-          instead of leaving the user to find the filing step on their own. */}
       {documents.length > 0 && (
         <Link to="/journey/FILING_SUBMISSION" className="docs-next-step">
           Что дальше: как подать документы в суд →

@@ -7,11 +7,6 @@ import ru.restart.app.auth.domain.UserAccount;
 import ru.restart.app.auth.domain.UserAccountRepository;
 import ru.restart.app.common.security.CurrentUser;
 
-/**
- * Use cases of the auth module: register, login, refresh, and the current-user profile. Tokens are
- * stateless (nothing is stored per session); revocation-on-demand is a known trade-off, acceptable
- * while the product has no high-risk actions behind a session.
- */
 @Service
 public class AuthService {
 
@@ -19,14 +14,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokens;
     private final CurrentUser currentUser;
-    /** Private-beta switch: false closes sign-ups entirely while existing logins keep working. */
     private final boolean registrationEnabled;
 
-    /**
-     * Hash of a throwaway value. When login hits an unknown email we still run one password check
-     * against it, so "no such account" and "wrong password" take similar time and the response does
-     * not leak which emails are registered.
-     */
     private final String timingDummyHash;
 
     public AuthService(UserAccountRepository accounts, PasswordEncoder passwordEncoder,
@@ -73,7 +62,6 @@ public class AuthService {
                 .orElseThrow(SessionExpiredException::new);
     }
 
-    /** The account of the caller. The DB lookup confirms the account still exists, not just the token. */
     @Transactional(readOnly = true)
     public UserAccount me() {
         return accounts.findById(currentUser.require().userId())

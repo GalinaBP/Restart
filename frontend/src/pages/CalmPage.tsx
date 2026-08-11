@@ -8,21 +8,6 @@ import {
   type CalmTemplate,
 } from './calmContent';
 
-/**
- * «Спокойно, это нормально» — help with the calls that arrive while the case is being prepared.
- *
- * The whole screen is built around one number: a ready answer must be in the user's clipboard in
- * under ten seconds. So cards open in place, the script sits at the top of each one, and copying
- * is a single tap that says so. Content lives in calmContent.ts; this file is only the shell.
- */
-
-/**
- * Puts text on the clipboard, falling back to the legacy path when the Clipboard API is refused.
- *
- * That refusal is not exotic: a permissions policy, an in-app browser (the app is opened from a
- * messenger often enough) or an older Safari all deny `writeText`, and the whole point of this
- * screen is that the answer is copied in one tap. The textarea path needs no permission.
- */
 async function copyText(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);
@@ -46,7 +31,6 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-/** Copies text and says it did — the confirmation is the point, otherwise a tap feels like nothing. */
 function CopyButton({ text, label = 'Скопировать текст' }: { text: string; label?: string }) {
   const [state, setState] = useState<'idle' | 'done' | 'failed'>('idle');
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -56,8 +40,6 @@ function CopyButton({ text, label = 'Скопировать текст' }: { tex
   }, []);
 
   const copy = async () => {
-    // If even the fallback is refused, say so rather than pretending: the text is on screen and
-    // can still be selected by hand.
     setState(await copyText(text) ? 'done' : 'failed');
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setState('idle'), 2500);
@@ -70,7 +52,6 @@ function CopyButton({ text, label = 'Скопировать текст' }: { tex
   );
 }
 
-/** Saves a template as a plain text file, the same blob-link trick the documents screen uses. */
 function downloadTemplate(template: CalmTemplate) {
   const url = URL.createObjectURL(new Blob([template.body], { type: 'text/plain;charset=utf-8' }));
   const link = document.createElement('a');

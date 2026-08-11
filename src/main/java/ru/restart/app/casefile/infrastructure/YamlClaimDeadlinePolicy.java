@@ -11,13 +11,6 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Map;
 
-/**
- * Loads the claim-filing deadline period from {@code casefile/claim-deadline.yml} at startup and
- * fails fast on an inconsistent config (backlog AI-025). Mirrors {@link YamlFeeScheduleRegistry},
- * lighter because there is one value, not a list. {@code daysFromPublication} must parse as a
- * whole number — an unquoted "60.5" or a quoted "60" both fail loudly rather than silently
- * rounding or coercing a string.
- */
 @Component
 class YamlClaimDeadlinePolicy implements ClaimDeadlinePolicy {
 

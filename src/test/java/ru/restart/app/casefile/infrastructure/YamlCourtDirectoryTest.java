@@ -6,12 +6,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * The region → court matcher: real-world free-text region spellings resolve to the right court,
- * the documented prefix collisions stay resolved by file order, and anything unrecognised stays
- * empty so the documents keep the honest placeholder. (Court names themselves are placeholder
- * pending lawyer review — see docs/lawyer-review.md, item 5.)
- */
 class YamlCourtDirectoryTest {
 
     private final YamlCourtDirectory directory = new YamlCourtDirectory();

@@ -38,13 +38,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-/**
- * The generation pipeline against the REAL validation rules (sections.yml) and real file writers;
- * only templates are stubbed (their rendering is covered in the doctemplate module's tests). In
- * particular this pins: the shared fixtures pass validation, incomplete cases are hard-blocked,
- * one run produces every document in all formats, and regeneration replaces rather than
- * duplicates.
- */
 class DocumentGenerationServiceTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -88,7 +81,6 @@ class DocumentGenerationServiceTest {
 
     @Test
     void specificMissingFieldsAreNamedInTheBlock() {
-        // Everything valid except: passport without an issue date, second creditor without address.
         CaseFixtures.validCaseSections(existingCase.id()).forEach(sections::save);
         sections.save(sections.findByCaseIdAndKey(existingCase.id(), SectionKey.PASSPORT)
                 .orElseThrow()
@@ -112,8 +104,6 @@ class DocumentGenerationServiceTest {
     @Test
     void anUnnamedSroBlocksGenerationLikeAnyOtherMissingFact() {
         fillValidCase();
-        // The СРО must be named for the court to approve a manager (AI-020) — an address alone
-        // is not enough, and the block must name the field rather than fail vaguely.
         sections.save(sections.findByCaseIdAndKey(existingCase.id(), SectionKey.MANAGER_SRO)
                 .orElseThrow()
                 .withPayload("{\"address\": \"г. Москва, ул. Управляющая, д. 5\"}"));
@@ -183,7 +173,6 @@ class DocumentGenerationServiceTest {
         assertThat(entries.keySet())
                 .contains("bankruptcy_application.pdf", "creditor_list.pdf",
                         "filing_checklist.pdf");
-        // Entry bytes are exactly the stored documents:
         CaseDocument stored = documents
                 .findByCaseIdAndTypeAndFormat(existingCase.id(),
                         DocumentType.BANKRUPTCY_APPLICATION, DocumentFormat.PDF)
@@ -205,8 +194,6 @@ class DocumentGenerationServiceTest {
         assertThatExceptionOfType(ru.restart.app.common.error.ResourceNotFoundException.class)
                 .isThrownBy(() -> service.generate(existingCase.id()));
     }
-
-    // --- test doubles -----------------------------------------------------------
 
     private static final class StubTemplates implements DocumentTemplates {
         private String text = "ТЕКСТ ДОКУМЕНТА Иванова";

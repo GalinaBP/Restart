@@ -24,11 +24,6 @@ import ru.restart.app.common.web.CorrelationId;
 import java.time.Clock;
 import java.util.List;
 
-/**
- * Single translation point from exceptions to the {@link ApiError} contract. It deliberately never
- * exposes framework or persistence messages to clients: unexpected errors are logged with the
- * correlation id and returned as a generic {@code INTERNAL_ERROR}.
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -79,9 +74,6 @@ public class GlobalExceptionHandler {
                 "Доступ запрещён", request.getRequestURI(), CorrelationId.current());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
-
-    // --- client mistakes that must never surface as 500s ------------------------
-    // Logged without stack traces: these are request errors, not server faults.
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadableBody(HttpMessageNotReadableException ex,
@@ -148,7 +140,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception ex, HttpServletRequest request) {
         String correlationId = CorrelationId.current();
-        // Full detail goes to the log (correlated), never to the client.
         log.error("Unhandled exception [correlationId={}]", correlationId, ex);
         ApiError body = ApiError.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), ErrorCode.INTERNAL_ERROR,
                 "Произошла непредвиденная ошибка", request.getRequestURI(), correlationId);

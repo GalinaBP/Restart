@@ -1,11 +1,3 @@
-/**
- * Plain-Russian labels for the data-collection wizard. The backend's sections.yml owns WHICH
- * fields exist (the form is rendered from its metadata); this map only owns how they read on
- * screen — warm, short, zero legalese, per the product constitution. A field missing here still
- * renders (with its technical name), so a backend config change never breaks the wizard.
- */
-
-/** One collapsed how-to: a question as the summary, numbered steps, an optional link and note. */
 export interface HelpBlock {
   summary: string;
   steps: string[];
@@ -16,30 +8,11 @@ export interface HelpBlock {
 export interface SectionLabel {
   title: string;
   hint?: string;
-  /** What one entry is called in a repeatable section: «Добавить кредитора». */
   entryName?: string;
-  /**
-   * Honest heads-up on a step where some answers put the case outside what this app can handle
-   * on its own (the ICP is an unmarried debtor with no property or business). Always visible —
-   * the user should see it before answering, not after.
-   */
   caution?: string;
-  /**
-   * Collapsed how-tos, each opened on tap. A step may need more than one: filing, for instance,
-   * explains the paper route and the online one separately, so the user reads only the path
-   * they picked. `link` opens in a new tab — the user is mid-form and must not lose it.
-   */
   help?: HelpBlock[];
 }
 
-/**
- * The steps that make up «Информация о вас» on the case screen, in the order they are asked.
- *
- * Everything else in sections.yml belongs to a later stage of the procedure and is reached from
- * that stage on «Весь путь» — the case screen is about the data the documents are built from, so
- * listing the court, manager and payment steps here only buried it. The wizard's «дальше» walks
- * this same list, so it can never land on a step the case screen does not show.
- */
 export const CASE_DATA_SECTIONS: readonly string[] = [
   'PERSONAL_DETAILS',
   'PASSPORT',
@@ -56,24 +29,13 @@ export const CASE_DATA_SECTIONS: readonly string[] = [
   'VEHICLES',
 ];
 
-/** A paper the user gets elsewhere: what it is, and where it is issued. */
 export interface OwnDocument {
   title: string;
   where: string;
 }
 
-/** Whether the user is working right now — the one answer that changes this list. */
 export type WorkStatus = 'WORKING' | 'NOT_WORKING';
 
-/**
- * Papers no one can generate for the user: they are issued by banks, employers and the state.
- * Ordering follows the attachment list of the application. PLACEHOLDER pending lawyer review.
- *
- * These are asked of everyone. What proves your income — and what proves you have none — depends
- * on whether you are working, so those live in `WORK_DOCUMENTS` and are chosen by the user: the
- * questionnaire asks about employment in free text, which is no basis for deciding what the court
- * will want to see.
- */
 export const OWN_DOCUMENTS: OwnDocument[] = [
   { title: 'Паспорт', where: 'Копии всех заполненных страниц.' },
   { title: 'СНИЛС и выписка с лицевого счёта', where: 'Выписку заказывают на Госуслугах или в СФР.' },
@@ -84,11 +46,6 @@ export const OWN_DOCUMENTS: OwnDocument[] = [
   { title: 'Квитанции об оплате', where: 'Госпошлина и депозит на вознаграждение управляющего.' },
 ];
 
-/**
- * The part of the list that depends on whether the user is working. Both branches prove the same
- * thing to the court — what you earn, or that you do not earn — just from different offices.
- * PLACEHOLDER pending lawyer review, like everything rule-like here.
- */
 export const WORK_DOCUMENTS: Record<WorkStatus, OwnDocument[]> = {
   WORKING: [
     { title: 'Трудовая книжка', where: 'Бумажная или выписка из электронной — Госуслуги, СФР.' },
@@ -276,7 +233,6 @@ export const SECTION_LABELS: Record<string, SectionLabel> = {
   },
 };
 
-/** Field labels keyed «SECTION.field»; look up via fieldLabel(). */
 const FIELD_LABELS: Record<string, string> = {
   'PERSONAL_DETAILS.lastName': 'Фамилия',
   'PERSONAL_DETAILS.firstName': 'Имя',
@@ -356,7 +312,6 @@ const FIELD_LABELS: Record<string, string> = {
   'MANAGER_CORRESPONDENCE.note': 'Короткая заметка',
 };
 
-/** The filing documents, in plain words. `note` marks the one that never goes to the court. */
 const DOCUMENT_LABELS: Record<string, { title: string; note?: string }> = {
   BANKRUPTCY_APPLICATION: { title: 'Заявление в суд' },
   CREDITOR_LIST: { title: 'Список кредиторов' },
@@ -377,28 +332,10 @@ export function fieldLabel(sectionKey: string, fieldName: string): string {
   return FIELD_LABELS[`${sectionKey}.${fieldName}`] ?? fieldName;
 }
 
-/**
- * Plain-language stage info for the procedure stepper (backlog AI-019): what each stage is, in
- * one calm sentence — never the `statutoryBasis` the backend also carries, that string is for the
- * lawyer review only and must not reach the screen. Order and composition of stages themselves
- * come from the backend (`casefile/journey.yml`, placeholder pending lawyer review); this map
- * only owns how each one reads.
- */
 export interface StageLabel {
   title: string;
   description: string;
-  /**
-   * A paragraph explaining what the stage is for, shown on the stage's own screen under a heading
-   * of its own — never on the map, where the one-line `description` is all a card needs. Its
-   * `timing` belongs to the same block, for the same reason. Never money: amounts belong to
-   * `fees.yml` and are shown by the fees breakdown, so the copy cannot drift from the documents.
-   */
   about?: { title: string; text: string; timing?: string };
-  /**
-   * Roughly how long this stage takes, so the wait is expected rather than alarming. Always
-   * hedged («обычно», «примерно») — courts differ and these are observations from real cases,
-   * not statutory periods. PLACEHOLDER pending lawyer review, like everything rule-like here.
-   */
   timing?: string;
 }
 
@@ -487,11 +424,6 @@ export function stageLabel(key: string): StageLabel {
   return STAGE_LABELS[key] ?? { title: key, description: '' };
 }
 
-/**
- * The three procedures a court can apply (backlog AI-024), in plain words. `hint` is what the
- * user reads when choosing which one the court actually decided on — it describes the procedure,
- * never advises which to want: that is the court's decision, not ours.
- */
 export const PROCEDURE_LABELS: Record<'RESTRUCTURING' | 'REALIZATION' | 'SETTLEMENT',
   { title: string; hint: string }> = {
   RESTRUCTURING: {
@@ -508,7 +440,6 @@ export const PROCEDURE_LABELS: Record<'RESTRUCTURING' | 'REALIZATION' | 'SETTLEM
   },
 };
 
-/** Plain-language names for the four stage statuses (backlog AI-019). */
 export const STATUS_LABELS: Record<'NOT_STARTED' | 'IN_PROGRESS' | 'DONE' | 'BLOCKED', { title: string }> = {
   NOT_STARTED: { title: 'Не начато' },
   IN_PROGRESS: { title: 'В процессе' },
@@ -516,9 +447,5 @@ export const STATUS_LABELS: Record<'NOT_STARTED' | 'IN_PROGRESS' | 'DONE' | 'BLO
   BLOCKED: { title: 'Ждём' },
 };
 
-/**
- * Shown next to a BLOCKED stage: being stuck here is normal — it depends on someone else (the
- * court, the manager, a payment clearing), never on the user, and must never read like an error.
- */
 export const BLOCKED_EXPLANATION =
   'Пока не зависит от вас — ждём суд, управляющего или поступление денег.';

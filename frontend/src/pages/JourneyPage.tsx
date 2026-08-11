@@ -10,25 +10,14 @@ import {
 } from '../api/cases';
 import { CASE_DATA_SECTIONS, OWN_DOCUMENTS, WORK_DOCUMENTS, type WorkStatus } from '../api/labels';
 
-/**
- * The case home screen, in three parts: the data we ask for, the documents we build from it, and
- * the papers the user has to obtain elsewhere. Only the data steps live here — the court, manager
- * and payment steps belong to their stage on «Весь путь», and listing all twenty-three at once
- * buried the thirteen that actually feed the documents.
- *
- * «Продолжить» always jumps to the first unfilled data step, per the one-next-action rule.
- */
 export default function JourneyPage() {
   const navigate = useNavigate();
   const [bankruptcyCase, setCase] = useState<CaseInfo | null>(null);
   const [steps, setSteps] = useState<SectionStatus[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  /** Which papers about income to list; null until the user says. Not stored — it only picks a list. */
   const [work, setWork] = useState<WorkStatus | null>(null);
 
-  // Deliberately no synchronous setState here: the effect calls this directly, and the initial
-  // state already is "loading". Retry handlers reset the flags themselves before calling.
   const load = useCallback(async () => {
     try {
       const existing = await currentCase();
@@ -107,7 +96,6 @@ export default function JourneyPage() {
     );
   }
 
-  // Only the data steps count towards progress: the rest are recorded later, as the case moves.
   const dataSteps = CASE_DATA_SECTIONS
     .map((key) => steps?.find((s) => s.key === key))
     .filter((s): s is SectionStatus => s !== undefined);
@@ -182,9 +170,6 @@ export default function JourneyPage() {
           ))}
         </ul>
 
-        {/* What proves your income — and what proves you have none — comes from different offices,
-            so the rest of the list waits for one answer. Nothing is preselected: guessing it from
-            the free-text employment step would hand the user the wrong errands. */}
         <div className="journey-work-choice">
           <p className="journey-work-question">Вы сейчас работаете?</p>
           <div className="journey-work-options" role="group" aria-label="Вы сейчас работаете?">

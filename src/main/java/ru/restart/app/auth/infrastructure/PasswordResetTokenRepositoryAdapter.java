@@ -7,7 +7,6 @@ import ru.restart.app.auth.domain.PasswordResetTokenRepository;
 import java.util.Optional;
 import java.util.UUID;
 
-/** JPA-backed implementation of the domain's reset-token port. */
 @Component
 class PasswordResetTokenRepositoryAdapter implements PasswordResetTokenRepository {
 

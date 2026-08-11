@@ -14,11 +14,6 @@ import ru.restart.app.auth.application.AuthService;
 import ru.restart.app.auth.application.PasswordResetService;
 import ru.restart.app.common.web.ApiPaths;
 
-/**
- * Accounts and sessions. The whole {@code /auth} subtree is open at the URL level (see
- * {@code common.security.SecurityConfig}); {@code /auth/me} still requires a valid access token
- * because the service resolves the caller through {@code CurrentUser}.
- */
 @RestController
 @RequestMapping(ApiPaths.API_V1 + "/auth")
 @Tag(name = "Auth", description = "Registration, login, and the stateless JWT session")

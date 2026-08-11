@@ -2,13 +2,6 @@ import { useState } from 'react';
 import { STATUS_LABELS } from '../api/labels';
 import type { JourneyStageView, RecordStageInput } from '../api/procedure';
 
-/**
- * Records where one stage of the procedure stands: status, optional dates, optional note.
- *
- * Only ever rendered for a stage the backend marks `editable` — derived stages mirror the case
- * data and answer a hand-written update with a 409. Shared by «Весь путь» and the manager screen,
- * so the same stage is recorded the same way wherever the user meets it.
- */
 export default function StageEditor({
   view,
   onSave,

@@ -3,10 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { confirmPasswordReset } from '../api/auth';
 import { ApiError } from '../api/client';
 
-/**
- * Landing page of the mailed reset link (/auth/reset?token=…). One action: choose a new password.
- * A bad or expired token surfaces the backend's own message; a missing token gets a local hint.
- */
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

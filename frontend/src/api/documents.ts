@@ -3,7 +3,6 @@ import { download, request } from './client';
 export interface DocumentMeta {
   id: string;
   type: string;
-  /** PDF only since 2026-08-03 — an editable copy would drift from the case data. */
   format: 'PDF';
   templateVersion: string;
   filename: string;
@@ -15,7 +14,6 @@ export function listDocuments(caseId: string): Promise<DocumentMeta[]> {
   return request<DocumentMeta[]>(`/cases/${caseId}/documents`);
 }
 
-/** Renders the whole package; throws ApiError with body.missing on GENERATION_BLOCKED. */
 export function generateDocuments(caseId: string): Promise<DocumentMeta[]> {
   return request<DocumentMeta[]>(`/cases/${caseId}/documents`, { method: 'POST' });
 }
@@ -24,12 +22,10 @@ export function downloadDocument(caseId: string, documentId: string): Promise<Bl
   return download(`/cases/${caseId}/documents/${documentId}`);
 }
 
-/** The one-click filing package; the backend regenerates before bundling. */
 export function exportPackage(caseId: string): Promise<Blob> {
   return download(`/cases/${caseId}/documents/export`, 'POST');
 }
 
-/** Hands a fetched blob to the browser as a normal file download. */
 export function saveBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');

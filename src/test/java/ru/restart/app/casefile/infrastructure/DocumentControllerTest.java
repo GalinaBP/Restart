@@ -52,10 +52,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * HTTP contract of the filing-package endpoints, with the real security chain, real validation
- * rules, real writers; repositories and the template module are mocked at their ports.
- */
 @WebMvcTest(DocumentController.class)
 @Import({DocumentGenerationService.class, ValidationService.class, CaseModelAssembler.class,
         CaseService.class, YamlSectionRegistry.class, YamlCourtDirectory.class, YamlFeeScheduleRegistry.class,
@@ -64,7 +60,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         GlobalExceptionHandler.class, ClockConfig.class, DocumentControllerTest.EnableSecurity.class})
 class DocumentControllerTest {
 
-    /** See EligibilityControllerTest: Boot 4's web slice needs security switched on explicitly. */
     @TestConfiguration
     @EnableWebSecurity
     static class EnableSecurity {
@@ -117,7 +112,6 @@ class DocumentControllerTest {
                 .andExpect(jsonPath("$.message").value(
                         org.hamcrest.Matchers.containsString("обязательные разделы")))
                 .andExpect(jsonPath("$.missing").isNotEmpty())
-                // Every mandatory step shows up as a navigable item; optional ones don't:
                 .andExpect(jsonPath("$.missing[*].step").value(
                         org.hamcrest.Matchers.hasItems("PASSPORT", "CREDITORS", "MONTHLY_INCOME")))
                 .andExpect(jsonPath("$.missing[?(@.step == 'VEHICLES')]").isEmpty())
@@ -170,14 +164,12 @@ class DocumentControllerTest {
     @Test
     void exportSendsAZipOrTheBlockingContract() throws Exception {
         BankruptcyCase existing = ownCase();
-        // Blocked case first — same missing-info contract as generation:
         when(sections.findByCaseId(existing.id())).thenReturn(List.of());
         mockMvc.perform(post("/api/v1/cases/" + existing.id() + "/documents/export").with(user()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("GENERATION_BLOCKED"))
                 .andExpect(jsonPath("$.missing").isNotEmpty());
 
-        // Valid case — a zip attachment:
         when(sections.findByCaseId(existing.id()))
                 .thenReturn(CaseFixtures.validCaseSections(existing.id()));
         when(documents.findByCaseIdAndTypeAndFormat(eq(existing.id()), any(), any()))

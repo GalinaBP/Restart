@@ -19,7 +19,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-/** Use-case tests with an in-memory repository and a stubbed caller — no Spring context. */
 class CaseServiceTest {
 
     private final InMemoryCases cases = new InMemoryCases();
@@ -105,8 +104,6 @@ class CaseServiceTest {
         assertThatExceptionOfType(AuthenticationCredentialsNotFoundException.class)
                 .isThrownBy(service::create);
     }
-
-    // --- test doubles -----------------------------------------------------------
 
     private static final class InMemoryCases implements CaseRepository {
         private final Map<UUID, BankruptcyCase> byId = new HashMap<>();

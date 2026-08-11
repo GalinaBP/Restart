@@ -19,7 +19,6 @@ export default function App() {
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/reset" element={<ResetPasswordPage />} />
       <Route path="/journey" element={<JourneyPage />} />
-      {/* Static segment, so it wins over the :sectionKey route below. */}
       <Route path="/journey/all" element={<AboutYouPage />} />
       <Route path="/journey/:sectionKey" element={<SectionPage />} />
       <Route path="/procedure" element={<ProcedurePage />} />

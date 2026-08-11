@@ -18,12 +18,6 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * PDF writer: A4, monospaced layout mirroring the rendered template text one line per line, with
- * greedy wrapping and pagination. The DejaVu Sans Mono font is embedded (subset) so Cyrillic
- * renders on any viewer — PDFBox's standard fonts cannot encode it. Characters the font lacks
- * (stray emoji in user input) are replaced with «?» instead of failing the whole filing package.
- */
 @Component
 class PdfDocumentWriter implements DocumentFileWriter {
 
@@ -53,7 +47,6 @@ class PdfDocumentWriter implements DocumentFileWriter {
             PDType0Font font = PDType0Font.load(pdf,
                     new java.io.ByteArrayInputStream(fontBytes), true);
             float usableWidth = PAGE.getWidth() - 2 * MARGIN;
-            // Monospaced: every glyph has the same advance; compute the per-line capacity once.
             float charWidth = font.getStringWidth("0") / 1000 * FONT_SIZE;
             int maxChars = Math.max(20, (int) (usableWidth / charWidth));
 
@@ -104,7 +97,6 @@ class PdfDocumentWriter implements DocumentFileWriter {
         into.add(rest);
     }
 
-    /** Replaces codepoints the embedded font cannot encode, so one emoji never sinks the package. */
     private static String sanitize(PDType0Font font, String line) {
         StringBuilder safe = new StringBuilder(line.length());
         line.codePoints().forEach(codePoint -> {

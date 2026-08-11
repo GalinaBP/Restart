@@ -24,11 +24,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * The private-beta contract over HTTP: with registration switched off, sign-up answers a plain
- * 403 REGISTRATION_CLOSED (rendered as-is by the auth screen) — no account is created even by
- * calling the API directly.
- */
 @WebMvcTest(AuthController.class)
 @Import({AuthService.class, JwtTokenService.class, AuthSecurityConfig.class,
         SecurityContextCurrentUser.class, SecurityConfig.class, RestAuthenticationEntryPoint.class,
@@ -43,7 +38,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class RegistrationClosedControllerTest {
 
-    /** See EligibilityControllerTest: Boot 4's web slice needs security switched on explicitly. */
     @TestConfiguration
     @EnableWebSecurity
     static class EnableSecurity {
@@ -55,7 +49,6 @@ class RegistrationClosedControllerTest {
     @MockitoBean
     private UserAccountRepository accounts;
 
-    /** Not exercised here; mocked only so the controller's wiring resolves inside the slice. */
     @MockitoBean
     private PasswordResetService passwordReset;
 

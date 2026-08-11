@@ -11,11 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.restart.app.auth.domain.UserAccount;
 import ru.restart.app.auth.domain.UserAccountRepository;
 
-/**
- * Seeds one demo account for local development. Runs only when {@code restart.seed.enabled=true},
- * which is set in {@code application-local.yml} and nowhere else — with no default profile and no
- * default for the flag, a prod deployment can never seed accounts accidentally.
- */
 @Component
 @ConditionalOnProperty(name = "restart.seed.enabled", havingValue = "true")
 class LocalUserSeeder implements ApplicationRunner {

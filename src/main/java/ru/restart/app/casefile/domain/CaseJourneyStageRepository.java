@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Persistence port for recorded stage progress (backlog AI-018). */
 public interface CaseJourneyStageRepository {
 
     CaseJourneyStage save(CaseJourneyStage stage);

@@ -4,10 +4,6 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
-/**
- * Stable pagination envelope for collection endpoints. Decouples the API contract from Spring
- * Data's {@code Page} representation, which is not guaranteed to be serialisation-stable.
- */
 public record PageResponse<T>(
         List<T> items,
         int page,

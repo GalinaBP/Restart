@@ -10,8 +10,6 @@ const EMPTY_SRO = { key: 'MANAGER_SRO', order: 16, repeatable: false, fields: []
 
 function stubFetch(routes: { match: (url: string, init?: RequestInit) => boolean; status: number; body: unknown }[]) {
   const calls: { url: string; method: string; body?: string }[] = [];
-  // The screen reads the case and the СРО step, nothing else; tests that don't care about one get
-  // it empty for free, and can still override by declaring their own route first.
   const withDefaults = [...routes,
     { match: (url: string) => url.endsWith('/cases/current'), status: 200, body: CASE },
     { match: (url: string) => url.endsWith('/sections/MANAGER_SRO'), status: 200, body: EMPTY_SRO }];
@@ -53,8 +51,6 @@ describe('ManagerPage', () => {
     expect(await screen.findByText('Поиск финансового управляющего')).toBeInTheDocument();
     expect(screen.getByText('Черновик — проверяется юристом')).toBeInTheDocument();
 
-    // Why a manager is needed at all, then the single step: naming the organisation, shown as a
-    // card that says whether it is behind the user.
     expect(screen.getByText('Зачем нужен финансовый управляющий')).toBeInTheDocument();
     const step = container.querySelector('.manager-steps > li') as HTMLElement;
     expect(step.textContent).toContain('Выбрать организацию');
@@ -63,9 +59,7 @@ describe('ManagerPage', () => {
     expect(screen.getByRole('link', { name: /Указать организацию/ }))
       .toHaveAttribute('href', '/journey/MANAGER_SRO');
 
-    // The how-to lives on the step itself, next to the fields — not repeated before the link.
     expect(screen.queryByText('Как выбрать эту организацию?')).not.toBeInTheDocument();
-    // Paying the deposit belongs to «Пошлина и депозит» and is not asked for a second time here.
     expect(screen.queryByRole('link', { name: /Отметить оплату/ })).not.toBeInTheDocument();
   });
 
@@ -74,8 +68,6 @@ describe('ManagerPage', () => {
     renderAtManager();
 
     await screen.findByText('Поиск финансового управляющего');
-    // Recording the appointment and keeping the correspondence journal belong to the stage card
-    // on «Весь путь»; this screen is only the one action.
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     expect(screen.queryByText('Когда управляющего утвердят')).not.toBeInTheDocument();
     expect(screen.queryByText('Переписка с управляющим')).not.toBeInTheDocument();
@@ -87,7 +79,6 @@ describe('ManagerPage', () => {
 
     await screen.findByText('Поиск финансового управляющего');
     expect(screen.getByText(/обязательный участник процедуры банкротства/)).toBeInTheDocument();
-    // Amounts live on «Пошлина и депозит»; this screen names no sum, so none can go stale here.
     expect(screen.queryByText(/₽/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Сумма черновая/)).not.toBeInTheDocument();
   });

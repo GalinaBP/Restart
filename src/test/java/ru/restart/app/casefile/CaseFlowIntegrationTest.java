@@ -16,11 +16,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * End-to-end case lifecycle over real HTTP and MySQL, exercising the Case Management → User
- * Profile linkage the backlog asks for: register → create case (draft) → duplicate rejected →
- * retrieve by id/current → a second user cannot see it.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CaseFlowIntegrationTest extends AbstractIntegrationTest {
 

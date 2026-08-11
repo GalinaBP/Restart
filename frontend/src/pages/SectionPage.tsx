@@ -10,20 +10,6 @@ import { issueFor as findIssue, toApi, toForm, type FormEntry } from './sectionF
 import { SectionField } from './SectionField';
 import SectionHelp from './SectionHelp';
 
-/**
- * One data-collection step. The form is rendered entirely from the backend's field metadata
- * (names, types, required flags) — sections.yml is the single source of truth; this screen adds
- * only labels and input widgets. Saving never blocks: value problems come back as issues and are
- * shown next to the exact field (and entry) they belong to.
- *
- * A clean save moves straight on to the next step in sections.yml order, so the wizard can be
- * filled in one run; the last step (or an unknown order) falls back to the map of steps.
- *
- * A screen that owns a step of its own — «Поиск финансового управляющего» — links here with a
- * `back` route in the navigation state, and then both the back link and the save return there
- * instead: the user came from that screen's step list, so that is the list they belong to.
- */
-
 export default function SectionPage() {
   const { sectionKey = '' } = useParams();
   const navigate = useNavigate();
@@ -31,18 +17,14 @@ export default function SectionPage() {
   const back = (state as { back?: string } | null)?.back ?? null;
   const [caseId, setCaseId] = useState<string | null>(null);
   const [section, setSection] = useState<SectionContent | null>(null);
-  /** Every step of the case, used only to find what comes after this one. */
   const [steps, setSteps] = useState<SectionStatus[]>([]);
   const [entries, setEntries] = useState<FormEntry[]>([{}]);
   const [issues, setIssues] = useState<SectionIssue[]>([]);
   const [saved, setSaved] = useState(false);
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
-  /** A failed SAVE keeps the form and the typed data (AI-004: never silently dropped). */
   const [saveFailed, setSaveFailed] = useState(false);
 
-  // No synchronous setState: the effect calls this directly (lint react-hooks/set-state-in-effect);
-  // the retry handler resets the failed flag itself.
   const load = useCallback(async () => {
     try {
       const existing = await currentCase();
@@ -51,14 +33,12 @@ export default function SectionPage() {
         return;
       }
       setCaseId(existing.id);
-      // The overview only drives the «what's next» jump — a failure there must not stop the form.
       const [content, overview] = await Promise.all([
         getSection(existing.id, sectionKey),
         sectionsOverview(existing.id).catch(() => []),
       ]);
       setSection(content);
       setSteps(Array.isArray(overview) ? overview : []);
-      // Moving between steps reuses this component: start the new one with a clean slate.
       setIssues([]);
       setSaved(false);
       setSaveFailed(false);
@@ -100,8 +80,6 @@ export default function SectionPage() {
     );
   }
 
-  // section.key lags the URL for one render while the next step loads — show the wait, not the
-  // step just left behind (its filled fields would read as if the save had not happened).
   if (!section || !caseId || section.key !== sectionKey) {
     return (
       <main className="check">
@@ -112,8 +90,6 @@ export default function SectionPage() {
 
   const label = sectionLabel(section.key);
 
-  // «Дальше» walks the same list the case screen shows, so it can never hand the user a step
-  // that screen hides — the later steps are reached from their stage on «Весь путь» instead.
   const ordered = CASE_DATA_SECTIONS.filter((key) => steps.some((s) => s.key === key));
   const position = ordered.indexOf(section.key);
   const nextKey = position >= 0 && position + 1 < ordered.length
@@ -144,7 +120,6 @@ export default function SectionPage() {
         navigate(back ?? (nextKey ? `/journey/${nextKey}` : '/journey'));
       }
     } catch {
-      // Keep the form and everything typed; only tell the user and let them retry the save.
       setSaveFailed(true);
     } finally {
       setPending(false);
@@ -164,8 +139,6 @@ export default function SectionPage() {
 
   return (
     <main className="section">
-      {/* «К списку шагов» is only true of the questionnaire. A step opened from a screen that
-          owns it has no list behind it — it goes back where it came from. */}
       <Link to={back ?? '/journey'} className="check-back">
         {back ? '← Назад' : '← К списку шагов'}
       </Link>
@@ -217,8 +190,6 @@ export default function SectionPage() {
         ) : (
           section.fields.map((field) => renderField(field, 0))
         )}
-        {/* «и дальше» promises the next step of the questionnaire — there is none when the step
-            was opened from a screen of its own, and the save returns there instead. */}
         <button type="submit" className="landing-cta" disabled={pending}>
           {pending ? 'Сохраняем…' : (back ? 'Сохранить' : 'Сохранить и дальше')}
         </button>
