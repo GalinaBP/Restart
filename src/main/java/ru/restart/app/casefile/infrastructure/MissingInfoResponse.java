@@ -5,12 +5,6 @@ import ru.restart.app.casefile.domain.ValidationIssue;
 import java.time.Instant;
 import java.util.List;
 
-/**
- * The blocking response of the generation gate (backlog AI-007): the standard ApiError fields —
- * same shape every other failure has — plus {@code missing}, the exact items to fix. {@code step}
- * is the data-collection section key, so the client can navigate straight from an item to the
- * screen that fixes it; {@code entryIndex}/{@code field} narrow it further when applicable.
- */
 public record MissingInfoResponse(
         Instant timestamp,
         int status,

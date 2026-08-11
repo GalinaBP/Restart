@@ -38,11 +38,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Web-slice test of the whole-case validation report, with the real engine and the real YAML
- * registry — the backlog's integration requirement that "errors surface on the correct field"
- * is asserted on the exact section/entry/field addressing.
- */
 @WebMvcTest(ValidationController.class)
 @Import({ValidationService.class, CaseService.class, YamlSectionRegistry.class,
         SecurityContextCurrentUser.class, SecurityConfig.class, RestAuthenticationEntryPoint.class,
@@ -50,7 +45,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ValidationControllerTest.EnableSecurity.class})
 class ValidationControllerTest {
 
-    /** See EligibilityControllerTest: Boot 4's web slice needs security switched on explicitly. */
     @TestConfiguration
     @EnableWebSecurity
     static class EnableSecurity {
@@ -97,7 +91,6 @@ class ValidationControllerTest {
                 .andExpect(jsonPath("$.issues[*].code").value(hasItem("SECTION_EMPTY")))
                 .andExpect(jsonPath("$.issues[?(@.code == 'SECTION_EMPTY')].section")
                         .value(hasItem("CREDITORS")))
-                // Optional sections (vehicles etc.) must not be demanded from the narrow ICP.
                 .andExpect(jsonPath("$.issues[?(@.section == 'VEHICLES')]").isEmpty());
     }
 
@@ -116,11 +109,9 @@ class ValidationControllerTest {
         mockMvc.perform(get("/api/v1/cases/" + existing.id() + "/validation").with(user()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.valid").value(false))
-                // Bad INN checksum surfaces on PERSONAL_DETAILS.inn:
                 .andExpect(jsonPath(
                         "$.issues[?(@.section == 'PERSONAL_DETAILS' && @.field == 'inn')].code")
                         .value(hasItem("INVALID_INN")))
-                // The duplicate creditor is the second entry:
                 .andExpect(jsonPath(
                         "$.issues[?(@.section == 'CREDITORS' && @.code == 'DUPLICATE_ENTRY')].entryIndex")
                         .value(hasItem(1)));

@@ -25,7 +25,6 @@ function renderPage() {
 
 type User = ReturnType<typeof userEvent.setup>;
 
-/** Dismisses the consequences intro so the grouped question flow begins. */
 async function startCheck(user: User) {
   await user.click(screen.getByRole('button', { name: 'Понятно, продолжить' }));
 }
@@ -33,45 +32,36 @@ async function startCheck(user: User) {
 const click = (user: User, name: RegExp) =>
   user.click(screen.getByRole('button', { name }));
 
-/** Answers the nth «Нет» on the current screen — several questions share that label. */
 async function clickNth(user: User, name: RegExp, index: number) {
   await user.click(screen.getAllByRole('button', { name })[index]);
 }
 
-/** Walks every screen picking the answers of a straightforward, fitting case. */
 async function answerEverythingAsFitting(
   user: User,
   lastChoice = /Хочу пройти всё самостоятельно/,
 ) {
   await startCheck(user);
-  // 1 — Долги
   await click(user, /500 тыс\. – 1 млн/);
   await click(user, /Кредиты и кредитные карты/);
   await click(user, /Далее/);
-  // 2 — Платежи
   await click(user, /Не могу платить по большинству/);
   await click(user, /Больше года назад/);
-  await click(user, /^Нет$/); // новые займы после проблем
+  await click(user, /^Нет$/);
   await click(user, /Далее/);
-  // 3 — Имущество и бизнес
   await click(user, /Ничего, кроме обычных личных вещей/);
-  await click(user, /^Нет$/); // ИП или бизнес
+  await click(user, /^Нет$/);
   await click(user, /Далее/);
-  // 4 — Сделки и семья
-  await clickNth(user, /^Нет$/, 0); // сделки за 3 года
-  await clickNth(user, /^Нет$/, 1); // брак
+  await clickNth(user, /^Нет$/, 0);
+  await clickNth(user, /^Нет$/, 1);
   await click(user, /Далее/);
-  // 5 — Суды и счета
-  await clickNth(user, /^Нет$/, 0); // имущество за границей
-  await clickNth(user, /^Нет$/, 1); // судебные дела
-  await clickNth(user, /^Нет$/, 2); // приставы
+  await clickNth(user, /^Нет$/, 0);
+  await clickNth(user, /^Нет$/, 1);
+  await clickNth(user, /^Нет$/, 2);
   await click(user, /Далее/);
-  // 6 — Деньги и обязательства
-  await click(user, /^Нет$/); // крупные операции
+  await click(user, /^Нет$/);
   await click(user, /^Ничего из этого$/);
   await click(user, /Далее/);
-  // 7 — Как продолжить
-  await click(user, /^Да$/); // готов к расходам
+  await click(user, /^Да$/);
   await click(user, lastChoice);
   await click(user, /Показать результат/);
 }
@@ -84,7 +74,6 @@ describe('EligibilityPage', () => {
     expect(screen.getByText('Сначала — что важно знать')).toBeInTheDocument();
     expect(screen.getByText('Черновик — проверяется юристом')).toBeInTheDocument();
     expect(screen.getByText(/Имущество могут продать на торгах/i)).toBeInTheDocument();
-    // The question flow has not started yet.
     expect(screen.queryByText(/Сколько у вас долгов/)).not.toBeInTheDocument();
   });
 
@@ -106,7 +95,7 @@ describe('EligibilityPage', () => {
     renderPage();
 
     await startCheck(user);
-    await click(user, /500 тыс\. – 1 млн/); // only one of the two answered
+    await click(user, /500 тыс\. – 1 млн/);
     await click(user, /Далее/);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Ответьте на все вопросы');
@@ -124,11 +113,9 @@ describe('EligibilityPage', () => {
     await click(user, /Далее/);
     await click(user, /Не могу платить по большинству/);
 
-    // Old loans: the follow-up stays away.
     await click(user, /Больше года назад/);
     expect(screen.queryByText(/уже понимая, что не сможете их погашать/)).not.toBeInTheDocument();
 
-    // Loans of the last three months: the question that actually matters appears.
     await click(user, /В последние 3 месяца/);
     expect(screen.getByText(/уже понимая, что не сможете их погашать/)).toBeInTheDocument();
   });
@@ -187,8 +174,6 @@ describe('EligibilityPage', () => {
     expect(screen.getByRole('button', { name: /Микрозаймы/ }))
       .toHaveAttribute('aria-pressed', 'true');
 
-    // «Не знаю» is exclusive — it clears the other picks. (The first one on this screen belongs
-    // to the debt-size question; this is the one inside «Какие у вас долги?».)
     await clickNth(user, /^Не знаю$/, 1);
     expect(screen.getByRole('button', { name: /Кредиты и кредитные карты/ }))
       .toHaveAttribute('aria-pressed', 'false');
@@ -222,14 +207,12 @@ describe('EligibilityPage', () => {
       costsReadiness: 'READY',
       preferredPath: 'SELF_SERVICE',
     });
-    // Follow-ups that were never shown are not invented.
     expect(body.knewCouldNotRepay).toBeUndefined();
     expect(body.dealAssets).toBeUndefined();
     expect(body.moneyOperations).toBeUndefined();
   });
 
   it('shows the "not recommended" screen without routing to a lawyer', async () => {
-    // The decision is server-driven: debts that survive bankruptcy come back as NOT_RECOMMENDED.
     mockCheckResponse({
       decision: 'NOT_RECOMMENDED',
       reasons: ['Долги по алиментам не спишутся — они останутся с вами и после процедуры.'],
@@ -243,7 +226,6 @@ describe('EligibilityPage', () => {
       await screen.findByText('Похоже, банкротство вам сейчас не поможет'),
     ).toBeInTheDocument();
     expect(screen.getByText(/Долги по алиментам не спишутся/)).toBeInTheDocument();
-    // It must not look like the lawyer outcome.
     expect(screen.queryByText(/вам лучше с юристом/)).not.toBeInTheDocument();
   });
 

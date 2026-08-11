@@ -8,10 +8,6 @@ import ru.restart.app.doctemplate.domain.DocumentTemplateRenderer;
 
 import java.util.Map;
 
-/**
- * Implementation of the module's public {@link DocumentTemplates} contract, backed by the
- * internal renderer. Consumed by the document-generation engine (AI-006).
- */
 @Service
 public class TemplateService implements DocumentTemplates {
 

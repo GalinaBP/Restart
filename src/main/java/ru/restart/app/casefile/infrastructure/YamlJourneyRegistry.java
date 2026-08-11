@@ -17,12 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Loads the procedure from {@code casefile/journey.yml} at startup and fails fast on an
- * inconsistent config: every {@link JourneyStage} must be defined exactly once and carry a
- * statutory-basis reference. Mirrors {@link YamlSectionRegistry} — the YAML is the source of
- * truth, so a change to the procedure is a config edit, not a code change.
- */
 @Component
 class YamlJourneyRegistry implements JourneyRegistry {
 

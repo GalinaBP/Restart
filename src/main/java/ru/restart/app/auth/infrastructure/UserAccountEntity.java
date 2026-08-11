@@ -13,11 +13,6 @@ import ru.restart.app.common.persistence.BaseEntity;
 
 import java.util.UUID;
 
-/**
- * JPA mapping of {@code user_account} (see {@code V1__create_user_account.sql}). UUIDs follow the
- * platform convention of {@code BINARY(16)} storage; Hibernate's binary UUID encoding matches
- * {@code common.persistence.UuidUtils} (most-significant bits first).
- */
 @Entity
 @Table(name = "user_account")
 public class UserAccountEntity extends BaseEntity {
@@ -38,7 +33,6 @@ public class UserAccountEntity extends BaseEntity {
     private UserRole role;
 
     protected UserAccountEntity() {
-        // JPA
     }
 
     UserAccountEntity(UUID id, String email, String passwordHash, UserRole role) {

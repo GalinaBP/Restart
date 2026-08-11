@@ -11,12 +11,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import ru.restart.app.auth.application.ResetLinkSender;
 
-/**
- * Picks how reset links travel. With SMTP configured ({@code spring.mail.host}, usually via the
- * {@code SPRING_MAIL_*} environment variables) real email goes out; without it the link is written
- * to the application log — the private-beta fallback where the operator passes it on by hand.
- * Declaration order matters: the SMTP bean is evaluated first, the logging bean fills the gap.
- */
 @Configuration
 class ResetLinkSenderConfig {
 
@@ -48,7 +42,6 @@ class ResetLinkSenderConfig {
         };
     }
 
-    /** Deliberately logs a live credential-equivalent link; acceptable only while SMTP is absent. */
     @Bean
     @ConditionalOnMissingBean(ResetLinkSender.class)
     ResetLinkSender loggingResetLinkSender() {

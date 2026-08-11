@@ -39,11 +39,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Web-slice test of the claim-filing deadline endpoint (backlog AI-025), mirroring
- * {@code JourneyControllerTest}: real security chain and real {@link ClaimDeadlineService}, only
- * the repositories and the config-backed policy are mocked.
- */
 @WebMvcTest(ClaimDeadlineController.class)
 @Import({ClaimDeadlineService.class, CaseService.class, SecurityContextCurrentUser.class,
         SecurityConfig.class, RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class,
@@ -51,7 +46,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ClaimDeadlineControllerTest.EnableSecurity.class})
 class ClaimDeadlineControllerTest {
 
-    /** See EligibilityControllerTest: Boot 4's web slice needs security switched on explicitly. */
     @TestConfiguration
     @EnableWebSecurity
     static class EnableSecurity {

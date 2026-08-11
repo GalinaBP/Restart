@@ -4,12 +4,6 @@ import ru.restart.app.casefile.application.JourneyView;
 
 import java.util.List;
 
-/**
- * The journey map of a case: every stage that applies, in order.
- *
- * @param procedureType null until the court has decided; only the common path is listed then.
- * @param currentStage  null once every stage is done.
- */
 public record JourneyResponse(List<JourneyStageResponse> stages, String procedureType,
                               String currentStage) {
 

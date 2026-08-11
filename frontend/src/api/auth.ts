@@ -7,7 +7,6 @@ export interface TokenResponse {
   expiresInSeconds: number;
 }
 
-/** Creates the account and signs in (the backend auto-logs-in on register). */
 export async function register(email: string, password: string): Promise<void> {
   const tokens = await request<TokenResponse>('/auth/register', {
     method: 'POST',
@@ -26,7 +25,6 @@ export async function login(email: string, password: string): Promise<void> {
   tokenStore.set(tokens.accessToken, tokens.refreshToken);
 }
 
-/** Always resolves (204) — the backend never reveals whether the email is registered. */
 export async function requestPasswordReset(email: string): Promise<void> {
   await request<void>('/auth/forgot-password', {
     method: 'POST',

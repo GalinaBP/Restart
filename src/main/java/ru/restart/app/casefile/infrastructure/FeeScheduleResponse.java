@@ -6,11 +6,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * What the filing costs. {@code confirmed} is per line and deliberately exposed: while any amount
- * is an unconfirmed placeholder the client must say so rather than present a figure the user
- * might go and pay.
- */
 public record FeeScheduleResponse(List<FeeLineResponse> lines, BigDecimal total,
                                   boolean allConfirmed, LocalDate effectiveFrom) {
 

@@ -10,11 +10,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Every deterministic rule of the engine, with valid/invalid/edge cases per the backlog's test
- * requirement. Definitions are built inline so the test pins the engine's behaviour, not the
- * (placeholder) production config.
- */
 class CaseValidatorTest {
 
     private final CaseValidator validator = new CaseValidator();
@@ -44,8 +39,6 @@ class CaseValidatorTest {
         return json.readTree(content);
     }
 
-    // --- section level ----------------------------------------------------------
-
     @Test
     void mandatorySectionMissingOrEmptyIsFlagged() {
         assertThat(validator.validateSection(PASSPORT_LIKE, null))
@@ -64,8 +57,6 @@ class CaseValidatorTest {
         assertThat(validator.validateSection(OPTIONAL_LIST, null)).isEmpty();
         assertThat(validator.validateSection(OPTIONAL_LIST, parse("[]"))).isEmpty();
     }
-
-    // --- required fields --------------------------------------------------------
 
     @Test
     void missingAndBlankRequiredFieldsAreFlaggedPerField() {
@@ -94,8 +85,6 @@ class CaseValidatorTest {
                 .containsExactly(ValidationCode.INVALID_INN);
     }
 
-    // --- passport ---------------------------------------------------------------
-
     @ParameterizedTest
     @ValueSource(strings = {"123", "12345", "12a4", "1234 "})
     void passportSeriesMustBeFourDigits(String series) {
@@ -120,8 +109,6 @@ class CaseValidatorTest {
                 .containsExactly(ValidationCode.INVALID_PASSPORT_NUMBER);
     }
 
-    // --- dates ------------------------------------------------------------------
-
     @ParameterizedTest
     @ValueSource(strings = {"15.01.2020", "2020-13-01", "2020-02-30", "yesterday", "2020"})
     void malformedDatesAreFlagged(String date) {
@@ -134,10 +121,8 @@ class CaseValidatorTest {
                 .containsExactly(ValidationCode.INVALID_DATE);
     }
 
-    // --- INN checksum -----------------------------------------------------------
-
     @ParameterizedTest
-    @ValueSource(strings = {"7707083893", "500100732259"}) // valid 10- and 12-digit INNs
+    @ValueSource(strings = {"7707083893", "500100732259"})
     void validInnsPassTheChecksum(String inn) {
         assertThat(CaseValidator.innChecksumValid(inn)).isTrue();
     }
@@ -159,8 +144,6 @@ class CaseValidatorTest {
                 .extracting(ValidationIssue::code)
                 .containsExactly(ValidationCode.INVALID_INN);
     }
-
-    // --- money and types --------------------------------------------------------
 
     @Test
     void moneyMustBeANonNegativeNumber() {
@@ -189,8 +172,6 @@ class CaseValidatorTest {
                 .extracting(ValidationIssue::code)
                 .containsExactly(ValidationCode.INVALID_TYPE);
     }
-
-    // --- repeatable entries: addressing and duplicates ---------------------------
 
     @Test
     void entryFindingsCarryTheEntryIndex() {

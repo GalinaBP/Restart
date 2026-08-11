@@ -19,11 +19,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Runs the deterministic validation engine over collected case data (backlog AI-003). Validation
- * never blocks saving — partial data is expected while the user is mid-journey — it reports what
- * still has to be fixed; the document-generation gate (AI-007) will consume the same report.
- */
 @Service
 public class ValidationService {
 
@@ -41,7 +36,6 @@ public class ValidationService {
         this.objectMapper = objectMapper;
     }
 
-    /** The full case report: every section validated, never-saved mandatory sections included. */
     @Transactional(readOnly = true)
     public List<ValidationIssue> validateCase(UUID caseId) {
         BankruptcyCase bankruptcyCase = caseService.get(caseId);
@@ -54,7 +48,6 @@ public class ValidationService {
         return issues;
     }
 
-    /** One section's findings against an in-memory payload (used right after a step is saved). */
     public List<ValidationIssue> validateSection(SectionDefinition definition, JsonNode payload) {
         return validator.validateSection(definition, payload);
     }

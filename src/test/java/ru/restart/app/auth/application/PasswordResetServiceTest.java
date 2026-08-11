@@ -24,10 +24,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-/**
- * Use-case tests in the {@code AuthServiceTest} style: in-memory repositories, the real password
- * encoder, a controllable clock, and a recording link sender — no mocks of what we own.
- */
 class PasswordResetServiceTest {
 
     private static final String EMAIL = "user@mail.ru";
@@ -135,8 +131,6 @@ class PasswordResetServiceTest {
     private static String tokenOf(String link) {
         return link.substring(link.indexOf("token=") + "token=".length());
     }
-
-    // --- test doubles -----------------------------------------------------------
 
     private static final class InMemoryAccounts implements UserAccountRepository {
         private final Map<UUID, UserAccount> byId = new HashMap<>();

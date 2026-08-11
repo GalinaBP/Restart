@@ -17,11 +17,6 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Stateless JWT implementation of {@link TokenService}. Both token kinds are HMAC-signed and carry
- * a {@code token_use} claim, checked on parse, so an access token can never be replayed as a
- * refresh token or vice versa.
- */
 @Component
 class JwtTokenService implements TokenService {
 
@@ -43,7 +38,6 @@ class JwtTokenService implements TokenService {
         this.clock = clock;
     }
 
-    /** Fails fast on a missing/weak secret instead of booting an insecure instance. */
     private static SecretKey hmacKey(String secret, String propertyName) {
         if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
             throw new IllegalStateException(
@@ -80,11 +74,6 @@ class JwtTokenService implements TokenService {
                 .map(claims -> UUID.fromString(claims.getSubject()));
     }
 
-    /**
-     * The authenticated principal from a valid, unexpired access token; empty for anything invalid.
-     * Used by the authentication filter — not part of the application-layer port, which never sees
-     * request-level concerns.
-     */
     Optional<AuthenticatedUser> parseAccessToken(String accessToken) {
         return parse(accessToken, accessKey, USE_ACCESS)
                 .map(claims -> new AuthenticatedUser(

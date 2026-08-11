@@ -36,13 +36,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * AI-008 regression scenarios against the real validation rules: an edit while the case stays
- * valid regenerates every document automatically with the fresh data; an edit that breaks
- * validity flags all documents stale without touching their bytes; fixing the data regenerates
- * and clears the flags. Full regeneration is the documented choice — every document derives from
- * the whole case model.
- */
 class RegenerationFlowTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -77,7 +70,6 @@ class RegenerationFlowTest {
         generationService.generate(existingCase.id());
     }
 
-    /** Documents are PDF only, so the text has to be read back out of the file. */
     private String creditorListText() {
         byte[] pdf = documents.findByCaseId(existingCase.id()).stream()
                 .filter(d -> d.type() == DocumentType.CREDITOR_LIST)
@@ -96,7 +88,6 @@ class RegenerationFlowTest {
     void editingDataWhileValidRegeneratesAllDocumentsAutomatically() {
         assertThat(creditorListText()).contains("МФО «Деньги-Быстро»");
 
-        // The user removes the second creditor — still a valid case.
         sectionService.put(existingCase.id(), SectionKey.CREDITORS, objectMapper.readTree("""
                 [{"name": "ПАО «Банк Восход»", "inn": "7707083893",
                   "address": "г. Москва, ул. Банковская, д. 3",
@@ -113,7 +104,6 @@ class RegenerationFlowTest {
     void editingDataIntoAnInvalidStateFlagsEverythingStaleWithoutTouchingContent() {
         String before = creditorListText();
 
-        // The user blanks the passport issue date — case no longer valid, cannot regenerate.
         sectionService.put(existingCase.id(), SectionKey.PASSPORT, objectMapper.readTree("""
                 {"series": "4519", "number": "123456",
                  "issuedBy": "ГУ МВД России по г. Москве"}"""));
@@ -152,9 +142,6 @@ class RegenerationFlowTest {
         assertThat(after).isEqualTo(before);
     }
 
-    // --- test doubles -----------------------------------------------------------
-
-    /** Renders a deterministic digest of the model, enough to see which data version is inside. */
     private static final class EchoTemplates implements DocumentTemplates {
         @Override
         public String activeVersion() {

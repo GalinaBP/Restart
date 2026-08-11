@@ -1,12 +1,5 @@
 import type { FieldMeta, SectionEntry, SectionIssue } from '../api/cases';
 
-/**
- * The form half of a data-collection section, shared by the one-step wizard and the single
- * «Информация о вас» page. Fields are rendered entirely from the backend's metadata — sections.yml
- * stays the one source of truth for what exists; these helpers only add widgets and labels.
- */
-
-/** Form-side value: text inputs keep strings, booleans keep booleans. */
 export type FormEntry = Record<string, string | boolean>;
 
 export function toForm(entry: SectionEntry | undefined): FormEntry {
@@ -19,7 +12,6 @@ export function toForm(entry: SectionEntry | undefined): FormEntry {
   return form;
 }
 
-/** Converts one form entry back to API values per field type; blank optional fields are omitted. */
 export function toApi(fields: FieldMeta[], form: FormEntry): SectionEntry {
   const entry: SectionEntry = {};
   for (const field of fields) {
@@ -57,7 +49,6 @@ export function inputType(field: FieldMeta): { type: string; inputMode?: 'numeri
   }
 }
 
-/** Finds the message for one field of one entry, matching how the backend addresses issues. */
 export function issueFor(
   issues: SectionIssue[],
   repeatable: boolean,

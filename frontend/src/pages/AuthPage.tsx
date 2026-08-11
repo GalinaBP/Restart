@@ -3,11 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { login, register, requestPasswordReset } from '../api/auth';
 import { ApiError } from '../api/client';
 
-/**
- * One card, four modes: register, login, forgot-password, and the "letter sent" confirmation.
- * Backend error messages are already plain Russian, so they are shown as-is; only network
- * failures get a local message. The sent-состояние copy is enumeration-safe on purpose.
- */
 type Mode = 'register' | 'login' | 'forgot' | 'sent';
 
 export default function AuthPage() {

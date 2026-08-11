@@ -34,10 +34,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-/**
- * The state machine behind the journey map (backlog AI-018), driven by the real
- * {@code journey.yml} through an in-memory repository set — no Spring context.
- */
 class JourneyServiceTest {
 
     private final InMemoryCases cases = new InMemoryCases();
@@ -77,9 +73,7 @@ class JourneyServiceTest {
                         JourneyStage.DOCUMENT_PREPARATION, JourneyStage.FEES_AND_DEPOSIT,
                         JourneyStage.FILING, JourneyStage.COURT_DECISION,
                         JourneyStage.CREDITOR_CLAIMS, JourneyStage.COMPLETION);
-        // Screening is behind us by construction — the case exists only because it passed.
         assertThat(stage(journey, JourneyStage.SCREENING).status()).isEqualTo(StageStatus.DONE);
-        // The application must name the СРО, so the manager search comes before the documents.
         assertThat(journey.currentStage()).contains(JourneyStage.MANAGER_SELECTION);
     }
 
@@ -137,7 +131,6 @@ class JourneyServiceTest {
         assertThat(stage(service.journeyOf(caseId), JourneyStage.FEES_AND_DEPOSIT).status())
                 .isEqualTo(StageStatus.NOT_STARTED);
 
-        // Only the duty paid so far — half done is not done:
         sections.save(CaseSection.of(caseId, SectionKey.PAYMENTS,
                 "{\"stateDutyPaidOn\": \"2026-07-20\"}"));
         assertThat(stage(service.journeyOf(caseId), JourneyStage.FEES_AND_DEPOSIT).status())
@@ -151,7 +144,6 @@ class JourneyServiceTest {
 
     @Test
     void theFeesStageCannotBeTickedByHand() {
-        // Otherwise the map could claim the filing is paid for with no payment on file.
         assertThatExceptionOfType(DerivedStageException.class).isThrownBy(() ->
                 service.recordStage(caseId, JourneyStage.FEES_AND_DEPOSIT, StageStatus.DONE,
                         null, null, null));
@@ -171,7 +163,6 @@ class JourneyServiceTest {
 
     @Test
     void theFilingStageCannotBeTickedByHand() {
-        // Otherwise the map could claim a filing that never reached the court.
         assertThatExceptionOfType(DerivedStageException.class).isThrownBy(() ->
                 service.recordStage(caseId, JourneyStage.FILING, StageStatus.DONE,
                         null, null, null));
@@ -209,7 +200,6 @@ class JourneyServiceTest {
         service.recordStage(caseId, JourneyStage.COURT_DECISION, StageStatus.BLOCKED,
                 null, null, "Ждём заседание 12.08.2026");
 
-        // Waiting on the court is not progress — the user is still on that stage.
         assertThat(stage(service.journeyOf(caseId), JourneyStage.COURT_DECISION).status())
                 .isEqualTo(StageStatus.BLOCKED);
         assertThat(service.journeyOf(caseId).currentStage())
@@ -225,7 +215,6 @@ class JourneyServiceTest {
                 .contains(JourneyStage.PROPERTY_REALIZATION)
                 .doesNotContain(JourneyStage.RESTRUCTURING_PLAN,
                         JourneyStage.SETTLEMENT_AGREEMENT);
-        // The branch stages sit between the court's decision and the common tail:
         assertThat(journey.stages()).extracting(StageView::stage)
                 .containsSubsequence(JourneyStage.COURT_DECISION,
                         JourneyStage.PROPERTY_REALIZATION, JourneyStage.CREDITOR_CLAIMS);
@@ -233,8 +222,6 @@ class JourneyServiceTest {
 
     @Test
     void eachProcedureHasItsOwnSequenceAndNoneOfTheOthers() {
-        // AI-024: the three procedures are materially different, so each is its own run of
-        // stages — not one shared stage with a different label.
         assertThat(stagesOf(ProcedureType.RESTRUCTURING))
                 .containsSubsequence(JourneyStage.RESTRUCTURING_PLAN,
                         JourneyStage.RESTRUCTURING_PLAN_APPROVAL,
@@ -272,7 +259,6 @@ class JourneyServiceTest {
 
     @Test
     void beforeTheCourtDecidesNoBranchStageIsVisibleAtAll() {
-        // The regression AI-024 asks for: the single common path still works untouched.
         assertThat(service.journeyOf(caseId).stages()).extracting(StageView::stage)
                 .doesNotContain(JourneyStage.RESTRUCTURING_PLAN,
                         JourneyStage.RESTRUCTURING_PLAN_APPROVAL,
@@ -287,7 +273,6 @@ class JourneyServiceTest {
         service.recordStage(caseId, JourneyStage.PROPERTY_INVENTORY, StageStatus.DONE,
                 null, LocalDate.parse("2026-09-01"), "Опись составлена");
 
-        // The user corrects the procedure, then corrects it back:
         service.recordProcedureType(caseId, ProcedureType.RESTRUCTURING);
         JourneyView back = service.recordProcedureType(caseId, ProcedureType.REALIZATION);
 
@@ -335,8 +320,6 @@ class JourneyServiceTest {
                 .allSatisfy(view -> assertThat(view.statutoryBasis()).contains("ПЛЕЙСХОЛДЕР"));
     }
 
-    // --- test doubles -----------------------------------------------------------
-
     private static final class InMemoryCases implements CaseRepository {
         private final Map<UUID, BankruptcyCase> byId = new HashMap<>();
 
@@ -382,7 +365,6 @@ class JourneyServiceTest {
     private static final class InMemorySections implements CaseSectionRepository {
         private final List<CaseSection> all = new ArrayList<>();
 
-        /** Upsert on (case, key), like the real repository — re-saving a step replaces it. */
         @Override
         public CaseSection save(CaseSection section) {
             all.removeIf(s -> s.caseId().equals(section.caseId()) && s.key() == section.key());

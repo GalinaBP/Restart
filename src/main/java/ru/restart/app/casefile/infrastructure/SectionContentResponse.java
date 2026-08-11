@@ -8,11 +8,6 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
-/**
- * One journey step with its collected data. {@code fields} tells the client what the step may
- * contain and how each value is validated (the source of the form); {@code data} is null while
- * the step is still empty; {@code issues} is what still has to be fixed on this step.
- */
 public record SectionContentResponse(
         String key,
         int order,

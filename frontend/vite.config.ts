@@ -2,8 +2,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Dev server proxies /api to the backend so the SPA can use same-origin relative URLs
-// (matching how nginx proxies /api in the production container).
 export default defineConfig({
   plugins: [react()],
   server: {

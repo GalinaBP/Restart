@@ -18,11 +18,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * End-to-end data collection over real HTTP and MySQL (Data Collection → Case Management, per the
- * backlog's integration requirement): register → case → save a step → case moves to in_progress →
- * repeatable entries added and removed → resume state via the overview → stranger sees 404.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SectionFlowIntegrationTest extends AbstractIntegrationTest {
 
@@ -101,7 +96,6 @@ class SectionFlowIntegrationTest extends AbstractIntegrationTest {
                 .retrieve().toEntity(List.class);
 
         List<Map<String, Object>> body = (List<Map<String, Object>>) overview.getBody();
-        // Derived, so adding or retiring a section in sections.yml does not break this.
         assertThat(body).hasSize(SectionKey.values().length);
         assertThat(body.stream().filter(s -> (Boolean) s.get("filled")))
                 .extracting(s -> s.get("key"))

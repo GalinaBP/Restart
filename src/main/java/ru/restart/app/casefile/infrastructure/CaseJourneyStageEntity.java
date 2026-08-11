@@ -15,7 +15,6 @@ import ru.restart.app.common.persistence.BaseEntity;
 import java.time.LocalDate;
 import java.util.UUID;
 
-/** JPA mapping of {@code case_journey_stage} (see {@code V8__create_case_journey_stage.sql}). */
 @Entity
 @Table(name = "case_journey_stage")
 public class CaseJourneyStageEntity extends BaseEntity {
@@ -47,7 +46,6 @@ public class CaseJourneyStageEntity extends BaseEntity {
     private String note;
 
     protected CaseJourneyStageEntity() {
-        // JPA
     }
 
     CaseJourneyStageEntity(UUID id, UUID caseId, JourneyStage stage, StageStatus status,
@@ -61,7 +59,6 @@ public class CaseJourneyStageEntity extends BaseEntity {
         this.note = note;
     }
 
-    /** Re-recording a stage replaces the progress in place, under the same primary key. */
     void update(StageStatus newStatus, LocalDate newStartedOn, LocalDate newCompletedOn,
                 String newNote) {
         this.status = newStatus;

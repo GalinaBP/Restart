@@ -28,7 +28,6 @@ export interface SectionIssue {
   message: string;
 }
 
-/** One entry of a section form; values are strings/numbers/booleans as the backend expects. */
 export type SectionEntry = Record<string, string | number | boolean>;
 
 export interface SectionContent {
@@ -40,7 +39,6 @@ export interface SectionContent {
   issues: SectionIssue[];
 }
 
-/** The user's active case, or null when none exists yet. */
 export async function currentCase(): Promise<CaseInfo | null> {
   try {
     return await request<CaseInfo>('/cases/current');

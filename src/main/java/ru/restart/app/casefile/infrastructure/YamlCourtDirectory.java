@@ -14,12 +14,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Keyword matcher over {@code casefile/courts.yml}. Entries are tried in file order and the
- * first contained keyword wins — the file's ordering comments explain why (prefix collisions
- * like Московская/Москва). Normalisation keeps matching honest against free-text regions:
- * lowercase and ё→е, nothing fuzzier.
- */
 @Component
 class YamlCourtDirectory implements CourtDirectory {
 

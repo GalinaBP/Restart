@@ -1,7 +1,5 @@
 import type { ApiErrorBody } from './types';
 
-// Absolute base URL baked in at build time (VITE_API_BASE); the dev server proxies /api to the
-// backend, so the same-origin default works with `npm run dev`.
 const API_BASE = import.meta.env.VITE_API_BASE ?? '/api/v1';
 
 const TOKEN_KEY = 'restart.accessToken';
@@ -20,7 +18,6 @@ export const tokenStore = {
   },
 };
 
-/** Error thrown for any non-2xx response, carrying the backend's stable ApiError payload when present. */
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
@@ -39,7 +36,6 @@ interface RequestOptions {
   method?: string;
   body?: unknown;
   auth?: boolean;
-  /** Internal: prevents endless refresh loops on retried requests. */
   retried?: boolean;
 }
 
@@ -59,7 +55,6 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 
-  // Expired access token: exchange the refresh token once, then replay the original call.
   if (response.status === 401 && auth && !retried && tokenStore.getRefresh()) {
     const refreshed = await tryRefresh();
     if (refreshed) {
@@ -87,7 +82,6 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   return payload as T;
 }
 
-/** Downloads a binary (zip/docx); same bearer-token handling as request(). */
 export async function download(path: string, method: string = 'GET'): Promise<Blob> {
   const token = tokenStore.get();
   const response = await fetch(`${API_BASE}${path}`, {

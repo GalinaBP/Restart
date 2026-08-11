@@ -1,9 +1,5 @@
 package ru.restart.app.doctemplate.api;
 
-/**
- * The documents of the filing package (backlog AI-005, extended by AI-020). {@code templateName}
- * is the file base name inside a template version directory.
- */
 public enum DocumentType {
     BANKRUPTCY_APPLICATION("bankruptcy_application"),
     CREDITOR_LIST("creditor_list"),

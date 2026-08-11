@@ -10,10 +10,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * CORS policy driven by the {@code app.cors.allowed-origins} property (env {@code CORS_ALLOWED_ORIGINS}).
- * Origins are configured explicitly per environment; wildcards are avoided so credentials can be sent.
- */
 @Configuration
 public class CorsConfig {
 

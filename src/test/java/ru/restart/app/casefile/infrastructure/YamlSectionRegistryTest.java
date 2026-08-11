@@ -9,11 +9,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * The registry config is load-bearing legal traceability (backlog AI-002 dev notes): every section
- * must exist, be ordered, and carry fields plus a 127-ФЗ reference. The constructor fails fast on a
- * broken file; this test additionally pins the invariants the workflow relies on.
- */
 class YamlSectionRegistryTest {
 
     private final YamlSectionRegistry registry = new YamlSectionRegistry();
@@ -41,7 +36,6 @@ class YamlSectionRegistryTest {
 
     @Test
     void validationRulesAreConfigured() {
-        // The engine's inputs the workflow relies on (placeholder values pending lawyer review).
         assertThat(registry.get(SectionKey.PASSPORT).mandatory()).isTrue();
         assertThat(registry.get(SectionKey.VEHICLES).mandatory()).isFalse();
         assertThat(registry.get(SectionKey.CREDITORS).uniqueBy()).containsExactly("name", "inn");
@@ -57,7 +51,6 @@ class YamlSectionRegistryTest {
 
     @Test
     void repeatabilityMatchesTheDataShape() {
-        // Journey facts other code relies on: person-level sections are single, lists are repeatable.
         assertThat(registry.get(SectionKey.PASSPORT).repeatable()).isFalse();
         assertThat(registry.get(SectionKey.PERSONAL_DETAILS).repeatable()).isFalse();
         assertThat(registry.get(SectionKey.CREDITORS).repeatable()).isTrue();

@@ -7,7 +7,6 @@ import ru.restart.app.auth.domain.UserAccountRepository;
 import java.util.Optional;
 import java.util.UUID;
 
-/** JPA-backed implementation of the domain's persistence port. */
 @Component
 class UserAccountRepositoryAdapter implements UserAccountRepository {
 

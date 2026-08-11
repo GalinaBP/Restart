@@ -18,13 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * Mustache-backed renderer. The active version comes from {@code doctemplates/manifest.yml}; all
- * six templates of that version are compiled at startup, so a broken or incomplete template set
- * fails the deployment instead of failing a user's filing. Partials ({@code {{> partials/...}}})
- * resolve inside the same version directory — shared legal boilerplate is written once per
- * version and referenced everywhere.
- */
 @Component
 class JMustacheTemplateRenderer implements DocumentTemplateRenderer {
 
@@ -37,12 +30,11 @@ class JMustacheTemplateRenderer implements DocumentTemplateRenderer {
         this(loadActiveVersion());
     }
 
-    /** Version-explicit constructor, used by tests to compile a specific edition. */
     JMustacheTemplateRenderer(String version) {
         this.activeVersion = version;
         Mustache.Compiler compiler = Mustache.compiler()
-                .escapeHTML(false)          // plain-text documents, not HTML
-                .withLoader(this::open);    // partials resolve within the version directory
+                .escapeHTML(false)
+                .withLoader(this::open);
         for (DocumentType type : DocumentType.values()) {
             try (Reader reader = open(type.templateName())) {
                 compiled.put(type, compiler.compile(reader));

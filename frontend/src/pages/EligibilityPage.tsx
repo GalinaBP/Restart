@@ -6,20 +6,6 @@ import {
   type EligibilityResult,
 } from '../api/eligibility';
 
-/**
- * The 2-minute eligibility check. It opens with a plain-language "what bankruptcy means"
- * checklist (the consequences screen), then walks grouped screens of questions.
- * All decision logic lives in the backend; this screen only collects answers.
- *
- * The order of the questions is the story of the debts: how much and of what kind → whether the
- * person can pay → when the debts arose and whether more was borrowed after the trouble started →
- * what they own → business → deals → family → courts and money → special obligations → costs →
- * what they want to do. Two follow-ups appear only when the answer before them calls for it.
- *
- * PLACEHOLDER: the consequences and the questions are pending lawyer review.
- */
-
-/** One tappable answer. Options carry no emoji — only questions and group headings do. */
 interface Option {
   value: string;
   label: string;
@@ -27,13 +13,11 @@ interface Option {
 
 interface BaseQuestion {
   id: string;
-  /** Which answer field this question fills in. */
   field: keyof EligibilityAnswers;
   emoji: string;
   text: string;
   note?: string;
   options: Option[];
-  /** Shown only when the answers so far call for it. */
   when?: (picked: Picked) => boolean;
 }
 
@@ -43,7 +27,6 @@ interface SingleQuestion extends BaseQuestion {
 
 interface MultiQuestion extends BaseQuestion {
   kind: 'multi';
-  /** The "nothing of the sort" answer — exclusive with every other option, both ways. */
   exclusive: string;
 }
 
@@ -55,7 +38,6 @@ interface Group {
   questions: Question[];
 }
 
-/** questionId → chosen option values (a single-choice question keeps exactly one). */
 type Picked = Record<string, string[]>;
 
 const chose = (picked: Picked, id: string, value: string) => (picked[id] ?? []).includes(value);
@@ -413,12 +395,10 @@ const CONSEQUENCES: { title: string; detail: string }[] = [
   },
 ];
 
-/** Every question that is actually on screen right now — the follow-ups appear as answers land. */
 function visibleQuestions(group: Group, picked: Picked): Question[] {
   return group.questions.filter((question) => !question.when || question.when(picked));
 }
 
-/** Turns the taps into the payload the backend expects. */
 function buildAnswers(picked: Picked): EligibilityAnswers {
   const answers: Record<string, unknown> = {};
   for (const group of GROUPS) {
@@ -464,7 +444,6 @@ export default function EligibilityPage() {
         return { ...current, [question.id]: [value] };
       }
       const chosen = current[question.id] ?? [];
-      // The "nothing of the sort" option is exclusive both ways.
       if (value === question.exclusive) {
         return { ...current, [question.id]: [value] };
       }

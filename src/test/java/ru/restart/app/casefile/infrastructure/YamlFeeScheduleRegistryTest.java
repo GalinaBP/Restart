@@ -12,15 +12,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-/**
- * What the filing costs, read from the real {@code fees.yml} (backlog AI-021).
- *
- * <p>These tests deliberately do NOT pin the amounts to literals: the whole point of the ticket is
- * that the figures are configuration a lawyer will change, and a test asserting «300» would have
- * to be edited every time — turning a config change back into a code change. What is pinned is
- * everything that must hold whatever the numbers are: both fees exist, money keeps its exact
- * scale, the total is the sum of its parts, and unreviewed amounts announce themselves.
- */
 class YamlFeeScheduleRegistryTest {
 
     private final FeeSchedule schedule = new YamlFeeScheduleRegistry().current();
@@ -49,16 +40,12 @@ class YamlFeeScheduleRegistryTest {
 
     @Test
     void amountsAreExactDecimalsRatherThanBinaryFloats() {
-        // Money read through a double would land on 25000.000000000004-style values; BigDecimal
-        // from the YAML string keeps the configured figure exactly.
         assertThat(schedule.line(FeeItem.MANAGER_DEPOSIT).amount().scale()).isEqualTo(2);
         assertThat(schedule.line(FeeItem.STATE_DUTY).amount().scale()).isEqualTo(2);
     }
 
     @Test
     void placeholderAmountsAnnounceThemselves() {
-        // Until a lawyer signs the figures off, every consumer must be able to tell and say so —
-        // this is the one place where a wrong number costs the user real money.
         assertThat(schedule.hasUnconfirmedAmounts()).isTrue();
         assertThat(schedule.lines()).anySatisfy(line -> assertThat(line.confirmed()).isFalse());
     }

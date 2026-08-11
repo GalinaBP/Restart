@@ -13,13 +13,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.util.UUID;
 
-/**
- * The claim-filing deadline for one case (backlog AI-025): the configured period from
- * {@link ClaimDeadlinePolicy}, applied to the ЕФРСБ publication date recorded in the case's
- * EFRSB_PUBLICATION section — supplementary tracking data, exactly like the court hearings section
- * reads in {@code JourneyService}. Ownership is enforced through {@link CaseService}, per the
- * module's convention: someone else's case is answered exactly like a case that does not exist.
- */
 @Service
 public class ClaimDeadlineService {
 

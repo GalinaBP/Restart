@@ -17,12 +17,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * The backlog's AI-018 acceptance test: a full happy-path walk through the court procedure over
- * real HTTP and MySQL. Doubles as the regression the ticket asks for — the Document Builder keeps
- * working, and shows up in the journey as one stage of the larger procedure rather than a
- * standalone flow.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
 
@@ -85,7 +79,6 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
         Map<String, Object> journey = journey();
         assertThat((List<?>) journey.get("stages")).hasSize(8);
         assertThat(journey.get("procedureType")).isNull();
-        // The application names the СРО, so the manager search is the first thing to do.
         assertThat(journey.get("currentStage")).isEqualTo("MANAGER_SELECTION");
         assertThat(stage(journey, "SCREENING")).containsEntry("status", "DONE");
     }
@@ -99,7 +92,6 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
             assertThat(saved.getStatusCode()).isEqualTo(HttpStatus.OK);
         });
 
-        // Data collected but nothing generated yet — the stage reflects the case, unrecorded:
         assertThat(stage(journey(), "DOCUMENT_PREPARATION"))
                 .containsEntry("status", "IN_PROGRESS")
                 .containsEntry("editable", false);
@@ -108,7 +100,6 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Order(3)
     void generatingTheDocumentsCompletesThatStage() {
-        // Generation answers with the list of rendered files, not a single object.
         ResponseEntity<List> generated = rest.post().uri("/api/v1/cases/" + caseId + "/documents")
                 .header("Authorization", "Bearer " + token)
                 .retrieve().toEntity(List.class);
@@ -134,7 +125,6 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Order(5)
     void payingIsRecordedAsDataAndTheFeesStageFollowsIt() {
-        // The fixture pays only the duty, so the stage sits half-done until the deposit lands:
         assertThat(stage(journey(), "FEES_AND_DEPOSIT")).containsEntry("status", "IN_PROGRESS");
 
         put("/api/v1/cases/" + caseId + "/sections/PAYMENTS", """
@@ -152,7 +142,6 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
         put("/api/v1/cases/" + caseId + "/journey/MANAGER_SELECTION",
                 "{\"status\": \"DONE\", \"note\": \"СРО выбрана\"}");
 
-        // Nothing submitted yet — the stage sits untouched until a submission date lands:
         assertThat(stage(journey(), "FILING")).containsEntry("status", "NOT_STARTED");
 
         put("/api/v1/cases/" + caseId + "/sections/FILING_SUBMISSION", """
@@ -186,7 +175,6 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsKeys("lines", "total", "allConfirmed");
-        // Placeholder figures must announce themselves all the way to the client:
         assertThat(response.getBody().get("allConfirmed")).isEqualTo(false);
     }
 
@@ -211,7 +199,6 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
 
         Map<String, Object> journey = journey();
         assertThat(journey.get("procedureType")).isEqualTo("REALIZATION");
-        // 6 common + 3 realization branch + 2 common tail (AI-024); the other branches hidden:
         assertThat((List<?>) journey.get("stages")).hasSize(11);
         assertThat(stage(journey, "PROPERTY_REALIZATION")).containsEntry("branch", "REALIZATION");
         assertThat(stage(journey, "PROPERTY_INVENTORY")).containsEntry("branch", "REALIZATION");
@@ -240,7 +227,6 @@ class JourneyFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(stage(journey, "COMPLETION"))
                 .containsEntry("status", "DONE")
                 .containsEntry("completedOn", "2026-12-01");
-        // Derived stage: DONE follows the FILING_SUBMISSION section, not a recorded date.
         assertThat(stage(journey, "FILING")).containsEntry("status", "DONE");
     }
 }

@@ -20,7 +20,6 @@ describe('CalmPage', () => {
 
     expect(screen.getByRole('heading', { name: /Спокойно, это нормально/ })).toBeInTheDocument();
     expect(screen.getByText(/Почти каждый, кто проходит банкротство/)).toBeInTheDocument();
-    // Rule-like content is never presented as settled.
     expect(screen.getByRole('note')).toHaveTextContent('Черновик — проверяется юристом');
 
     for (const card of CALM_CARDS) {
@@ -32,16 +31,13 @@ describe('CalmPage', () => {
 
   it('copies the script through the clipboard and confirms it', async () => {
     const user = userEvent.setup();
-    // After setup(): userEvent installs a clipboard stub of its own and would win otherwise.
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });
     renderPage();
 
-    // Two cards carry a script; the first is «Если звонит банк».
     await user.click(screen.getAllByRole('button', { name: 'Скопировать ответ' })[0]);
 
     expect(writeText).toHaveBeenCalledWith(CALM_CARDS[0].script);
-    // The confirmation is the feature: a tap that says nothing feels like a tap that failed.
     expect(await screen.findByRole('button', { name: 'Скопировано ✓' })).toBeInTheDocument();
   });
 
@@ -54,7 +50,6 @@ describe('CalmPage', () => {
     (document as any).execCommand = execCommand;
     renderPage();
 
-    // Two cards carry a script; the first is «Если звонит банк».
     await user.click(screen.getAllByRole('button', { name: 'Скопировать ответ' })[0]);
 
     expect(execCommand).toHaveBeenCalledWith('copy');
@@ -69,7 +64,6 @@ describe('CalmPage', () => {
     (document as any).execCommand = vi.fn().mockReturnValue(false);
     renderPage();
 
-    // Two cards carry a script; the first is «Если звонит банк».
     await user.click(screen.getAllByRole('button', { name: 'Скопировать ответ' })[0]);
 
     expect(await screen.findByRole('button', { name: /Не вышло/ })).toBeInTheDocument();

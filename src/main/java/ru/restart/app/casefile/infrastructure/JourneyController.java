@@ -15,12 +15,6 @@ import ru.restart.app.common.web.ApiPaths;
 
 import java.util.UUID;
 
-/**
- * The guided journey through the court procedure (backlog AI-018) — the map behind the stepper
- * screen. Ownership follows the other case endpoints: someone else's case is answered with the
- * same 404 as an unknown case id. Stage composition and their 127-ФЗ traceability live in
- * {@code casefile/journey.yml} (placeholder pending lawyer review).
- */
 @RestController
 @RequestMapping(ApiPaths.API_V1 + "/cases/{caseId}/journey")
 @Tag(name = "Case journey", description = "Stages of the court bankruptcy procedure")

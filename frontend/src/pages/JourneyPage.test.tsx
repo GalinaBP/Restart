@@ -65,7 +65,6 @@ describe('JourneyPage', () => {
 
     expect(await screen.findByText('Заполнено 1 из 3. Продолжайте — всё сохраняется сразу.'))
       .toBeInTheDocument();
-    // All the data steps now live behind one page, so «Продолжить» opens that.
     expect(screen.getByRole('link', { name: 'Продолжить' }))
       .toHaveAttribute('href', '/journey/all');
     expect(screen.getByText('Документы, которые нужно подготовить самостоятельно'))
@@ -80,9 +79,7 @@ describe('JourneyPage', () => {
     const user = userEvent.setup();
     renderSignedIn();
 
-    // Everyone needs these, so they are on screen before anything is asked.
     expect(await screen.findByText('Паспорт')).toBeInTheDocument();
-    // Nothing about income is guessed for the user.
     expect(screen.getByText('Вы сейчас работаете?')).toBeInTheDocument();
     expect(screen.queryByText('Трудовая книжка')).not.toBeInTheDocument();
     expect(screen.queryByText('Справка из центра занятости')).not.toBeInTheDocument();
@@ -92,7 +89,6 @@ describe('JourneyPage', () => {
     expect(screen.getByText('Справки о доходах (2-НДФЛ) за три года')).toBeInTheDocument();
     expect(screen.queryByText('Справка из центра занятости')).not.toBeInTheDocument();
 
-    // The answer can be corrected — the other branch replaces the first, never adds to it.
     await user.click(screen.getByRole('button', { name: 'Не работаю' }));
     expect(screen.getByText('Справка из центра занятости')).toBeInTheDocument();
     expect(screen.getByText('Выписка из трудовой книжки')).toBeInTheDocument();

@@ -7,11 +7,6 @@ import ru.restart.app.common.error.ErrorCode;
 
 import java.util.List;
 
-/**
- * Document generation refused because the case does not pass validation — a hard gate, not a
- * warning (backlog AI-007). Carries the full findings so the blocking response can list exactly
- * what is missing, each item addressed to the workflow step that fixes it.
- */
 public class GenerationBlockedException extends BusinessException {
 
     private final transient List<ValidationIssue> issues;

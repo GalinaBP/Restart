@@ -1,22 +1,8 @@
-/**
- * Copy for «Спокойно, это нормально» — the section that helps a user handle calls from banks and
- * collectors while the case is being prepared. Its job is to lower anxiety, not to teach law: every
- * card is meant to be read in twenty or thirty seconds, and every script can be copied in one tap.
- *
- * PLACEHOLDER pending lawyer review, like everything rule-like in this product — in particular the
- * call limits and where a complaint goes in «Если звонят слишком часто». Nothing here is advice on
- * a specific case, and none of it promises an outcome.
- */
-
 export interface CalmCard {
-  /** The card's own icon — this section is deliberately warm, see the emoji note in CLAUDE.md. */
   emoji: string;
   title: string;
-  /** One line, read before opening the card. */
   summary: string;
-  /** What to say, ready to copy. Absent on cards that are guidance rather than a script. */
   script?: string;
-  /** Short, scannable points. */
   points?: { heading: string; items: string[] }[];
 }
 
@@ -108,7 +94,6 @@ export const CALM_CARDS: CalmCard[] = [
 export interface CalmTemplate {
   title: string;
   summary: string;
-  /** File name used when the template is downloaded. */
   filename: string;
   body: string;
 }

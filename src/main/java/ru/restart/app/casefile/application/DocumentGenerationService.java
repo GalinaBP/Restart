@@ -23,13 +23,6 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-/**
- * The document-generation engine (backlog AI-006). One run renders all six documents of the
- * filing package in every configured file format. Generation is a hard-gated, deterministic
- * pipeline: validated data → assembled model → versioned template → file bytes. Regeneration
- * replaces the stored files (upsert per case/type/format), so stale documents are superseded,
- * never left behind.
- */
 @Service
 public class DocumentGenerationService {
 
@@ -55,7 +48,6 @@ public class DocumentGenerationService {
         this.writers = writers;
     }
 
-    /** Generates the full package. Blocked entirely while the case has any validation issue. */
     @Transactional
     public List<CaseDocument> generate(UUID caseId) {
         BankruptcyCase bankruptcyCase = caseService.get(caseId);
@@ -83,13 +75,6 @@ public class DocumentGenerationService {
         return generated;
     }
 
-    /**
-     * The downloadable filing package (backlog AI-009). Export format is a ZIP of every generated
-     * file — the documented choice: combined PDF needs PDF rendering first, and a zip picks up
-     * new formats automatically. Export regenerates before bundling, so the package always
-     * reflects the current data and the template edition currently in force — the same hard gate
-     * applies, and a blocked case exports nothing.
-     */
     @Transactional
     public byte[] exportPackage(UUID caseId) {
         List<CaseDocument> generated = new ArrayList<>(generate(caseId));

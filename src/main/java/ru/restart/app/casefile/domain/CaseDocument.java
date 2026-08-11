@@ -5,10 +5,6 @@ import ru.restart.app.doctemplate.api.DocumentType;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * One generated filing document of a case, in one file format. Carries the template version it
- * was rendered from, so any file can be traced to the exact template edition (AI-005 requirement).
- */
 public class CaseDocument {
 
     private final UUID id;
@@ -17,7 +13,6 @@ public class CaseDocument {
     private final DocumentFormat format;
     private final String templateVersion;
     private final byte[] content;
-    /** True when case data changed after this file was rendered and the case is now invalid. */
     private final boolean stale;
 
     public CaseDocument(UUID id, UUID caseId, DocumentType type, DocumentFormat format,
@@ -31,7 +26,6 @@ public class CaseDocument {
         this.stale = stale;
     }
 
-    /** A freshly rendered file — by definition not stale. */
     public static CaseDocument of(UUID caseId, DocumentType type, DocumentFormat format,
                                   String templateVersion, byte[] content) {
         return new CaseDocument(UUID.randomUUID(), caseId, type, format, templateVersion, content,

@@ -4,11 +4,6 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * A single-use, time-limited permission to set a new password. Holds only the SHA-256 of the token
- * that was mailed out — the raw value exists solely in the reset link, so a leaked database row
- * cannot be replayed. Immutable like {@link UserAccount}; consuming the token yields a used copy.
- */
 public class PasswordResetToken {
 
     private final UUID id;
@@ -26,17 +21,14 @@ public class PasswordResetToken {
         this.usedAt = usedAt;
     }
 
-    /** Issues a fresh, unused token for the account. */
     public static PasswordResetToken issue(UUID userId, String tokenHash, Instant expiresAt) {
         return new PasswordResetToken(UUID.randomUUID(), userId, tokenHash, expiresAt, null);
     }
 
-    /** Usable = never consumed and not yet expired. Both failures look identical to the caller. */
     public boolean isUsable(Instant now) {
         return usedAt == null && now.isBefore(expiresAt);
     }
 
-    /** The consumed form of this token; persisting it retires the reset link permanently. */
     public PasswordResetToken markUsed(Instant now) {
         return new PasswordResetToken(id, userId, tokenHash, expiresAt,
                 Objects.requireNonNull(now, "now"));

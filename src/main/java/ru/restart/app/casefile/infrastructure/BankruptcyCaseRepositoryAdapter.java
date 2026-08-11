@@ -8,7 +8,6 @@ import ru.restart.app.casefile.domain.CaseStatus;
 import java.util.Optional;
 import java.util.UUID;
 
-/** JPA-backed implementation of the case persistence port. */
 @Component
 class BankruptcyCaseRepositoryAdapter implements CaseRepository {
 

@@ -13,7 +13,6 @@ import ru.restart.app.common.web.CorrelationId;
 
 import java.io.IOException;
 
-/** Emits the {@link ApiError} contract (HTTP 401) for unauthenticated requests to protected URLs. */
 @Component
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 

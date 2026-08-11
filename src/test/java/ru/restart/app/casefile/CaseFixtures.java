@@ -9,12 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * One fully valid, ICP-realistic case (young consumer debtor, no property) shared by generation
- * tests: passes the real validation rules of sections.yml with zero issues. Kept as raw JSON —
- * the exact shape the HTTP API accepts — so the same fixtures serve unit, web-slice, and
- * integration tests.
- */
 public final class CaseFixtures {
 
     private CaseFixtures() {
@@ -52,8 +46,6 @@ public final class CaseFixtures {
                   "overdueSinceDate": "2026-02-01"},
                  {"name": "МФО «Деньги-Быстро»",
                   "address": "г. Тверь, пр-т Займов, д. 7", "debtAmount": 250000.50}]""");
-        // Only the duty is paid: the journey's FEES_AND_DEPOSIT stage must read IN_PROGRESS,
-        // not DONE, off this (AI-021).
         sections.put(SectionKey.PAYMENTS, """
                 {"stateDutyPaidOn": "2026-07-20", "stateDutyReference": "чек № 4417"}""");
         sections.put(SectionKey.MANAGER_SRO, """
@@ -63,7 +55,6 @@ public final class CaseFixtures {
         return sections;
     }
 
-    /** The fixtures as persisted sections of the given case. */
     public static List<CaseSection> validCaseSections(UUID caseId) {
         List<CaseSection> sections = new ArrayList<>();
         VALID_SECTIONS.forEach((key, json) -> sections.add(CaseSection.of(caseId, key, json)));

@@ -2,7 +2,6 @@ package ru.restart.app.common.error;
 
 import org.springframework.http.HttpStatus;
 
-/** Thrown when a requested aggregate/entity does not exist (or is not visible to the caller). */
 public class ResourceNotFoundException extends BusinessException {
 
     public ResourceNotFoundException(String message) {

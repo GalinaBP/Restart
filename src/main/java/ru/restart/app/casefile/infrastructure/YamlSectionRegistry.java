@@ -17,12 +17,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Loads the section definitions from {@code casefile/sections.yml} at startup and fails fast on an
- * inconsistent config: every {@link SectionKey} must be defined exactly once and carry at least one
- * field and a statutory-basis reference. The YAML is the single source of truth the backlog asks
- * for — legislative changes edit the file, not this class.
- */
 @Component
 class YamlSectionRegistry implements SectionRegistry {
 

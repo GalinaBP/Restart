@@ -13,7 +13,6 @@ import ru.restart.app.common.persistence.BaseEntity;
 
 import java.util.UUID;
 
-/** JPA mapping of {@code case_section} (see {@code V3__create_case_section.sql}). */
 @Entity
 @Table(name = "case_section")
 public class CaseSectionEntity extends BaseEntity {
@@ -36,7 +35,6 @@ public class CaseSectionEntity extends BaseEntity {
     private String payload;
 
     protected CaseSectionEntity() {
-        // JPA
     }
 
     CaseSectionEntity(UUID id, UUID caseId, SectionKey sectionKey, String payload) {

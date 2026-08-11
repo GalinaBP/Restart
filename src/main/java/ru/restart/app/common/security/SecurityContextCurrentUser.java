@@ -6,10 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-/**
- * Default {@link CurrentUser} backed by the Spring Security context. Expects the authentication
- * principal to be an {@link AuthenticatedUser}, as populated by the authentication filter.
- */
 @Component
 public class SecurityContextCurrentUser implements CurrentUser {
 

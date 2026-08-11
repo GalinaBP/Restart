@@ -45,10 +45,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Web-slice test of the journey map (backlog AI-018) with the real security chain, the real
- * service and the real {@code journey.yml}; only repositories are mocked.
- */
 @WebMvcTest(JourneyController.class)
 @Import({JourneyService.class, CaseService.class, YamlJourneyRegistry.class,
         SecurityContextCurrentUser.class, SecurityConfig.class, RestAuthenticationEntryPoint.class,
@@ -56,7 +52,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         JourneyControllerTest.EnableSecurity.class})
 class JourneyControllerTest {
 
-    /** See EligibilityControllerTest: Boot 4's web slice needs security switched on explicitly. */
     @TestConfiguration
     @EnableWebSecurity
     static class EnableSecurity {
@@ -117,7 +112,6 @@ class JourneyControllerTest {
         when(stages.findByCaseIdAndStage(existing.id(), JourneyStage.COURT_DECISION))
                 .thenReturn(Optional.empty());
         when(stages.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        // The saved row is what a re-read of the journey must show:
         when(stages.findByCaseId(existing.id())).thenAnswer(invocation ->
                 List.of(CaseJourneyStage.record(existing.id(), JourneyStage.COURT_DECISION,
                         ru.restart.app.casefile.domain.StageStatus.DONE,
@@ -196,12 +190,10 @@ class JourneyControllerTest {
                         .content("{\"procedureType\": \"REALIZATION\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.procedureType").value("REALIZATION"))
-                // 6 common + 3 realization branch + 2 common tail (AI-024):
                 .andExpect(jsonPath("$.stages.length()").value(11))
                 .andExpect(jsonPath("$.stages[*].stage")
                         .value(org.hamcrest.Matchers.hasItems("PROPERTY_INVENTORY",
                                 "PROPERTY_REALIZATION", "CREDITOR_PAYOUTS")))
-                // ...and none of the other two branches leaks in:
                 .andExpect(jsonPath("$.stages[?(@.stage == 'RESTRUCTURING_PLAN')]").isEmpty())
                 .andExpect(jsonPath("$.stages[?(@.stage == 'SETTLEMENT_AGREEMENT')]").isEmpty())
                 .andExpect(jsonPath("$.stages[?(@.branch == 'REALIZATION')].stage")

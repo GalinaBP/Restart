@@ -14,7 +14,6 @@ import ru.restart.app.doctemplate.api.DocumentType;
 
 import java.util.UUID;
 
-/** JPA mapping of {@code case_document} (see {@code V4__create_case_document.sql}). */
 @Entity
 @Table(name = "case_document")
 public class CaseDocumentEntity extends BaseEntity {
@@ -46,7 +45,6 @@ public class CaseDocumentEntity extends BaseEntity {
     private boolean stale;
 
     protected CaseDocumentEntity() {
-        // JPA
     }
 
     CaseDocumentEntity(UUID id, UUID caseId, DocumentType documentType, DocumentFormat format,

@@ -4,7 +4,6 @@ import ru.restart.app.casefile.domain.BankruptcyCase;
 
 import java.util.UUID;
 
-/** A case as the client sees it. */
 public record CaseResponse(UUID id, String caseType, String status) {
 
     static CaseResponse from(BankruptcyCase bankruptcyCase) {

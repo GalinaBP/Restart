@@ -1,13 +1,9 @@
-/* Dark "space" theme: deep canvas, a solid green accent (no gradients), big friendly type.
-   The tone stays calm — the product talks about a hard topic, so vivid but not loud. */
 :root {
   --bg: #0b0b12;
   --text: #f4f4f8;
   --muted: #9d9daf;
   --accent-from: #34d399;
   --accent-to: #34d399;
-  /* Warm star yellow — decorative only (stars, faint starfield). Never on buttons or links:
-     the one action accent stays green, so nothing competes with the call to action. */
   --star: #fcd34d;
   --pill-bg: rgba(255, 255, 255, 0.07);
   --pill-border: rgba(255, 255, 255, 0.14);
@@ -40,8 +36,6 @@ button:disabled {
   cursor: default;
 }
 
-/* --- Landing ---------------------------------------------------------------- */
-
 .landing {
   position: relative;
   min-height: 100dvh;
@@ -55,7 +49,6 @@ button:disabled {
   overflow: hidden;
 }
 
-/* Soft gradient glows behind the content. */
 .landing::before,
 .landing::after {
   content: '';
@@ -84,9 +77,6 @@ button:disabled {
   position: relative;
 }
 
-/* The night sky itself: two fixed constellations of tiny white and star-yellow dots that
-   breathe in counter-phase, plus a rare quiet shooting star. Pure decoration — it sits under
-   the content, catches no clicks, and the green accent still owns every action. */
 .landing-sky {
   position: absolute;
   inset: 0;
@@ -127,7 +117,6 @@ button:disabled {
   animation: sky-breathe 9s ease-in-out infinite;
 }
 
-/* A shooting star: a thin white-gold streak sliding down the sky, ~2 s out of every 14. */
 .landing-sky::after {
   content: '';
   position: absolute;
@@ -229,9 +218,6 @@ button:disabled {
   margin: 0;
 }
 
-/* «Как это работает» and «Честно о главном»: the two things a visitor needs before they trust a
-   stranger with a bankruptcy — what happens after the button, and what this service will and will
-   not do. Quiet blocks under the fold; the call to action above stays the only bright thing. */
 .landing-block {
   width: 100%;
   max-width: 32rem;
@@ -303,8 +289,6 @@ button:disabled {
   font-weight: 700;
 }
 
-/* A ready answer, quoted the way «Спокойно» shows it: a quiet panel, no accent colour — it is
-   help, not a call to action, and the green button above must stay the only bright thing. */
 .landing-script {
   margin: 0;
   padding: 0.9rem 1rem;
@@ -325,8 +309,6 @@ button:disabled {
   text-decoration: underline;
 }
 
-/* The starry panel, moved from the old sign-off to the block that closes the page: warm yellow
-   border over a faint starfield. Decoration only — the green accent still owns every action. */
 .landing-block-starry {
   padding: 1rem 1.3rem;
   border: 1px solid rgba(252, 211, 77, 0.2);
@@ -357,7 +339,6 @@ button:disabled {
   line-height: 1.55;
 }
 
-/* A small green dot instead of a bullet — the accent marks facts here, not actions. */
 .landing-trust li::before {
   content: '';
   position: absolute;
@@ -369,8 +350,6 @@ button:disabled {
   background: var(--accent-from);
 }
 
-/* A quiet starry sign-off: warm yellow stars over a faint starfield of tiny dots. The dots are
-   texture, not an accent fill — the green-only, no-gradient rule still owns buttons and links. */
 .landing-starry {
   position: relative;
   max-width: 32rem;
@@ -407,7 +386,6 @@ button:disabled {
   50% { opacity: 0.45; transform: scale(0.85); }
 }
 
-/* Calm above all: nothing moves for anyone who asked the system to stop moving things. */
 @media (prefers-reduced-motion: reduce) {
   .landing-star,
   .landing-sky::before {
@@ -418,8 +396,6 @@ button:disabled {
     display: none;
   }
 }
-
-/* --- Eligibility check: one question per screen ------------------------------ */
 
 .check {
   min-height: 100dvh;
@@ -485,13 +461,10 @@ button:disabled {
   border-color: var(--accent-to);
 }
 
-/* Picked answer — also used for the multi-select questions. */
 .check-option-selected {
   border-color: var(--accent-from);
   background: rgba(52, 211, 153, 0.16);
 }
-
-/* --- Grouped questions: several per screen, each saying why it is asked ------- */
 
 .check-group {
   margin: 0;
@@ -547,9 +520,6 @@ button:disabled {
   text-decoration: none;
 }
 
-/* Explanatory text reads as a note, in the same warm yellow family as the «Черновик» badge
-   above — but built for sentences: a soft box, normal weight, full reading size. The badge
-   stays the loud, bold, pill-shaped version for its three words. */
 .check-hint {
   margin: 0;
   max-width: 26rem;
@@ -581,7 +551,6 @@ button:disabled {
   text-align: left;
 }
 
-/* Consequences intro: a calm, scrollable checklist rather than a centred single question. */
 .check-intro {
   justify-content: flex-start;
   padding-top: 3.5rem;
@@ -621,7 +590,6 @@ button:disabled {
   text-align: left;
 }
 
-/* Expandable consequence: tap the title to reveal its explanation. */
 .check-fact summary {
   position: relative;
   list-style: none;
@@ -655,8 +623,6 @@ button:disabled {
   font-size: 0.9rem;
   line-height: 1.55;
 }
-
-/* --- Auth --------------------------------------------------------------------- */
 
 .auth {
   min-height: 100dvh;
@@ -713,8 +679,6 @@ button:disabled {
   margin: 0;
 }
 
-/* --- Journey map --------------------------------------------------------------- */
-
 .journey {
   min-height: 100dvh;
   display: flex;
@@ -752,7 +716,6 @@ button:disabled {
   display: inline-block;
 }
 
-/* «Информация о вас» on one page: every section as a titled block, one save at the end. */
 .about-you {
   max-width: 34rem;
 }
@@ -767,8 +730,6 @@ button:disabled {
   margin-bottom: 0.4rem;
 }
 
-/* A rule and generous space above each title: at this length the eye needs the sections to be
-   obviously separate, or the page reads as one endless form. */
 .about-you-block {
   margin-top: 1.9rem;
   padding-top: 1.4rem;
@@ -790,7 +751,6 @@ button:disabled {
   font-weight: 800;
 }
 
-/* The case screen's three parts: what we ask, what we build, what you fetch yourself. */
 .journey-part {
   width: 100%;
   margin-top: 1.6rem;
@@ -809,8 +769,6 @@ button:disabled {
   max-width: none;
 }
 
-/* Plain explanatory prose inside a section — body text, not the yellow hint box. At paragraph
-   length that box reads as a warning; this is just an explanation. */
 .journey-part-text {
   margin: 0;
   color: var(--muted);
@@ -828,9 +786,6 @@ button:disabled {
   text-decoration: underline;
 }
 
-/* Papers issued elsewhere: a reference list, not steps to click — so no card, no chevron. */
-/* The part of the list that depends on one answer: «работаете или нет». Set apart by a rule
-   rather than a box — it is a continuation of the list above, not a different subject. */
 .journey-work-choice {
   width: 100%;
   margin-top: 1.1rem;
@@ -849,7 +804,6 @@ button:disabled {
   gap: 0.6rem;
 }
 
-/* Two short answers side by side: the eligibility option pill, sized to its text. */
 .journey-work-options .check-option {
   width: auto;
   flex: 0 1 auto;
@@ -927,8 +881,6 @@ button:disabled {
   color: var(--accent-to);
   font-weight: 800;
 }
-
-/* --- Procedure stepper (AI-019) -------------------------------------------------- */
 
 .procedure-list {
   width: 100%;
@@ -1033,8 +985,6 @@ a.procedure-stage:hover {
   background: rgba(234, 179, 8, 0.1);
 }
 
-/* Inside a stage card the note box would be a box within a box, repeated down the whole map —
-   so here the hint drops back to plain muted text. The card itself is already the container. */
 .procedure-stage-desc {
   margin: 0.5rem 0 0;
   max-width: none;
@@ -1045,8 +995,6 @@ a.procedure-stage:hover {
   color: var(--muted);
 }
 
-/* How long the stage usually takes. Quiet and secondary — it sets expectations during a
-   months-long process, it is never a promise. */
 .procedure-stage-timing {
   margin: 0.4rem 0 0;
   padding-left: 0.7rem;
@@ -1063,7 +1011,6 @@ a.procedure-stage:hover {
   line-height: 1.5;
 }
 
-/* Recording which procedure the court applied (AI-024). */
 .procedure-picker {
   margin-top: 0.7rem;
 }
@@ -1101,7 +1048,6 @@ a.procedure-stage:hover {
   line-height: 1.45;
 }
 
-/* Which procedure the journey is currently following. */
 .procedure-branch-note {
   margin: 0;
   color: var(--accent-from);
@@ -1109,7 +1055,6 @@ a.procedure-stage:hover {
   font-weight: 600;
 }
 
-/* What the filing costs, shown on the fees stage. */
 .procedure-fees {
   margin-top: 0.7rem;
 }
@@ -1146,8 +1091,6 @@ a.procedure-stage:hover {
   line-height: 1.5;
 }
 
-/* The nearest court hearing, shown right on the COURT_DECISION card even collapsed (AI-023) —
-   a "don't miss your court date" cue, calm rather than alarmed, so no red and no icon. */
 .procedure-hearing-upcoming {
   margin: 0.5rem 0 0;
   padding: 0.5rem 0.8rem;
@@ -1158,9 +1101,6 @@ a.procedure-stage:hover {
   font-weight: 600;
 }
 
-/* The most recent manager correspondence, shown right on the MANAGER_SELECTION card even
-   collapsed (AI-026) — same treatment as the hearing line above: a months-long procedure must
-   not let recent manager contact get lost. */
 .procedure-correspondence-latest {
   display: block;
   margin: 0.5rem 0 0;
@@ -1172,9 +1112,6 @@ a.procedure-stage:hover {
   font-weight: 600;
 }
 
-/* The claim-filing deadline, shown right on the CREDITOR_CLAIMS card even collapsed (AI-025) —
-   same treatment as the hearing line above: a months-long procedure must not let the deadline
-   for creditors to file their claims get lost. */
 .procedure-claim-deadline {
   margin: 0.5rem 0 0;
   padding: 0.5rem 0.8rem;
@@ -1185,8 +1122,6 @@ a.procedure-stage:hover {
   font-weight: 600;
 }
 
-/* While the deadline period is an unconfirmed placeholder (AI-025), same amber caveat as the
-   fee draft warning — a wrong period here has real consequences, so it must read as a draft. */
 .procedure-claim-deadline-draft {
   margin: 0.4rem 0 0;
   color: #eab308;
@@ -1194,8 +1129,6 @@ a.procedure-stage:hover {
   line-height: 1.5;
 }
 
-/* Short summary when a filed claim is late or disputed (AI-025) — calm, not alarming, matching
-   the blocked-stage note's tone and colour rather than an error red. */
 .procedure-claims-flagged {
   margin: 0.5rem 0 0;
   color: #eab308;
@@ -1203,8 +1136,6 @@ a.procedure-stage:hover {
   line-height: 1.5;
 }
 
-/* Link from a stage to the screen that actually collects its data. A stage can have more than
-   one (AI-023: court details + hearings), so these stack rather than run together on one line. */
 .procedure-detail-link {
   display: block;
   width: fit-content;
@@ -1243,15 +1174,9 @@ a.procedure-stage:hover {
   align-self: flex-start;
 }
 
-/* --- «Поиск финансового управляющего»: the stage on a screen of its own ------------------ */
-
-/* The stage's single step, drawn with the stage cards of the stepper above so a step looks the
-   same wherever the user meets it. */
 .manager-steps {
   margin-top: 0.9rem;
 }
-
-/* --- Section form ---------------------------------------------------------------- */
 
 .section {
   min-height: 100dvh;
@@ -1309,7 +1234,6 @@ a.procedure-stage:hover {
   max-width: 24rem;
 }
 
-/* Honest heads-up when a step's answers can put the case outside what the app handles alone. */
 .section-caution {
   background: rgba(234, 179, 8, 0.1);
   border: 1px solid rgba(234, 179, 8, 0.35);
@@ -1323,7 +1247,6 @@ a.procedure-stage:hover {
   text-align: left;
 }
 
-/* Collapsed how-to on a step (e.g. pulling your debts from the credit bureaus). */
 .section-help {
   background: var(--pill-bg);
   border: 1px solid var(--pill-border);
@@ -1345,8 +1268,6 @@ a.procedure-stage:hover {
 .section-help-steps li + li {
   margin-top: 0.45rem;
 }
-
-/* --- Documents ------------------------------------------------------------------ */
 
 .docs-missing {
   width: 100%;
@@ -1404,7 +1325,6 @@ a.procedure-stage:hover {
   flex-wrap: wrap;
 }
 
-/* Marks the one file that is for the user only — quiet, so it reads as a note, not a warning. */
 .docs-card-note {
   color: var(--muted);
   font-size: 0.82rem;
@@ -1433,7 +1353,6 @@ a.procedure-stage:hover {
   background: none;
   border: 1px solid var(--pill-border);
   border-radius: 999px;
-  /* Keeps «Скачать PDF» on one line when the card's title takes two. */
   white-space: nowrap;
 }
 
@@ -1441,8 +1360,6 @@ a.procedure-stage:hover {
   border-color: var(--accent-to);
 }
 
-/* The bridge from «документы готовы» to «как их подать» — a quiet link, not a second CTA:
-   the green button above stays the one loud action on this screen. */
 .docs-next-step {
   margin-top: 0.2rem;
   padding: 0.6rem 1rem;
@@ -1464,10 +1381,6 @@ a.procedure-stage:hover {
   text-align: center;
 }
 
-/* --- «Спокойно, это нормально» ------------------------------------------------ */
-
-/* A supportive screen, so it reads softer than the rest: wider cards, calmer type, and the one
-   place in the app where a warm blue appears — never on a control, only on the reassurance. */
 .calm {
   max-width: 42rem;
   margin: 0 auto;
@@ -1528,7 +1441,6 @@ a.procedure-stage:hover {
   line-height: 1.5;
 }
 
-/* The script sits first inside an open card: it is what most people came for. */
 .calm-script {
   margin-top: 0.9rem;
   padding: 0.9rem 1rem;
@@ -1602,7 +1514,6 @@ a.procedure-stage:hover {
   font-size: 0.88rem;
 }
 
-/* Templates keep their line breaks and blanks to fill in, so they scroll rather than reflow. */
 .calm-template-body {
   margin: 0.4rem 0 0;
   padding: 0.8rem 0.9rem;

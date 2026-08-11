@@ -24,11 +24,6 @@ import ru.restart.app.common.web.CorrelationId;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * The generated filing package of a case (backlog AI-006). Ownership follows the case endpoints;
- * generation is hard-gated on a clean validation report — the client is expected to check
- * {@code GET /cases/{id}/validation} first and will get a 409 here otherwise.
- */
 @RestController
 @RequestMapping(ApiPaths.API_V1 + "/cases/{caseId}/documents")
 @Tag(name = "Case documents", description = "Generate and download the filing package")
@@ -76,11 +71,6 @@ public class DocumentController {
                 .body(zip);
     }
 
-    /**
-     * The AI-007 blocking screen contract. Controller-local so it takes precedence over the
-     * generic BusinessException mapping in {@code GlobalExceptionHandler} without any advice
-     * ordering: same ApiError shape, plus the structured {@code missing} list.
-     */
     @ExceptionHandler(GenerationBlockedException.class)
     public ResponseEntity<MissingInfoResponse> handleBlocked(GenerationBlockedException ex,
                                                              HttpServletRequest request) {

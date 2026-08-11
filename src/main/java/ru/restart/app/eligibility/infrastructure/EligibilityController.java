@@ -10,10 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.restart.app.common.web.ApiPaths;
 import ru.restart.app.eligibility.application.EligibilityService;
 
-/**
- * The 2-minute eligibility check. Public (no account yet): the check is the first thing a visitor
- * does, before registration — see the URL rules in {@code common.security.SecurityConfig}.
- */
 @RestController
 @RequestMapping(ApiPaths.API_V1 + "/eligibility")
 @Tag(name = "Eligibility", description = "Screening: does guided self-service fit this case?")

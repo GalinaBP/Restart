@@ -12,11 +12,6 @@ import ru.restart.app.common.web.ApiPaths;
 
 import java.util.UUID;
 
-/**
- * What the filing costs (backlog AI-021). Amounts come from {@code casefile/fees.yml}, so a change
- * in the duty or the deposit is a config edit. Scoped to a case — the caller must own it — because
- * the figures belong to a filing, and later tickets may make them case-dependent.
- */
 @RestController
 @RequestMapping(ApiPaths.API_V1 + "/cases/{caseId}/fees")
 @Tag(name = "Case fees", description = "State duty and manager's deposit for the filing")

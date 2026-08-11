@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/** JPA-backed implementation of the journey-stage persistence port. */
 @Component
 class CaseJourneyStageRepositoryAdapter implements CaseJourneyStageRepository {
 

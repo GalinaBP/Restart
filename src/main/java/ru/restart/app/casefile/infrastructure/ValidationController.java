@@ -11,12 +11,6 @@ import ru.restart.app.common.web.ApiPaths;
 
 import java.util.UUID;
 
-/**
- * The whole-case validation report (backlog AI-003). Read-only: validation never blocks saving —
- * it tells the user what is still missing or malformed before documents can be generated. Rules
- * are deterministic and configured in {@code casefile/sections.yml} (placeholder pending lawyer
- * review); ownership follows the case endpoints.
- */
 @RestController
 @RequestMapping(ApiPaths.API_V1 + "/cases/{caseId}/validation")
 @Tag(name = "Case validation", description = "What still has to be fixed before the filing")

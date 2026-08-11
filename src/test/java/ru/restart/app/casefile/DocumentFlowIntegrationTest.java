@@ -20,15 +20,9 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * The full journey to a downloadable filing package over real HTTP and MySQL: register → case →
- * blocked while incomplete → fill everything → generate 12 files → download a real DOCX. This is
- * the Templates → Export integration the backlog asks for, one endpoint short of AI-009's bundle.
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
 
-    /** Every document, in every format — derived, so adding either does not break this. */
     private static final int EXPECTED_FILES =
             ru.restart.app.doctemplate.api.DocumentType.values().length
                     * ru.restart.app.casefile.domain.DocumentFormat.values().length;
@@ -119,7 +113,6 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Order(4)
     void editingDataRegeneratesTheDocumentsAutomatically() throws Exception {
-        // Remove the second creditor; the case stays valid, so documents refresh on their own.
         rest.put().uri("/api/v1/cases/" + caseId + "/sections/CREDITORS")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("""
@@ -140,7 +133,6 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
         byte[] pdf = rest.get().uri("/api/v1/cases/" + caseId + "/documents/" + creditorListId)
                 .header("Authorization", "Bearer " + token)
                 .retrieve().toEntity(byte[].class).getBody();
-        // Documents are PDF only now, so read the text back out to check what was regenerated.
         String text;
         try (org.apache.pdfbox.pdmodel.PDDocument document =
                      org.apache.pdfbox.Loader.loadPDF(pdf)) {
@@ -169,7 +161,6 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Order(6)
     void fixingTheCaseAllowsExportingTheWholePackage() throws Exception {
-        // The case is invalid since order(5); export must show the blocking contract:
         ResponseEntity<Map> blocked = rest.post()
                 .uri("/api/v1/cases/" + caseId + "/documents/export")
                 .header("Authorization", "Bearer " + token)
@@ -177,7 +168,6 @@ class DocumentFlowIntegrationTest extends AbstractIntegrationTest {
         assertThat(blocked.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(blocked.getBody()).containsEntry("code", "GENERATION_BLOCKED");
 
-        // Fix the passport, then export the full zip:
         rest.put().uri("/api/v1/cases/" + caseId + "/sections/PASSPORT")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("""

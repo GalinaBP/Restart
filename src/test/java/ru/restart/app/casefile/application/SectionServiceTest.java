@@ -28,10 +28,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-/**
- * Use-case tests with in-memory repositories and a two-section stub registry (one regular, one
- * repeatable) — the real YAML registry has its own test in infrastructure.
- */
 class SectionServiceTest {
 
     private final ObjectMapper json = new ObjectMapper();
@@ -48,8 +44,6 @@ class SectionServiceTest {
         CaseService caseService = new CaseService(cases, currentUser);
         ValidationService validationService =
                 new ValidationService(caseService, sections, registry, json);
-        // No documents exist in these tests, so the AI-008 refresh path stays dormant; the
-        // regeneration scenarios live in RegenerationFlowTest against the real registry.
         DocumentGenerationService generationService = new DocumentGenerationService(caseService,
                 validationService, sections, new NoDocuments(),
                 new CaseModelAssembler(json, java.time.Clock.systemUTC(), region -> Optional.empty(),
@@ -166,9 +160,6 @@ class SectionServiceTest {
                 .isThrownBy(() -> service.overview(existingCase.id()));
     }
 
-    // --- test doubles -----------------------------------------------------------
-
-    /** Two sections stand in for the full registry: PASSPORT (regular) and CREDITORS (repeatable). */
     private static final class StubRegistry implements SectionRegistry {
         private final List<SectionDefinition> definitions = List.of(
                 new SectionDefinition(SectionKey.PASSPORT, 1, false, true, "тест", List.of(),
@@ -233,7 +224,6 @@ class SectionServiceTest {
         }
     }
 
-    /** These tests never generate documents; renders here would mean a broken dormant path. */
     private static final class NeverRenderedTemplates
             implements ru.restart.app.doctemplate.api.DocumentTemplates {
         @Override
@@ -249,7 +239,6 @@ class SectionServiceTest {
         }
     }
 
-    /** Empty document store: the AI-008 refresh path must treat it as "nothing generated yet". */
     private static final class NoDocuments
             implements ru.restart.app.casefile.domain.CaseDocumentRepository {
         @Override

@@ -4,7 +4,6 @@ import ru.restart.app.auth.domain.UserAccount;
 
 import java.util.UUID;
 
-/** The caller's own account. Never includes the password hash. */
 public record MeResponse(UUID id, String email, String role) {
 
     static MeResponse from(UserAccount account) {

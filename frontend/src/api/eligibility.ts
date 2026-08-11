@@ -1,11 +1,5 @@
 import { request } from './client';
 
-/**
- * The screening's answer shape. Every option the user can tap maps to one of these values, and
- * the backend owns every decision made from them — this file only carries them across.
- */
-
-/** Never decisive on its own: the size of a debt says nothing about who can carry the procedure. */
 export type DebtRange =
   | 'UNDER_500K' | 'FROM_500K_TO_1M' | 'FROM_1M_TO_3M' | 'OVER_3M' | 'UNKNOWN';
 
@@ -18,7 +12,6 @@ export type PaymentStatus =
 
 export type LoanAge = 'OVER_YEAR_AGO' | 'WITHIN_LAST_YEAR' | 'LAST_3_MONTHS' | 'DONT_REMEMBER';
 
-/** "Not sure" is a real answer: on these questions, not knowing is itself worth a lawyer's look. */
 export type YesNoUnsure = 'NO' | 'YES' | 'UNSURE';
 
 export type PropertyItem =
@@ -43,7 +36,6 @@ export type SpecialCircumstance =
 
 export type CostsReadiness = 'READY' | 'UNSURE' | 'NO_MONEY';
 
-/** How the person wants to go through it — asking for a lawyer routes there directly. */
 export type PreferredPath = 'SELF_SERVICE' | 'LAWYER' | 'EXPLORING';
 
 export interface EligibilityAnswers {
@@ -51,21 +43,17 @@ export interface EligibilityAnswers {
   debtTypes: DebtType[];
   paymentStatus: PaymentStatus;
   loanAge: LoanAge;
-  /** Only asked when the loans are three months old or less. */
   knewCouldNotRepay?: YesNoUnsure;
   newLoansAfterTrouble: YesNoUnsure;
   property: PropertyItem[];
   businessStatus: BusinessStatus;
   soldOrGiftedAssets: YesNoUnsure;
-  /** Only asked after «Да» to deals. */
   dealAssets?: DealAsset[];
   maritalStatus: MaritalStatus;
   hasForeignAssets: boolean;
   hasLawsuits: YesNoUnsure;
-  /** Collected, never decisive: bailiffs are the everyday situation of a person with debts. */
   hasEnforcementProceedings: YesNoUnsure;
   unusualMoneyOperations: YesNoUnsure;
-  /** Only asked after «Да» to unusual operations. */
   moneyOperations?: MoneyOperation[];
   specialCircumstances: SpecialCircumstance[];
   costsReadiness: CostsReadiness;
@@ -77,7 +65,6 @@ export interface EligibilityResult {
   reasons: string[];
 }
 
-/** Runs the 2-minute eligibility check. Anonymous — no account exists yet at this point. */
 export function checkEligibility(answers: EligibilityAnswers): Promise<EligibilityResult> {
   return request<EligibilityResult>('/eligibility/check', {
     method: 'POST',

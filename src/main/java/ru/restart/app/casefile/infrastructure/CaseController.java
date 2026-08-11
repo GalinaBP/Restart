@@ -14,11 +14,6 @@ import ru.restart.app.common.web.ApiPaths;
 
 import java.util.UUID;
 
-/**
- * The bankruptcy case lifecycle. All endpoints require authentication (the shared security config
- * protects everything outside the explicitly public URLs); the service additionally enforces that
- * a caller only ever sees their own case.
- */
 @RestController
 @RequestMapping(ApiPaths.API_V1 + "/cases")
 @Tag(name = "Cases", description = "The bankruptcy case: the container for the user's journey")

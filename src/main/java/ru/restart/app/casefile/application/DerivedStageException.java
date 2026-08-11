@@ -5,10 +5,6 @@ import ru.restart.app.casefile.domain.JourneyStage;
 import ru.restart.app.common.error.BusinessException;
 import ru.restart.app.common.error.ErrorCode;
 
-/**
- * Attempt to record a stage whose status is computed from the case itself (screening, document
- * preparation). Recording it by hand would let the journey map contradict the case data.
- */
 public class DerivedStageException extends BusinessException {
 
     public DerivedStageException(JourneyStage stage) {

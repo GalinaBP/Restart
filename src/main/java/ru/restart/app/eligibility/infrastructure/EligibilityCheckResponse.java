@@ -5,7 +5,6 @@ import ru.restart.app.eligibility.domain.EligibilityResult;
 
 import java.util.List;
 
-/** Response of the eligibility check: the decision plus plain-Russian reasons for the user. */
 public record EligibilityCheckResponse(EligibilityDecision decision, List<String> reasons) {
 
     static EligibilityCheckResponse from(EligibilityResult result) {
