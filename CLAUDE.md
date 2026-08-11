@@ -133,6 +133,24 @@ endpoint.
 **Profiles:** no default profile — `local` (dev, Swagger on) or `prod` (everything from env, fails
 fast) must be chosen explicitly; `test` is used by integration tests via Testcontainers.
 
+## Code style
+
+**No comments in code.** Java, TypeScript/TSX, CSS and HTML carry no explanatory comments — no
+Javadoc, no file-header blocks, no inline notes, tests included. Every one of them was stripped on
+2026-08-11 ([PR #71](https://github.com/GalinaBP/Restart/pull/71)), so anything added back
+reintroduces exactly what was removed. Let names, types and structure carry the meaning, and put
+the reasoning in the commit message or the pull request instead.
+
+**Directives a tool reads are not comments** and stay where they are needed:
+`// eslint-disable-next-line …`, `/// <reference types=…>`, `@ts-expect-error`, `prettier-ignore`.
+
+The rule covers **code only**. `yml` config and data keep their comments — `sections.yml`,
+`journey.yml`, `fees.yml`, `courts.yml` and `application*.yml` carry the placeholder-pending-lawyer-
+review markers — as do the mustache templates (golden-file tests pin their output), `nginx.conf`,
+the Dockerfiles, shell scripts and Markdown. **Never rewrite a Flyway migration just to tidy its
+comments:** Flyway checksums each file, so editing one that has already run breaks `validate`
+against every existing database, production included.
+
 ## Frontend
 
 `frontend/` — React 19 + TypeScript + Vite SPA, served by nginx in Docker (static + SPA fallback,
