@@ -3,3 +3,37 @@
 #
 # Versioning convention: <127-ФЗ edition effective date>.<revision>
 activeVersion: "2026-06-21.1"
+
+# The filing package: which documents are produced, in the order they are listed here (that order
+# is what the documents screen and the zip export show). Until 2026-08-15 this list lived in the
+# Java DocumentType enum; the module that held it is gone, so the manifest is now the only place
+# it is written down.
+#
+#   type     — stable machine key, stored with each generated document in the browser. Renaming
+#              one orphans the documents already on a user's device; they regenerate, but the old
+#              file lingers until then.
+#   template — file name (without .mustache) inside the active version directory.
+#
+# ############################################################################################
+# ##  ПЛЕЙСХОЛДЕР ДО ПРОВЕРКИ ЮРИСТОМ: состав пакета документов, подаваемого в суд, требует   ##
+# ##  подтверждения — см. docs/lawyer-review.md.                                              ##
+# ############################################################################################
+documents:
+  - type: BANKRUPTCY_APPLICATION
+    template: bankruptcy_application
+  - type: CREDITOR_LIST
+    template: creditor_list
+  - type: PROPERTY_INFORMATION
+    template: property_information
+  - type: ATTACHMENTS_CHECKLIST
+    template: attachments_checklist
+  - type: FILING_CHECKLIST
+    template: filing_checklist
+
+# Shared fragments the documents pull in. Listed so the generator ships exactly what the templates
+# reference — a partial that is not here will fail the build, not the user's document generation.
+partials:
+  - partials/applicant
+  - partials/court_header
+  - partials/draft_warning
+  - partials/signature
