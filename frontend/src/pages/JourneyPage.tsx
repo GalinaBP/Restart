@@ -88,6 +88,11 @@ export default function JourneyPage() {
           Мы соберём всё по шагам: немного о вас, долги, доходы. Каждый шаг — один экран.
           Всё сохраняется сразу, бросить и вернуться можно в любой момент.
         </p>
+        <p className="section-caution" role="note">
+          Ваши ответы остаются на этом устройстве и никуда не отправляются. Обратная сторона:
+          если очистить данные сайта или пересесть за другой компьютер, дело придётся начинать
+          заново. Поэтому по ходу дела сохраняйте копию в файл — мы будем напоминать.
+        </p>
         <button type="button" className="landing-cta" onClick={() => void start()}>
           Поехали
         </button>
@@ -112,6 +117,8 @@ export default function JourneyPage() {
           <Link to="/documents" className="check-back">Документы</Link>
           {' · '}
           <Link to="/calm" className="check-back">Спокойно</Link>
+          {' · '}
+          <Link to="/backup" className="check-back">Копия дела</Link>
           {' · '}
           <button type="button" className="check-back" onClick={() => { logout(); navigate('/'); }}>
             Выйти

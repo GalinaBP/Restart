@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import AboutYouPage from './pages/AboutYouPage';
 import AuthPage from './pages/AuthPage';
+import BackupPage from './pages/BackupPage';
 import CalmPage from './pages/CalmPage';
 import DocumentsPage from './pages/DocumentsPage';
 import EligibilityPage from './pages/EligibilityPage';
@@ -25,6 +26,7 @@ export default function App() {
       <Route path="/manager" element={<ManagerPage />} />
       <Route path="/calm" element={<CalmPage />} />
       <Route path="/documents" element={<DocumentsPage />} />
+      <Route path="/backup" element={<BackupPage />} />
     </Routes>
   );
 }

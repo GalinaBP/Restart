@@ -200,6 +200,14 @@ export default function DocumentsPage() {
         </button>
       )}
       {documents.length > 0 && (
+        <p className="section-caution" role="note">
+          Документы собраны здесь, на вашем устройстве, и лежат только в этом браузере.
+          Сейчас хороший момент{' '}
+          <Link to="/backup" className="docs-missing-link">сохранить копию дела в файл</Link>
+          {' '}— чтобы не собирать всё заново, если данные сайта очистятся.
+        </p>
+      )}
+      {documents.length > 0 && (
         <Link to="/journey/FILING_SUBMISSION" className="docs-next-step">
           Что дальше: как подать документы в суд →
         </Link>
