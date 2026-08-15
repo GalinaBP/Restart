@@ -1,14 +1,19 @@
 # Local-first case data — migration plan
 
-**Status: proposal. No code has been written against it.** The requirement was stated on
+**Status: phases 0–3 shipped on 2026-08-15. Phase 4 (deleting the server side) is not done.**
+The requirement was stated on
 2026-08-11: *all user data must remain local to the user's browser/device*, in the part of the
 product that prepares documents. The accompanying product line is «Мы считаем, что вам не
 обязательно передавать такие данные стороннему сервису только для того, чтобы организовать их и
 подготовить информацию.»
 
-This document says what the app does today, what that requirement costs, and in what order it
-could be delivered. It is an engineering proposal, not a decision — the choices in §5 and the
-questions in §9 need the product owner.
+The product owner chose **option A** (§5) with the account kept for now, a staged server-side
+removal, and a one-time import of cases still held on the server (§9). Sections 1–5 below
+describe the situation as it was before the change and are kept as the reasoning behind it;
+§6 marks what is done, and §11 records what shipped and what is still open.
+
+This document says what the app did, what that requirement cost, and in what order it was
+delivered.
 
 ## 1. Where user data lives today
 
@@ -100,21 +105,18 @@ multi-device turns out to matter more than the wording of the claim — that is 
 
 Each phase leaves the app working; nothing here is a big-bang cutover.
 
-0. **Extract the rules into shared assets.** Build `sections.yml`, `journey.yml`, `fees.yml`,
+0. ✅ **Extract the rules into shared assets.** Build `sections.yml`, `journey.yml`, `fees.yml`,
    `courts.yml` into JSON emitted at build time and consumed by both sides. No behaviour change.
-1. **Port validation + model assembly to TypeScript**, running *alongside* the server versions and
+1. ✅ **Port validation + model assembly to TypeScript**, running *alongside* the server versions and
    asserted equal in tests. Highest-risk logic, verified before anything depends on it.
-2. **Port the renderer**: mustache.js + pdf-lib behind a lazy chunk, pinned against the existing
+2. ✅ **Port the renderer**: mustache + pdf-lib behind a lazy chunk, pinned against the existing
    golden files. At the end of this phase the browser can produce the filings itself.
-3. **Move the store.** Case data goes to IndexedDB; export/import ships in the same release. The
+3. ✅ **Move the store.** Case data goes to IndexedDB; export/import ships in the same release. The
    `/cases/**` endpoints stop being called.
-4. **Delete the server side**: `case_section`, `case_document`, `case_journey_stage`, the
+4. ⬜ **Delete the server side**: `case_section`, `case_document`, `case_journey_stage`, the
    controllers, and — if the account goes too — `user_account` and the `auth` module. Schema
    removal needs Flyway migrations and the retired-enum precedent in `CLAUDE.md` applies: rows
    holding values the code no longer knows must be handled, not just dropped.
-
-Phases 0–2 are safe to build under either option A or B, so they can start before the choice in §5
-is made.
 
 ## 7. What the user loses, and what we owe them
 
@@ -131,25 +133,58 @@ knowingly.
 
 ## 8. When the product line can ship
 
-Not yet. The landing's trust block was built deliberately from claims that are true and checkable
-in the code, and «не передавать такие данные стороннему сервису» is false today — every answer is
-sent and stored. Shipping it now would be exactly the kind of promise the constitution rules out.
+Not yet, but only for want of a decision, not for want of truth. The landing's trust block was
+built deliberately from claims that are true and checkable in the code, and
+«не передавать такие данные стороннему сервису» *is* now true of everything the app collects
+about the bankruptcy: the answers, the journey and the documents never leave the browser.
 
-It becomes true at the end of phase 3. Until then it may only appear as a stated intention, worded
-so it cannot be read as a description of current storage.
+Two caveats before anyone writes it on the landing:
 
-## 9. Open questions
+- **The account is not covered by it.** Email and password still go to the server, and sign-in is
+  still required. A line about "not handing your data over" next to a registration form needs
+  wording that does not read as covering the account too.
+- **It should not appear as a general claim about "the service".** The screening is anonymous and
+  the case is local, but the sentence is worth pinning to what it actually describes.
 
-1. **Option A or B** (§5) — does multi-device access matter more than the literal claim?
-2. **Does the account survive?** Under A there is very little left for it to hold. Dropping it
-   would make the product fully anonymous and delete a whole module; keeping it needs a reason.
-3. **Does the requirement reach backwards?** There are existing cases in the Railway database. Are
-   they migrated by asking users to export, or deleted?
+## 9. Open questions — answered 2026-08-15
+
+1. **Option A or B** (§5) → **A**, fully local, no server-side case.
+2. **Does the account survive?** → Yes, for now. Sign-in still gates the app; the case is local
+   regardless. Dropping `auth` stays available as a later step, and until it happens the copy has
+   to be honest that the account is not where the case lives.
+3. **Does the requirement reach backwards?** → A case still held on the server is pulled into the
+   browser once, on first load, and the server is not used again (`local/serverImport.ts`).
+   Nobody loses work in progress. That path is temporary and goes away with phase 4.
 4. **Lawyer:** does anything in 127-ФЗ or the court process require the operator to retain a copy
-   of what was filed? This plan assumes not.
+   of what was filed? This plan assumes not. **Still unanswered — see `docs/lawyer-review.md`.**
 
 ## 10. Documentation defects found while surveying
 
-Unrelated to this plan, but `CLAUDE.md` is stale on two points and should be corrected:
-the `casefile` section claims **eight** filing documents in **txt + docx + pdf**, but `DocumentType`
-has **five** values and `DocumentFormat` has only `PDF` — txt and docx were retired in V11.
+Fixed on 2026-08-15: `CLAUDE.md` claimed **eight** filing documents in **txt + docx + pdf**, where
+`DocumentType` has **five** values and `DocumentFormat` has only `PDF` (txt and docx were retired
+in V11).
+
+## 11. What shipped, and what is left
+
+Shipped (phases 0–3):
+
+- `npm run rules` generates the SPA's copy of `sections.yml`, `journey.yml`, `fees.yml`,
+  `courts.yml`, `claim-deadline.yml`, the mustache templates and the DejaVu font into
+  `frontend/src/generated/`, cross-checking the keys against the Java enums. CI runs
+  `npm run rules:check` and fails on drift. The yml files stay the single place rules are authored.
+- `frontend/src/local/` carries the ported engine: validation, model assembly, the template
+  renderer, the PDF writer, the derived journey stages, fees and the claim deadline.
+- The case lives in IndexedDB. No screen calls `/cases/**`.
+- `/backup` writes and reads one passphrase-encrypted `.restart` file; the eviction warning is on
+  the case-creation screen, the documents screen and the backup screen.
+- A case still on the server is imported once, then the server is left alone.
+
+Left:
+
+- **Phase 4**, the deletion, with its Flyway migrations.
+- **Bundle cost.** `pdf-lib` is 1.1 MB (506 kB gzip) and the font another 340 kB, both lazy on the
+  documents screen. Subsetting the font to Cyrillic + Latin is the cheap win; a smaller PDF writer
+  is the larger one.
+- **Multi-tab.** Two tabs of the same browser share one IndexedDB and will happily overwrite each
+  other's last write. Nothing corrupts, but a `BroadcastChannel` refresh would be kinder.
+- **The landing copy** (§8), which is a product decision, not an engineering one.
