@@ -63,44 +63,29 @@ Swagger UI (`local` profile only, disabled in `prod`): http://localhost:8080/swa
 
 One Spring Boot 4.1 / Java 21 **modular monolith**, one MySQL schema, one deployable artifact.
 Feature modules live under `ru.restart.app`; `common` holds shared technical building blocks.
-Business modules so far: `eligibility` (the 2-minute screening check — stateless, anonymous,
-placeholder rules pending lawyer review), `auth` (accounts + stateless JWT: register/login/
-refresh/me; contributes its token filter via `HttpSecurityCustomizer`; local demo account seeded
-when `restart.seed.enabled=true`) and `casefile` (the bankruptcy case container: one active case
-per user, draft → in_progress → ready → filed; ownership enforced at the service layer, foreign
-cases answered as 404; step-by-step data collection and the deterministic validation engine are
-both driven by `casefile/sections.yml` — field types, required flags, mandatory sections,
-duplicate rules, and the field ↔ 127-ФЗ mapping, placeholder pending lawyer review. Validation
-never blocks saving; `GET /cases/{id}/validation` is the report the generation gate consumes;
-document generation `POST /cases/{id}/documents` renders all five filing documents as PDF via
-PDFBox with the embedded DejaVu font for Cyrillic (txt and docx were retired in V11) — hard-gated
-409 GENERATION_BLOCKED with the missing-item
-list; once documents exist, every section save regenerates all of them while the case stays
-valid, or flags them `stale` when it doesn't — full regeneration by design, documents are never
-silently outdated; `POST /cases/{id}/documents/export` regenerates and bundles everything into
-one zip behind the same gate; the **journey through the court procedure** is driven by
-`casefile/journey.yml` the same way — stages, their order, which procedure branch each belongs to
-and its 127-ФЗ reference, placeholder pending lawyer review. Two kinds of stage: *derived* ones
-(screening, document preparation) compute their status from the case data and refuse to be
-recorded by hand (409), so the map can never contradict the case; the rest the user records
-(status, dates, note) through `PUT /cases/{id}/journey/{stage}`. `GET /cases/{id}/journey` returns
-the stages that apply plus the current one, and `PUT /cases/{id}/journey/procedure-type` records
-the court's choice — restructuring / realization / settlement — revealing that branch only)
-and `doctemplate` (versioned Mustache templates for the five filing documents under
-`resources/doctemplates/<version>/`, shared legal boilerplate as partials, edition picked by
-`doctemplates/manifest.yml` — a legislative amendment is a new version directory + manifest bump,
-no code changes; every output carries a "ШАБЛОН-ПЛЕЙСХОЛДЕР" banner until lawyer sign-off;
-golden-file regression tests pin each document's output).
 
-> **`casefile` is no longer reached by the app.** Since 2026-08-15 the case lives in the user's
-> browser (see "Frontend → Local-first case data"), and the SPA calls none of `/cases/**`. The
-> module, its controllers and its tables are still here on purpose: they are what the one-time
-> import reads for users whose case is still on the server, and deleting them is a separate,
-> deliberate step (phase 4 of `docs/local-first-plan.md`, with the Flyway drops and the
-> retired-enum precedent below). Until then it is dead weight that must keep compiling and
-> passing its tests — **the browser is the authority, so any rule change has to land in both**,
-> which is exactly why the rules live in yml and are generated into the SPA rather than
-> hand-copied.
+**The backend does not hold the bankruptcy case.** Since 2026-08-15 (phases 0–4 of
+`docs/local-first-plan.md`) everything the debtor types — answers, journey, generated filings —
+lives in their browser and is never sent. The `casefile` and `doctemplate` modules that used to
+own it, and the four tables behind them, were deleted in phase 4; V12 is the migration that
+dropped them. What remains server-side is deliberately small:
+
+- `eligibility` — the 2-minute screening check: stateless, anonymous, stores nothing.
+  Placeholder rules pending lawyer review.
+- `auth` — accounts + stateless JWT (register/login/refresh/me), contributing its token filter via
+  `HttpSecurityCustomizer`; local demo account seeded when `restart.seed.enabled=true`. It is the
+  way in and nothing more: no case hangs off an account, so signing in on a second device shows an
+  empty app, and the copy has to keep saying so.
+
+> **The rules still live here, in yml, and only here** — `casefile/sections.yml`,
+> `journey.yml`, `fees.yml`, `courts.yml`, `claim-deadline.yml`, and the versioned Mustache
+> templates under `doctemplates/<version>/` with `doctemplates/manifest.yml` naming the active
+> edition and the five documents. No Java reads them any more; `frontend/scripts/generate-rules.mjs`
+> does, and it is also what **validates** them (field types, duplicate keys, `uniqueBy` pointing at
+> real fields, fee amounts quoted so YAML cannot turn them into floats, every partial a template
+> references being listed). That validation used to be the Java registries' job — if you add a rule
+> file, give it checks there, or nothing checks it. A legislative amendment is still an edit to the
+> yml (or a new template version directory) plus `npm run rules`.
 
 Every business module gets identical internal layering:
 
@@ -126,18 +111,25 @@ Every business module gets identical internal layering:
   contributes its token filter via the `HttpSecurityCustomizer` extension point. Roles: `USER`, `ADMIN`.
 - Time: inject the UTC `Clock` bean (`ClockConfig`); never call `Instant.now()` in domain code.
 
-**Database:** Flyway owns the schema (`src/main/resources/db/migration`, V1–V9); Hibernate
-runs `ddl-auto: validate`. Add a migration in the same change as any new entity. UUIDs as
+**Database:** Flyway owns the schema (`src/main/resources/db/migration`, V1–V12); Hibernate
+runs `ddl-auto: validate`. Only `user_account` and `password_reset_token` are left — V12 dropped
+the four case tables. Add a migration in the same change as any new entity. UUIDs as
 `BINARY(16)` (`UuidUtils`), money as `DECIMAL(19,2)`, timestamps UTC.
 
-> **Deleting an enum constant that is persisted needs a migration in the same change.**
-> `SectionKey`, `DocumentType`, `CaseStatus`, `ProcedureType`, `JourneyStage` and `FeeItem` are
-> stored with `@Enumerated(STRING)`, so a row holding a name the enum no longer knows cannot be
-> mapped and *every read of that table for that case throws* — the feature looks fine on fresh
-> data and breaks only for users who already have the old value. V7 (retired sections) and V9
-> (retired document types) are the precedent; V9 was written after shipping the removal without
-> one took «Документы» and «Весь путь» down in production. `RetiredDocumentTypeIntegrationTest`
-> shows how to pin it: insert the legacy row through JDBC, then assert the screens still answer.
+> **Deleting a stored enum constant needs a migration in the same change.** Nothing persisted is
+> currently `@Enumerated(STRING)` — the enums that were (`SectionKey`, `DocumentType`,
+> `JourneyStage`, `FeeItem` and friends) went with `casefile` — but the lesson cost a production
+> outage and applies to the next one. A row holding a name the enum no longer knows cannot be
+> mapped, and *every read of that table for that row throws*: the feature looks fine on fresh data
+> and breaks only for users who already have the old value. V7 and V9 are the precedent, V9 having
+> been written after shipping the removal without one took «Документы» and «Весь путь» down. Pin it
+> the way `RetiredDocumentTypeIntegrationTest` did: insert the legacy row through JDBC, then assert
+> the screens still answer.
+>
+> **The same trap now lives in the browser.** Document types are stored in IndexedDB by the `type`
+> from `doctemplates/manifest.yml`, and section keys index the saved answers — rename either and a
+> user's existing case no longer lines up with the rules. There is no migration to write there, so
+> the rule is simply: keys are permanent, and adding is safe where renaming is not.
 
 **API conventions:** base path `/api/v1` (`ApiPaths`), JSON/camelCase, separate request/response
 DTOs, Bean Validation on request bodies, `PageResponse` envelope for collections, OpenAPI on every
@@ -199,16 +191,17 @@ only `auth`, `eligibility` and the shared client are left in it.
 
 - **The rules are still authored in yml on the backend.** `npm run rules` builds
   `src/generated/` (sections, journey, fees, courts, claim deadline, templates, the DejaVu font)
-  and cross-checks the keys against `SectionKey`, `JourneyStage` and `FeeItem`; CI runs
-  `npm run rules:check` and fails on drift. The generated files are committed because
+  and validates them on the way through; CI runs `npm run rules:check` and fails on drift.
+  `local/rules.test.ts` covers what the generator cannot see — that every section and stage has a
+  label, that every derived stage has a derivation rule. The generated files are committed because
   `frontend/Dockerfile` copies only `frontend/`. **Edit the yml, never `src/generated/`.**
 - **The template renderer is hand-written on purpose.** `local/mustache.ts` reproduces
   jmustache's non-standards-mode whitespace handling, which differs from the mustache spec that
   mustache.js implements: a standalone partial's newline is swallowed *except* on a template's
   first line, while standalone comment and section lines always go. The rules are pinned by
-  their own tests, and all five documents are asserted byte-identical to the Java golden files
-  in `src/test/resources/doctemplate/golden/`. Those goldens are the contract between the two
-  renderers — a template change must be regenerated and reviewed on both sides.
+  their own tests, and all five documents are asserted byte-identical to the golden files in
+  `local/golden/`, which the Java renderer produced while both existed. A template change means
+  deleting the golden, re-running the test and reading the diff as the document a user files.
 - **Money is float here and BigDecimal there.** `formatMoney` rounds half-up through
   `toPrecision(15)` so two-decimal amounts and their sums match the backend exactly.
 - **Browser storage is evictable, so the export file is the recovery story, not a nicety.**

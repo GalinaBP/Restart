@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import subsetFont from 'subset-font';
@@ -7,32 +7,41 @@ import { parse } from 'yaml';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..', '..');
 const RESOURCES = join(REPO, 'src', 'main', 'resources');
-const JAVA = join(REPO, 'src', 'main', 'java', 'ru', 'restart', 'app');
 const OUT = join(HERE, '..', 'src', 'generated');
+
+const FIELD_TYPES = ['STRING', 'BOOLEAN', 'INTEGER', 'MONEY', 'DATE',
+  'PASSPORT_SERIES', 'PASSPORT_NUMBER', 'INN'];
+const BRANCHES = ['ALL', 'RESTRUCTURING', 'REALIZATION', 'SETTLEMENT'];
+
+function fail(resource, message) {
+  throw new Error(`${resource}: ${message}`);
+}
 
 function yml(...parts) {
   return parse(readFileSync(join(RESOURCES, ...parts), 'utf8'));
 }
 
-function enumConstants(...parts) {
-  const source = readFileSync(join(JAVA, ...parts), 'utf8');
-  const body = source.slice(source.indexOf('{') + 1, source.lastIndexOf('}'));
-  return body
-    .split(/[,;]/)
-    .map((entry) => entry.trim().match(/^([A-Z][A-Z0-9_]*)\b/))
-    .filter(Boolean)
-    .map((match) => match[1]);
+function requireText(resource, value, what) {
+  if (typeof value !== 'string' || value.trim() === '') {
+    fail(resource, `${what} is missing`);
+  }
+  return value;
 }
 
-function assertSameKeys(what, expected, actual) {
-  const missing = expected.filter((key) => !actual.includes(key));
-  const unknown = actual.filter((key) => !expected.includes(key));
-  if (missing.length || unknown.length) {
-    throw new Error(
-      `${what} is out of sync with the Java enum` +
-        (missing.length ? `; missing: ${missing.join(', ')}` : '') +
-        (unknown.length ? `; unknown: ${unknown.join(', ')}` : ''),
-    );
+function requireWholeNumber(resource, value, what) {
+  if (!Number.isInteger(value)) {
+    fail(resource, `${what} must be a whole number, got ${JSON.stringify(value)}`);
+  }
+  return value;
+}
+
+function requireUnique(resource, values, what) {
+  const seen = new Set();
+  for (const value of values) {
+    if (seen.has(value)) {
+      fail(resource, `duplicate ${what} ${value}`);
+    }
+    seen.add(value);
   }
 }
 
@@ -41,73 +50,135 @@ function byOrder(a, b) {
 }
 
 function sections() {
+  const resource = 'casefile/sections.yml';
   const parsed = yml('casefile', 'sections.yml').sections;
-  assertSameKeys(
-    'sections.yml',
-    enumConstants('casefile', 'domain', 'SectionKey.java'),
-    parsed.map((section) => section.key),
-  );
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    fail(resource, 'no sections configured');
+  }
+  requireUnique(resource, parsed.map((section) => section.key), 'section');
+
   return parsed
-    .map((section) => ({
-      key: section.key,
-      order: section.order,
-      repeatable: Boolean(section.repeatable),
-      mandatory: Boolean(section.mandatory),
-      uniqueBy: section.uniqueBy ?? [],
-      fields: section.fields.map((field) => ({
-        name: field.name,
-        type: field.type,
-        required: Boolean(field.required),
-      })),
-    }))
+    .map((section) => {
+      const key = requireText(resource, section.key, 'section key');
+      requireText(resource, section.statutoryBasis, `section ${key} statutoryBasis`);
+      requireWholeNumber(resource, section.order, `section ${key} order`);
+      if (!Array.isArray(section.fields) || section.fields.length === 0) {
+        fail(resource, `section ${key} has no fields`);
+      }
+      const fields = section.fields.map((field) => {
+        const name = requireText(resource, field.name, `a field name in section ${key}`);
+        if (!FIELD_TYPES.includes(field.type)) {
+          fail(resource, `field ${key}.${name} has unknown type ${field.type}`);
+        }
+        return { name, type: field.type, required: Boolean(field.required) };
+      });
+      requireUnique(resource, fields.map((field) => field.name), `field in section ${key}`);
+
+      const uniqueBy = section.uniqueBy ?? [];
+      const known = new Set(fields.map((field) => field.name));
+      for (const name of uniqueBy) {
+        if (!known.has(name)) {
+          fail(resource, `section ${key} uniqueBy references unknown field ${name}`);
+        }
+      }
+      if (uniqueBy.length > 0 && !section.repeatable) {
+        fail(resource, `section ${key} is not repeatable, so uniqueBy means nothing`);
+      }
+
+      return {
+        key,
+        order: section.order,
+        repeatable: Boolean(section.repeatable),
+        mandatory: Boolean(section.mandatory),
+        uniqueBy,
+        fields,
+      };
+    })
     .sort(byOrder);
 }
 
 function journey() {
+  const resource = 'casefile/journey.yml';
   const parsed = yml('casefile', 'journey.yml').stages;
-  assertSameKeys(
-    'journey.yml',
-    enumConstants('casefile', 'domain', 'JourneyStage.java'),
-    parsed.map((stage) => stage.key),
-  );
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    fail(resource, 'no stages configured');
+  }
+  requireUnique(resource, parsed.map((stage) => stage.key), 'stage');
+
   return parsed
-    .map((stage) => ({
-      key: stage.key,
-      order: stage.order,
-      branch: stage.branch === 'ALL' ? null : stage.branch,
-      derived: Boolean(stage.derived),
-      statutoryBasis: stage.statutoryBasis,
-    }))
+    .map((stage) => {
+      const key = requireText(resource, stage.key, 'stage key');
+      requireText(resource, stage.statutoryBasis, `stage ${key} statutoryBasis`);
+      requireWholeNumber(resource, stage.order, `stage ${key} order`);
+      if (!BRANCHES.includes(stage.branch)) {
+        fail(resource, `stage ${key} has unknown branch ${stage.branch}`);
+      }
+      return {
+        key,
+        order: stage.order,
+        branch: stage.branch === 'ALL' ? null : stage.branch,
+        derived: Boolean(stage.derived),
+        statutoryBasis: stage.statutoryBasis,
+      };
+    })
     .sort(byOrder);
 }
 
 function fees() {
+  const resource = 'casefile/fees.yml';
   const parsed = yml('casefile', 'fees.yml');
-  assertSameKeys(
-    'fees.yml',
-    enumConstants('casefile', 'domain', 'FeeItem.java'),
-    parsed.items.map((item) => item.key),
-  );
+  requireText(resource, parsed.effectiveFrom, 'effectiveFrom');
+  if (!Array.isArray(parsed.items) || parsed.items.length === 0) {
+    fail(resource, 'no items configured');
+  }
+  requireUnique(resource, parsed.items.map((item) => item.key), 'fee');
+
   return {
     effectiveFrom: parsed.effectiveFrom,
-    items: parsed.items.map((item) => ({
-      key: item.key,
-      amount: item.amount,
-      confirmed: Boolean(item.confirmed),
-      statutoryBasis: item.statutoryBasis,
-    })),
+    items: parsed.items.map((item) => {
+      const key = requireText(resource, item.key, 'fee key');
+      requireText(resource, item.statutoryBasis, `fee ${key} statutoryBasis`);
+      if (typeof item.amount === 'number') {
+        fail(resource, `amount of ${key} must be quoted in the YAML so it is not parsed as a`
+          + ` floating-point number — write amount: "${item.amount.toFixed(2)}"`);
+      }
+      requireText(resource, item.amount, `fee ${key} amount`);
+      if (!/^\d+(\.\d{1,2})?$/.test(item.amount)) {
+        fail(resource, `amount of ${key} is not a plain rouble amount: ${item.amount}`);
+      }
+      return {
+        key,
+        amount: item.amount,
+        confirmed: Boolean(item.confirmed),
+        statutoryBasis: item.statutoryBasis,
+      };
+    }),
   };
 }
 
 function courts() {
-  return yml('casefile', 'courts.yml').courts.map((entry) => ({
-    court: entry.court,
-    keywords: entry.keywords.map((keyword) => keyword.toLowerCase().replaceAll('ё', 'е')),
-  }));
+  const resource = 'casefile/courts.yml';
+  const parsed = yml('casefile', 'courts.yml').courts;
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    fail(resource, 'no courts configured');
+  }
+  return parsed.map((entry) => {
+    const court = requireText(resource, entry.court, 'a court name');
+    if (!Array.isArray(entry.keywords) || entry.keywords.length === 0) {
+      fail(resource, `court ${court} has no keywords`);
+    }
+    return {
+      court,
+      keywords: entry.keywords.map((keyword) => keyword.toLowerCase().replaceAll('ё', 'е')),
+    };
+  });
 }
 
 function claimDeadline() {
+  const resource = 'casefile/claim-deadline.yml';
   const parsed = yml('casefile', 'claim-deadline.yml');
+  requireText(resource, parsed.statutoryBasis, 'statutoryBasis');
+  requireWholeNumber(resource, parsed.daysFromPublication, 'daysFromPublication');
   return {
     daysFromPublication: parsed.daysFromPublication,
     confirmed: Boolean(parsed.confirmed),
@@ -115,22 +186,39 @@ function claimDeadline() {
 }
 
 function templates() {
-  const activeVersion = yml('doctemplates', 'manifest.yml').activeVersion;
-  const documentTypes = readFileSync(
-    join(JAVA, 'doctemplate', 'api', 'DocumentType.java'),
-    'utf8',
-  );
-  const documents = [...documentTypes.matchAll(/([A-Z][A-Z0-9_]*)\("([a-z_]+)"\)/g)]
-    .map((match) => ({ type: match[1], templateName: match[2] }));
-  const partials = ['partials/applicant', 'partials/court_header', 'partials/draft_warning',
-    'partials/signature'];
-  const sources = {};
-  for (const name of [...documents.map((entry) => entry.templateName), ...partials]) {
-    sources[name] = readFileSync(
-      join(RESOURCES, 'doctemplates', activeVersion, `${name}.mustache`),
-      'utf8',
-    );
+  const resource = 'doctemplates/manifest.yml';
+  const manifest = yml('doctemplates', 'manifest.yml');
+  const activeVersion = requireText(resource, manifest.activeVersion, 'activeVersion');
+  if (!Array.isArray(manifest.documents) || manifest.documents.length === 0) {
+    fail(resource, 'no documents configured');
   }
+  requireUnique(resource, manifest.documents.map((document) => document.type), 'document type');
+
+  const documents = manifest.documents.map((document) => ({
+    type: requireText(resource, document.type, 'a document type'),
+    templateName: requireText(resource, document.template,
+      `template of ${document.type}`),
+  }));
+
+  const sources = {};
+  const names = [...documents.map((document) => document.templateName),
+    ...(manifest.partials ?? [])];
+  for (const name of names) {
+    const path = join(RESOURCES, 'doctemplates', activeVersion, `${name}.mustache`);
+    if (!existsSync(path)) {
+      fail(resource, `template file missing: ${activeVersion}/${name}.mustache`);
+    }
+    sources[name] = readFileSync(path, 'utf8');
+  }
+  for (const [name, source] of Object.entries(sources)) {
+    for (const [, referenced] of source.matchAll(/\{\{>\s*([^}\s]+)\s*\}\}/g)) {
+      if (sources[referenced] === undefined) {
+        fail(resource, `${name}.mustache pulls in the partial ${referenced},`
+          + ' which the manifest does not list');
+      }
+    }
+  }
+
   return { activeVersion, documents, sources };
 }
 

@@ -136,7 +136,7 @@ function journeyOf(
   for (const definition of stagesFor(bankruptcyCase.procedureType)) {
     const recorded = bankruptcyCase.journey[definition.key];
     const status = definition.derived
-      ? derivedStatus(definition.key, bankruptcyCase, documentsReady, documentsExist)
+      ? journeyStatusOf(definition.key, bankruptcyCase, documentsReady, documentsExist)
       : recorded?.status ?? 'NOT_STARTED';
     const isCurrent = current === null && status !== 'DONE';
     if (isCurrent) {
@@ -159,38 +159,54 @@ function journeyOf(
   return { stages, procedureType: bankruptcyCase.procedureType, currentStage: current };
 }
 
-function derivedStatus(
+type Derivation = (
+  bankruptcyCase: StoredCase,
+  documentsReady: boolean,
+  documentsExist: boolean,
+) => StageStatusKey;
+
+const DERIVATIONS: Record<string, Derivation> = {
+  SCREENING: () => 'DONE',
+
+  DOCUMENT_PREPARATION: (bankruptcyCase, documentsReady, documentsExist) => {
+    if (documentsReady) {
+      return 'DONE';
+    }
+    const anythingCollected = Object.keys(bankruptcyCase.sections).length > 0;
+    return anythingCollected || documentsExist ? 'IN_PROGRESS' : 'NOT_STARTED';
+  },
+
+  FEES_AND_DEPOSIT: (bankruptcyCase) => {
+    const payments = single(bankruptcyCase.sections.PAYMENTS);
+    const duty = text(payments, 'stateDutyPaidOn') !== '';
+    const deposit = text(payments, 'depositPaidOn') !== '';
+    if (duty && deposit) {
+      return 'DONE';
+    }
+    return duty || deposit ? 'IN_PROGRESS' : 'NOT_STARTED';
+  },
+
+  FILING: (bankruptcyCase) =>
+    (text(single(bankruptcyCase.sections.FILING_SUBMISSION), 'submissionDate') !== ''
+      ? 'DONE'
+      : 'NOT_STARTED'),
+};
+
+export function derivedStageKeys(): string[] {
+  return Object.keys(DERIVATIONS);
+}
+
+export function journeyStatusOf(
   stage: string,
   bankruptcyCase: StoredCase,
   documentsReady: boolean,
   documentsExist: boolean,
 ): StageStatusKey {
-  switch (stage) {
-    case 'SCREENING':
-      return 'DONE';
-    case 'DOCUMENT_PREPARATION': {
-      if (documentsReady) {
-        return 'DONE';
-      }
-      const anythingCollected = Object.keys(bankruptcyCase.sections).length > 0;
-      return anythingCollected || documentsExist ? 'IN_PROGRESS' : 'NOT_STARTED';
-    }
-    case 'FEES_AND_DEPOSIT': {
-      const payments = single(bankruptcyCase.sections.PAYMENTS);
-      const duty = text(payments, 'stateDutyPaidOn') !== '';
-      const deposit = text(payments, 'depositPaidOn') !== '';
-      if (duty && deposit) {
-        return 'DONE';
-      }
-      return duty || deposit ? 'IN_PROGRESS' : 'NOT_STARTED';
-    }
-    case 'FILING':
-      return text(single(bankruptcyCase.sections.FILING_SUBMISSION), 'submissionDate') !== ''
-        ? 'DONE'
-        : 'NOT_STARTED';
-    default:
-      throw new Error(`Stage ${stage} is marked derived but has no derivation rule`);
+  const derivation = DERIVATIONS[stage];
+  if (derivation === undefined) {
+    throw new Error(`Stage ${stage} is marked derived but has no derivation rule`);
   }
+  return derivation(bankruptcyCase, documentsReady, documentsExist);
 }
 
 async function anyDocuments(): Promise<boolean> {

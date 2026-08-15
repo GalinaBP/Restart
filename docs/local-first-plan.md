@@ -1,6 +1,6 @@
 # Local-first case data — migration plan
 
-**Status: phases 0–3 shipped on 2026-08-15. Phase 4 (deleting the server side) is not done.**
+**Status: done. Phases 0–4 shipped on 2026-08-15.**
 The requirement was stated on
 2026-08-11: *all user data must remain local to the user's browser/device*, in the part of the
 product that prepares documents. The accompanying product line is «Мы считаем, что вам не
@@ -113,10 +113,10 @@ Each phase leaves the app working; nothing here is a big-bang cutover.
    golden files. At the end of this phase the browser can produce the filings itself.
 3. ✅ **Move the store.** Case data goes to IndexedDB; export/import ships in the same release. The
    `/cases/**` endpoints stop being called.
-4. ⬜ **Delete the server side**: `case_section`, `case_document`, `case_journey_stage`, the
-   controllers, and — if the account goes too — `user_account` and the `auth` module. Schema
-   removal needs Flyway migrations and the retired-enum precedent in `CLAUDE.md` applies: rows
-   holding values the code no longer knows must be handled, not just dropped.
+4. ✅ **Delete the server side**: the `casefile` and `doctemplate` modules with their 32 tests, and
+   `case_document`, `case_section`, `case_journey_stage`, `bankruptcy_case` via V12. `user_account`
+   and the `auth` module stayed — the account survives as the way in (§9.2). The one-time import
+   went too: with the tables gone there is nothing to import from.
 
 ## 7. What the user loses, and what we owe them
 
@@ -179,9 +179,24 @@ Shipped (phases 0–3):
   the case-creation screen, the documents screen and the backup screen.
 - A case still on the server is imported once, then the server is left alone.
 
+Phase 4, on top:
+
+- The `casefile` and `doctemplate` Java modules are gone, along with `pdfbox` and `jmustache`.
+- V12 dropped `case_document`, `case_section`, `case_journey_stage` and `bankruptcy_case`. **That
+  migration destroys data**: any case still on the server when it runs is deleted. Users who opened
+  the app after the phase-3 release had theirs imported into the browser; anyone who never came
+  back lost what they had entered. A database snapshot before deploying was the safety net.
+- The validation the Java registries did for the yml — field types, duplicate keys, `uniqueBy`
+  pointing at real fields, fee amounts quoted so YAML cannot read them as floats — moved into
+  `generate-rules.mjs`, which is now the only reader. Losing it silently was the real risk in this
+  phase, not the deletion itself.
+- The document list moved from the `DocumentType` enum into `doctemplates/manifest.yml`.
+- The golden files moved to `frontend/src/local/golden/`. They were produced by the Java renderer
+  and cross-checked by both while both existed; with one implementation left they are the frozen
+  wording, not a cross-check.
+
 Left:
 
-- **Phase 4**, the deletion, with its Flyway migrations.
 - **Bundle cost.** The font is done — subset to Latin + Cyrillic at generation time, 340 kB → 56 kB.
   `pdf-lib` is the rest: 1.1 MB, 506 kB gzip, lazy on the documents screen. A smaller PDF writer is
   the only remaining lever, and it is a much larger job than the font was.

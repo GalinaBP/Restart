@@ -1,6 +1,5 @@
 import { refreshGeneratedDocuments } from './documents';
 import { SECTIONS, section as sectionDefinition } from './rules';
-import { importServerCaseOnce } from './serverImport';
 import {
   CaseNotFoundError, type StoredCase, loadCase, newCase, requireCase, saveCase,
 } from './store';
@@ -48,7 +47,6 @@ export class InvalidSectionPayloadError extends Error {
 }
 
 export async function currentCase(): Promise<CaseInfo | null> {
-  await importServerCaseOnce();
   const existing = await loadCase();
   return existing ? toInfo(existing) : null;
 }

@@ -1,36 +1,31 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import templates from '../generated/templates.json';
 import { render } from './mustache';
 import { SAMPLE_MODEL } from './sampleModel';
 
-const GOLDEN_DIR = join(
-  import.meta.dirname,
-  '..',
-  '..',
-  '..',
-  'src',
-  'test',
-  'resources',
-  'doctemplate',
-  'golden',
-  templates.activeVersion,
-);
+const GOLDEN_DIR = join(import.meta.dirname, 'golden', templates.activeVersion);
 
 describe('the browser template renderer', () => {
   it.each(templates.documents.map((document) => document.templateName))(
     'reproduces the %s golden file',
     (name) => {
-      const golden = readFileSync(join(GOLDEN_DIR, `${name}.txt`), 'utf8');
-
       const rendered = render(
         templates.sources[name as keyof typeof templates.sources],
         SAMPLE_MODEL,
         templates.sources,
       );
+      const golden = join(GOLDEN_DIR, `${name}.txt`);
 
-      expect(rendered).toBe(golden);
+      if (!existsSync(golden)) {
+        mkdirSync(GOLDEN_DIR, { recursive: true });
+        writeFileSync(golden, rendered, 'utf8');
+        throw new Error(`Golden file was missing and has been written: ${golden}`
+          + ' — read the diff as the document a user files, then re-run.');
+      }
+
+      expect(rendered).toBe(readFileSync(golden, 'utf8'));
     },
   );
 });
