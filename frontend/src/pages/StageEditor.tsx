@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { STATUS_LABELS } from '../api/labels';
-import type { JourneyStageView, RecordStageInput } from '../api/procedure';
+import type { JourneyStageView, RecordStageInput } from '../local/journey';
 
 export default function StageEditor({
   view,

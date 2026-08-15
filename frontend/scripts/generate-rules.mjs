@@ -119,17 +119,18 @@ function templates() {
     join(JAVA, 'doctemplate', 'api', 'DocumentType.java'),
     'utf8',
   );
-  const names = [...documentTypes.matchAll(/\("([a-z_]+)"\)/g)].map((match) => match[1]);
+  const documents = [...documentTypes.matchAll(/([A-Z][A-Z0-9_]*)\("([a-z_]+)"\)/g)]
+    .map((match) => ({ type: match[1], templateName: match[2] }));
   const partials = ['partials/applicant', 'partials/court_header', 'partials/draft_warning',
     'partials/signature'];
   const sources = {};
-  for (const name of [...names, ...partials]) {
+  for (const name of [...documents.map((entry) => entry.templateName), ...partials]) {
     sources[name] = readFileSync(
       join(RESOURCES, 'doctemplates', activeVersion, `${name}.mustache`),
       'utf8',
     );
   }
-  return { activeVersion, documentTypes: names, sources };
+  return { activeVersion, documents, sources };
 }
 
 function write(name, value) {

@@ -7,7 +7,7 @@ import {
   sectionsOverview,
   type CaseInfo,
   type SectionStatus,
-} from '../api/cases';
+} from '../local/case';
 import { CASE_DATA_SECTIONS, OWN_DOCUMENTS, WORK_DOCUMENTS, type WorkStatus } from '../api/labels';
 
 export default function JourneyPage() {
@@ -23,7 +23,7 @@ export default function JourneyPage() {
       const existing = await currentCase();
       setCase(existing);
       if (existing) {
-        setSteps(await sectionsOverview(existing.id));
+        setSteps(await sectionsOverview());
       }
     } catch {
       setFailed(true);
@@ -44,9 +44,8 @@ export default function JourneyPage() {
   const start = async () => {
     setLoading(true);
     try {
-      const created = await createCase();
-      setCase(created);
-      setSteps(await sectionsOverview(created.id));
+      setCase(await createCase());
+      setSteps(await sectionsOverview());
     } catch {
       setFailed(true);
     } finally {

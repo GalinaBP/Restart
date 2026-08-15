@@ -1,4 +1,4 @@
-import type { SectionEntry } from '../api/cases';
+import type { SectionEntry } from '../local/case';
 
 export function sortCorrespondence(
   entries: SectionEntry[] | null | undefined,

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
-import { currentCase, getSection, saveSection, sectionsOverview } from '../api/cases';
+import { currentCase, getSection, saveSection, sectionsOverview } from '../local/case';
 import type {
   FieldMeta, SectionContent, SectionEntry, SectionIssue, SectionStatus,
-} from '../api/cases';
+} from '../local/case';
 import { CASE_DATA_SECTIONS, sectionLabel } from '../api/labels';
 import { issueFor as findIssue, toApi, toForm, type FormEntry } from './sectionForm';
 import { SectionField } from './SectionField';
@@ -34,8 +34,8 @@ export default function SectionPage() {
       }
       setCaseId(existing.id);
       const [content, overview] = await Promise.all([
-        getSection(existing.id, sectionKey),
-        sectionsOverview(existing.id).catch(() => []),
+        getSection(sectionKey),
+        sectionsOverview().catch(() => []),
       ]);
       setSection(content);
       setSteps(Array.isArray(overview) ? overview : []);
@@ -113,7 +113,7 @@ export default function SectionPage() {
       const payload = section.repeatable
         ? entries.map((entry) => toApi(section.fields, entry))
         : toApi(section.fields, entries[0]);
-      const result = await saveSection(caseId, section.key, payload);
+      const result = await saveSection(section.key, payload);
       setIssues(result.issues);
       setSaved(true);
       if (result.issues.length === 0) {

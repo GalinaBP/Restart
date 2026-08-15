@@ -1,11 +1,26 @@
 {
   "activeVersion": "2026-06-21.1",
-  "documentTypes": [
-    "bankruptcy_application",
-    "creditor_list",
-    "property_information",
-    "attachments_checklist",
-    "filing_checklist"
+  "documents": [
+    {
+      "type": "BANKRUPTCY_APPLICATION",
+      "templateName": "bankruptcy_application"
+    },
+    {
+      "type": "CREDITOR_LIST",
+      "templateName": "creditor_list"
+    },
+    {
+      "type": "PROPERTY_INFORMATION",
+      "templateName": "property_information"
+    },
+    {
+      "type": "ATTACHMENTS_CHECKLIST",
+      "templateName": "attachments_checklist"
+    },
+    {
+      "type": "FILING_CHECKLIST",
+      "templateName": "filing_checklist"
+    }
   ],
   "sources": {
     "bankruptcy_application": "{{> partials/draft_warning}}\n{{> partials/court_header}}\n\n                              ЗАЯВЛЕНИЕ\n            о признании гражданина несостоятельным (банкротом)\n\nЯ, {{> partials/applicant}}\nнастоящим заявляю о своей несостоятельности (банкротстве).\n\nОбщий размер моих денежных обязательств составляет {{totalDebt}} руб.\nперед {{creditorCount}} кредитор(ами); обязательства не исполняются, и\nудовлетворение требований одних кредиторов приведёт к невозможности\nисполнения обязательств перед другими. Ежемесячный доход:\n{{monthlyIncome.amount}} руб. ({{monthlyIncome.source}}){{#otherIncome}},\nа также {{amount}} руб. ({{source}}){{/otherIncome}}; всего\n{{totalIncome}} руб. в месяц.\n\nСведения о кредиторах и размерах задолженности приведены в прилагаемом\nсписке кредиторов; сведения об имуществе — в прилагаемой описи имущества.\n\nНа основании статей 213.3, 213.4 и 213.9 Федерального закона от 26.10.2002\n№ 127-ФЗ «О несостоятельности (банкротстве)» (в редакции, действующей\nс 21.06.2026),\n\n                                ПРОШУ:\n\n1. Признать меня несостоятельным (банкротом).\n2. Ввести в отношении меня процедуру, применяемую в деле о банкротстве\n   гражданина, в соответствии со ст. 213.6 Закона № 127-ФЗ.\n3. Утвердить финансового управляющего для участия в деле о моём\n   банкротстве из числа членов саморегулируемой организации арбитражных\n   управляющих:\n      наименование: {{sro.name}}\n      адрес: {{sro.address}}\n      ИНН: {{sro.inn}}\n      ОГРН: {{sro.ogrn}}\n      регистрационный номер в реестре: {{sro.registryNumber}}\n\nПриложения: по перечню прилагаемых документов.\n{{> partials/signature}}\n",

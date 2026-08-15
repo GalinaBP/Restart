@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
-import { currentCase, getSection, saveSection } from '../api/cases';
-import type { SectionContent, SectionEntry, SectionIssue } from '../api/cases';
+import { currentCase, getSection, saveSection } from '../local/case';
+import type { SectionContent, SectionEntry, SectionIssue } from '../local/case';
 import { CASE_DATA_SECTIONS, sectionLabel } from '../api/labels';
 import { issueFor, toApi, toForm, type FormEntry } from './sectionForm';
 import { SectionField } from './SectionField';
@@ -53,7 +53,7 @@ export default function AboutYouPage() {
         return;
       }
       const loaded = await Promise.all(
-        CASE_DATA_SECTIONS.map((key) => getSection(existing.id, key)),
+        CASE_DATA_SECTIONS.map((key) => getSection(key)),
       );
       setCaseId(existing.id);
       setBlocks(loaded.map(blockOf));
@@ -133,7 +133,7 @@ export default function AboutYouPage() {
           updated.push(block);
           continue;
         }
-        const result = await saveSection(caseId, block.content.key, payload);
+        const result = await saveSection(block.content.key, payload);
         if (result.issues.length > 0) collected[block.content.key] = result.issues;
         updated.push({ ...block, content: result, pristine: JSON.stringify(payload) });
       }

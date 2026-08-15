@@ -2,35 +2,35 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { vi } from 'vitest';
+import type { SectionEntry } from '../local/case';
+import { seedCase, signIn } from '../test/localCase';
 import ManagerPage from './ManagerPage';
 
-const CASE = { id: 'case-1', caseType: 'PERSONAL_BANKRUPTCY', status: 'IN_PROGRESS' };
+const readBreaks = vi.hoisted(() => ({ value: false }));
 
-const EMPTY_SRO = { key: 'MANAGER_SRO', order: 16, repeatable: false, fields: [], data: null, issues: [] };
-
-function stubFetch(routes: { match: (url: string, init?: RequestInit) => boolean; status: number; body: unknown }[]) {
-  const calls: { url: string; method: string; body?: string }[] = [];
-  const withDefaults = [...routes,
-    { match: (url: string) => url.endsWith('/cases/current'), status: 200, body: CASE },
-    { match: (url: string) => url.endsWith('/sections/MANAGER_SRO'), status: 200, body: EMPTY_SRO }];
-  vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = String(input);
-    calls.push({ url, method: init?.method ?? 'GET', body: init?.body as string | undefined });
-    const match = withDefaults.find((r) => r.match(url, init));
-    if (!match) throw new Error(`Unexpected fetch: ${init?.method ?? 'GET'} ${url}`);
-    return new Response(JSON.stringify(match.body), { status: match.status });
-  }));
-  return calls;
-}
-
-afterEach(() => {
-  vi.unstubAllGlobals();
-  localStorage.clear();
+vi.mock('../local/store', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../local/store')>();
+  return {
+    ...actual,
+    requireCase: async () => {
+      if (readBreaks.value) {
+        throw new Error('хранилище недоступно');
+      }
+      return actual.requireCase();
+    },
+  };
 });
 
+afterEach(() => {
+  readBreaks.value = false;
+});
+
+function seedSro(sro?: SectionEntry) {
+  return seedCase({ sections: sro ? { MANAGER_SRO: sro } : {} });
+}
+
 function renderAtManager() {
-  localStorage.setItem('restart.accessToken', 'access-1');
-  localStorage.setItem('restart.refreshToken', 'refresh-1');
+  signIn();
   return render(
     <MemoryRouter initialEntries={['/manager']}>
       <Routes>
@@ -43,7 +43,7 @@ function renderAtManager() {
 
 describe('ManagerPage', () => {
   it('shows the loading state, then the one step the stage asks for', async () => {
-    stubFetch([]);
+    await seedSro();
     const { container } = renderAtManager();
 
     expect(screen.getByText('Секунду…')).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('ManagerPage', () => {
   });
 
   it('leaves the stage status and the journal to «Весь путь»', async () => {
-    stubFetch([]);
+    await seedSro();
     renderAtManager();
 
     await screen.findByText('Поиск финансового управляющего');
@@ -74,7 +74,7 @@ describe('ManagerPage', () => {
   });
 
   it('explains why a manager is needed, and leaves the money to the fees screen', async () => {
-    stubFetch([]);
+    await seedSro();
     renderAtManager();
 
     await screen.findByText('Поиск финансового управляющего');
@@ -84,10 +84,7 @@ describe('ManagerPage', () => {
   });
 
   it('marks the step done once an organisation is named', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/sections/MANAGER_SRO'), status: 200,
-        body: { ...EMPTY_SRO, data: { name: 'СРО «Содействие»', address: 'г. Москва' } } },
-    ]);
+    await seedSro({ name: 'СРО «Содействие»', address: 'г. Москва' });
     const { container } = renderAtManager();
 
     await screen.findByText('Поиск финансового управляющего');
@@ -97,10 +94,7 @@ describe('ManagerPage', () => {
   });
 
   it('does not count a blank organisation name as a filled-in step', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/sections/MANAGER_SRO'), status: 200,
-        body: { ...EMPTY_SRO, data: { name: '   ' } } },
-    ]);
+    await seedSro({ name: '   ' });
     const { container } = renderAtManager();
 
     await screen.findByText('Поиск финансового управляющего');
@@ -109,7 +103,7 @@ describe('ManagerPage', () => {
   });
 
   it('carries the return route into the step, so a clean save comes back here', async () => {
-    stubFetch([]);
+    await seedSro();
     const user = userEvent.setup();
     renderAtManager();
 
@@ -118,16 +112,14 @@ describe('ManagerPage', () => {
   });
 
   it('shows the failure state and recovers on retry', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/sections/MANAGER_SRO'), status: 500,
-        body: { status: 500, code: 'UNKNOWN', message: 'boom' } },
-    ]);
+    await seedSro();
+    readBreaks.value = true;
     const user = userEvent.setup();
     renderAtManager();
 
     expect(await screen.findByText('Что-то пошло не так')).toBeInTheDocument();
 
-    stubFetch([]);
+    readBreaks.value = false;
     await user.click(screen.getByRole('button', { name: 'Повторить' }));
 
     expect(await screen.findByText('Поиск финансового управляющего')).toBeInTheDocument();

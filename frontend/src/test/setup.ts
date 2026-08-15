@@ -1,6 +1,8 @@
 import '@testing-library/jest-dom/vitest';
+import 'fake-indexeddb/auto';
 import { afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
+import { clearEverything } from '../local/store';
 
 if (typeof globalThis.localStorage === 'undefined') {
   const store = new Map<string, string>();
@@ -17,7 +19,8 @@ if (typeof globalThis.localStorage === 'undefined') {
   Object.defineProperty(globalThis, 'localStorage', { value: shim, configurable: true });
 }
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
   localStorage.clear();
+  await clearEverything();
 });

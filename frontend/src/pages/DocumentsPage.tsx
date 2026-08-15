@@ -1,22 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
-import { currentCase } from '../api/cases';
-import { ApiError } from '../api/client';
+import { documentLabel, fieldLabel, sectionLabel } from '../api/labels';
+import { currentCase } from '../local/case';
 import {
+  GenerationBlockedError,
   downloadDocument,
   exportPackage,
   generateDocuments,
   listDocuments,
   saveBlob,
   type DocumentMeta,
-} from '../api/documents';
-import { documentLabel, fieldLabel, sectionLabel } from '../api/labels';
-import type { MissingItem } from '../api/types';
+  type MissingItem,
+} from '../local/documents';
 
 export default function DocumentsPage() {
   const navigate = useNavigate();
-  const [caseId, setCaseId] = useState<string | null>(null);
   const [documents, setDocuments] = useState<DocumentMeta[]>([]);
   const [missing, setMissing] = useState<MissingItem[]>([]);
   const [pending, setPending] = useState(false);
@@ -30,8 +29,7 @@ export default function DocumentsPage() {
         navigate('/journey');
         return;
       }
-      setCaseId(existing.id);
-      setDocuments(await listDocuments(existing.id));
+      setDocuments(await listDocuments());
       setLoaded(true);
     } catch {
       setFailed(true);
@@ -48,15 +46,14 @@ export default function DocumentsPage() {
   }, [navigate, load]);
 
   const generate = async () => {
-    if (!caseId) return;
     setPending(true);
     setMissing([]);
     setFailed(false);
     try {
-      setDocuments(await generateDocuments(caseId));
+      setDocuments(await generateDocuments());
     } catch (error) {
-      if (error instanceof ApiError && error.code === 'GENERATION_BLOCKED') {
-        setMissing(error.body?.missing ?? []);
+      if (error instanceof GenerationBlockedError) {
+        setMissing(error.missing);
       } else {
         setFailed(true);
       }
@@ -66,16 +63,15 @@ export default function DocumentsPage() {
   };
 
   const exportZip = async () => {
-    if (!caseId) return;
     setPending(true);
     setFailed(false);
     try {
-      saveBlob(await exportPackage(caseId), 'restart-filing-package.zip');
-      setDocuments(await listDocuments(caseId));
+      saveBlob(await exportPackage(), 'restart-filing-package.zip');
+      setDocuments(await listDocuments());
       setMissing([]);
     } catch (error) {
-      if (error instanceof ApiError && error.code === 'GENERATION_BLOCKED') {
-        setMissing(error.body?.missing ?? []);
+      if (error instanceof GenerationBlockedError) {
+        setMissing(error.missing);
       } else {
         setFailed(true);
       }
@@ -85,9 +81,8 @@ export default function DocumentsPage() {
   };
 
   const fetchFile = async (doc: DocumentMeta) => {
-    if (!caseId) return;
     try {
-      saveBlob(await downloadDocument(caseId, doc.id), doc.filename);
+      saveBlob(await downloadDocument(doc.type), doc.filename);
     } catch {
       setFailed(true);
     }

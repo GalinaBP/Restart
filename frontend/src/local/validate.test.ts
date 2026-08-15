@@ -167,7 +167,9 @@ describe('validateCase', () => {
   });
 
   it('names every mandatory section that is still empty', () => {
-    const { PASSPORT: _passport, CREDITORS: _creditors, ...rest } = VALID_CASE;
+    const rest = { ...VALID_CASE };
+    delete rest.PASSPORT;
+    delete rest.CREDITORS;
 
     expect(validateCase(rest)).toEqual([
       {

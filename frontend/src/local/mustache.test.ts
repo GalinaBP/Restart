@@ -19,17 +19,20 @@ const GOLDEN_DIR = join(
 );
 
 describe('the browser template renderer', () => {
-  it.each(templates.documentTypes)('reproduces the %s golden file', (name) => {
-    const golden = readFileSync(join(GOLDEN_DIR, `${name}.txt`), 'utf8');
+  it.each(templates.documents.map((document) => document.templateName))(
+    'reproduces the %s golden file',
+    (name) => {
+      const golden = readFileSync(join(GOLDEN_DIR, `${name}.txt`), 'utf8');
 
-    const rendered = render(
-      templates.sources[name as keyof typeof templates.sources],
-      SAMPLE_MODEL,
-      templates.sources,
-    );
+      const rendered = render(
+        templates.sources[name as keyof typeof templates.sources],
+        SAMPLE_MODEL,
+        templates.sources,
+      );
 
-    expect(rendered).toBe(golden);
-  });
+      expect(rendered).toBe(golden);
+    },
+  );
 });
 
 describe('the jmustache whitespace rules the templates were written against', () => {
