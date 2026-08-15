@@ -60,6 +60,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        
+      - name: Rule assets are in sync with the backend YAML
+        run: npm run rules:check
 
       - name: Lint
         run: npm run lint
