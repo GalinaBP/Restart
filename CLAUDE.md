@@ -216,4 +216,10 @@ only `auth`, `eligibility` and the shared client are left in it.
   WebCrypto). The passphrase is unrecoverable and the app says so; the same page and the case
   creation and documents screens say plainly that clearing site data loses the case.
 - **`pdf-lib` + the font are lazy-loaded** on the documents screen only (~1.1 MB / 506 kB gzip
-  plus a 340 kB font). Heavy — subsetting the font to Cyrillic + Latin is the obvious next win.
+  plus a 56 kB font). `pdf-lib` is the remaining weight; a smaller PDF writer is the next win.
+- **The shipped font is subset to Latin + Cyrillic** (`FONT_RANGES` in the generator, 340 kB →
+  56 kB). Characters outside those ranges are drawn as `?` — that is `sanitize()` in `pdf.ts`
+  doing its job, and the fix for a real name that needs more is to widen the ranges and
+  regenerate. `local/fontCoverage.test.ts` fails if any glyph the five documents use is missing.
+  The backend still embeds the full font, so on the (unused) server path such a character would
+  still render; harmless while nothing calls it, and it disappears with phase 4.

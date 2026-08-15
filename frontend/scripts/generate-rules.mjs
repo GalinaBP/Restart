@@ -1,6 +1,7 @@
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import subsetFont from 'subset-font';
 import { parse } from 'yaml';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -133,6 +134,32 @@ function templates() {
   return { activeVersion, documents, sources };
 }
 
+const FONT_RANGES = [
+  [0x0020, 0x007e],
+  [0x00a0, 0x00ff],
+  [0x0100, 0x017f],
+  [0x0400, 0x04ff],
+  [0x0500, 0x052f],
+  [0x2010, 0x205e],
+  [0x20a0, 0x20bf],
+  [0x2116, 0x2116],
+];
+
+function keptCharacters() {
+  let text = '';
+  for (const [first, last] of FONT_RANGES) {
+    for (let codePoint = first; codePoint <= last; codePoint += 1) {
+      text += String.fromCodePoint(codePoint);
+    }
+  }
+  return text;
+}
+
+async function font() {
+  const full = readFileSync(join(RESOURCES, 'fonts', 'DejaVuSansMono.ttf'));
+  return subsetFont(full, keptCharacters(), { targetFormat: 'truetype' });
+}
+
 function write(name, value) {
   writeFileSync(join(OUT, name), `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
@@ -144,9 +171,6 @@ write('fees.json', fees());
 write('courts.json', courts());
 write('claim-deadline.json', claimDeadline());
 write('templates.json', templates());
-copyFileSync(
-  join(RESOURCES, 'fonts', 'DejaVuSansMono.ttf'),
-  join(OUT, 'DejaVuSansMono.ttf'),
-);
+writeFileSync(join(OUT, 'DejaVuSansMono.ttf'), await font());
 
 process.stdout.write(`Wrote rule assets to ${OUT}\n`);

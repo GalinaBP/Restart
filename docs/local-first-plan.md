@@ -182,9 +182,9 @@ Shipped (phases 0–3):
 Left:
 
 - **Phase 4**, the deletion, with its Flyway migrations.
-- **Bundle cost.** `pdf-lib` is 1.1 MB (506 kB gzip) and the font another 340 kB, both lazy on the
-  documents screen. Subsetting the font to Cyrillic + Latin is the cheap win; a smaller PDF writer
-  is the larger one.
+- **Bundle cost.** The font is done — subset to Latin + Cyrillic at generation time, 340 kB → 56 kB.
+  `pdf-lib` is the rest: 1.1 MB, 506 kB gzip, lazy on the documents screen. A smaller PDF writer is
+  the only remaining lever, and it is a much larger job than the font was.
 - **Multi-tab.** Two tabs of the same browser share one IndexedDB and will happily overwrite each
   other's last write. Nothing corrupts, but a `BroadcastChannel` refresh would be kinder.
 - **The landing copy** (§8), which is a product decision, not an engineering one.
