@@ -1,74 +1,75 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { vi } from 'vitest';
+import type { SectionPayload } from '../local/types';
+import { seedCase, seedDocument, signIn, storedCase } from '../test/localCase';
 import ProcedurePage from './ProcedurePage';
 
-const CASE = { id: 'case-1', caseType: 'PERSONAL_BANKRUPTCY', status: 'IN_PROGRESS' };
+const feesConfirmed = vi.hoisted(() => ({ value: false }));
+const readBreaks = vi.hoisted(() => ({ value: false }));
 
-const JOURNEY_COMMON = {
-  procedureType: null,
-  currentStage: 'MANAGER_SELECTION',
-  stages: [
-    { stage: 'SCREENING', order: 1, branch: null, status: 'DONE',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'MANAGER_SELECTION', order: 2, branch: null, status: 'NOT_STARTED',
-      startedOn: null, completedOn: null, note: null,
-      current: true, editable: true, statutoryBasis: 'ст. 213.4, 213.9 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'DOCUMENT_PREPARATION', order: 3, branch: null, status: 'IN_PROGRESS',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'FEES_AND_DEPOSIT', order: 4, branch: null, status: 'NOT_STARTED',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'FILING', order: 5, branch: null, status: 'NOT_STARTED',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: false, statutoryBasis: 'ст. 213.4 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'COURT_DECISION', order: 6, branch: null, status: 'NOT_STARTED',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: true, statutoryBasis: 'ст. 213.6 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'CREDITOR_CLAIMS', order: 8, branch: null, status: 'BLOCKED',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: true, statutoryBasis: 'ст. 213.7, 213.8 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'COMPLETION', order: 9, branch: null, status: 'NOT_STARTED',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: true, statutoryBasis: 'ст. 213.28, 213.30 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-  ],
+vi.mock('../local/rules', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../local/rules')>();
+  return {
+    ...actual,
+    get FEES() {
+      return feesConfirmed.value
+        ? { ...actual.FEES, items: actual.FEES.items.map((line) => ({ ...line, confirmed: true })) }
+        : actual.FEES;
+    },
+  };
+});
+
+vi.mock('../local/store', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../local/store')>();
+  return {
+    ...actual,
+    requireCase: async () => {
+      if (readBreaks.value) {
+        throw new Error('хранилище недоступно');
+      }
+      return actual.requireCase();
+    },
+  };
+});
+
+afterEach(() => {
+  feesConfirmed.value = false;
+  readBreaks.value = false;
+});
+
+const BASE_SECTIONS: Record<string, SectionPayload> = {
+  PERSONAL_DETAILS: { lastName: 'Иванова', firstName: 'Анна' },
 };
 
-const JOURNEY_REALIZATION = {
-  procedureType: 'REALIZATION',
-  currentStage: 'PROPERTY_INVENTORY',
-  stages: [
-    ...JOURNEY_COMMON.stages.slice(0, 6).map((s) => ({ ...s, status: 'DONE', current: false })),
-    { stage: 'PROPERTY_INVENTORY', order: 10, branch: 'REALIZATION', status: 'IN_PROGRESS',
-      startedOn: null, completedOn: null, note: null,
-      current: true, editable: true, statutoryBasis: 'ст. 213.26 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'PROPERTY_REALIZATION', order: 11, branch: 'REALIZATION', status: 'NOT_STARTED',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: true, statutoryBasis: 'ст. 213.26 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'CREDITOR_PAYOUTS', order: 12, branch: 'REALIZATION', status: 'NOT_STARTED',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: true, statutoryBasis: 'ст. 213.27 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'CREDITOR_CLAIMS', order: 20, branch: null, status: 'NOT_STARTED',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: true, statutoryBasis: 'ст. 213.7, 213.8 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-    { stage: 'COMPLETION', order: 21, branch: null, status: 'NOT_STARTED',
-      startedOn: null, completedOn: null, note: null,
-      current: false, editable: true, statutoryBasis: 'ст. 213.28, 213.30 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-  ],
+const BLOCKED_CLAIMS = {
+  CREDITOR_CLAIMS: {
+    status: 'BLOCKED' as const, startedOn: null, completedOn: null, note: null,
+  },
 };
 
-const FEES = {
-  lines: [
-    { item: 'STATE_DUTY', amount: 300, confirmed: false, statutoryBasis: 'ст. 333.21 НК РФ (ПЛЕЙСХОЛДЕР)' },
-    { item: 'MANAGER_DEPOSIT', amount: 25000, confirmed: false, statutoryBasis: 'ст. 20.6 127-ФЗ (ПЛЕЙСХОЛДЕР)' },
-  ],
-  total: 25300,
-  allConfirmed: false,
-  effectiveFrom: '2026-06-21',
-};
+const DONE = { status: 'DONE' as const, startedOn: null, completedOn: null, note: null };
+
+function seedCommon(sections: Record<string, SectionPayload> = {}) {
+  return seedCase({
+    sections: { ...BASE_SECTIONS, ...sections },
+    journey: { ...BLOCKED_CLAIMS },
+  });
+}
+
+async function seedRealization() {
+  await seedDocument();
+  return seedCase({
+    procedureType: 'REALIZATION',
+    sections: {
+      ...BASE_SECTIONS,
+      PAYMENTS: { stateDutyPaidOn: '2026-07-20', depositPaidOn: '2026-07-21' },
+      FILING_SUBMISSION: { submissionDate: '2026-07-22' },
+    },
+    journey: { MANAGER_SELECTION: DONE, COURT_DECISION: DONE },
+  });
+}
 
 function money(value: number): string {
   const formatted = value.toLocaleString('ru-RU',
@@ -76,40 +77,8 @@ function money(value: number): string {
   return `${formatted} ₽`.replace(/[\u00a0\u202f]/g, ' ');
 }
 
-const NO_HEARINGS = { key: 'COURT_HEARINGS', order: 20, repeatable: true, fields: [], data: null, issues: [] };
-
-const NO_CLAIMS = { key: 'FILED_CLAIMS', order: 22, repeatable: true, fields: [], data: null, issues: [] };
-
-const NO_CORRESPONDENCE = { key: 'MANAGER_CORRESPONDENCE', order: 23, repeatable: true, fields: [], data: null, issues: [] };
-
-const NO_DEADLINE = { publicationDate: null, deadlineDate: null, daysFromPublication: 60, confirmed: false };
-
-function stubFetch(routes: { match: (url: string, init?: RequestInit) => boolean; status: number; body: unknown }[]) {
-  const calls: { url: string; method: string; body?: string }[] = [];
-  const withDefaults = [...routes,
-    { match: (url: string) => url.endsWith('/fees'), status: 200, body: FEES },
-    { match: (url: string) => url.endsWith('/sections/COURT_HEARINGS'), status: 200, body: NO_HEARINGS },
-    { match: (url: string) => url.endsWith('/claim-deadline'), status: 200, body: NO_DEADLINE },
-    { match: (url: string) => url.endsWith('/sections/FILED_CLAIMS'), status: 200, body: NO_CLAIMS },
-    { match: (url: string) => url.endsWith('/sections/MANAGER_CORRESPONDENCE'), status: 200, body: NO_CORRESPONDENCE }];
-  vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = String(input);
-    calls.push({ url, method: init?.method ?? 'GET', body: init?.body as string | undefined });
-    const match = withDefaults.find((r) => r.match(url, init));
-    if (!match) throw new Error(`Unexpected fetch: ${init?.method ?? 'GET'} ${url}`);
-    return new Response(JSON.stringify(match.body), { status: match.status });
-  }));
-  return calls;
-}
-
-afterEach(() => {
-  vi.unstubAllGlobals();
-  localStorage.clear();
-});
-
 function renderAtProcedure() {
-  localStorage.setItem('restart.accessToken', 'access-1');
-  localStorage.setItem('restart.refreshToken', 'refresh-1');
+  signIn();
   return render(
     <MemoryRouter initialEntries={['/procedure']}>
       <Routes>
@@ -135,10 +104,7 @@ function stageCard(container: HTMLElement, index: number): HTMLElement {
 
 describe('ProcedurePage', () => {
   it('shows what the filing costs, flagged as a draft while amounts are unreviewed', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
-    ]);
+    await seedCommon();
     renderAtProcedure();
 
     expect(await screen.findByText(money(300))).toBeInTheDocument();
@@ -150,15 +116,8 @@ describe('ProcedurePage', () => {
   });
 
   it('drops the draft warning once the amounts are confirmed', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
-      { match: (url) => url.endsWith('/fees'), status: 200, body: {
-        ...FEES,
-        lines: FEES.lines.map((l) => ({ ...l, confirmed: true })),
-        allConfirmed: true,
-      } },
-    ]);
+    feesConfirmed.value = true;
+    await seedCommon();
     renderAtProcedure();
 
     expect(await screen.findByText(money(25300))).toBeInTheDocument();
@@ -166,10 +125,7 @@ describe('ProcedurePage', () => {
   });
 
   it('leaves the manager stage to its own screen, with nothing to fill in here', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
-    ]);
+    await seedCommon();
     renderAtProcedure();
 
     await screen.findByText('Весь путь');
@@ -182,10 +138,7 @@ describe('ProcedurePage', () => {
   });
 
   it('sends the filing stage on to the step that records submission', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
-    ]);
+    await seedCommon();
     renderAtProcedure();
 
     const link = await screen.findByRole('link', { name: /Отметить подачу/ });
@@ -193,19 +146,12 @@ describe('ProcedurePage', () => {
   });
 
   it('shows both COURT_DECISION detail links, and the nearest upcoming hearing even collapsed', async () => {
-    const futureHearings = {
-      key: 'COURT_HEARINGS', order: 20, repeatable: true, fields: [],
-      data: [
+    await seedCommon({
+      COURT_HEARINGS: [
         { date: '2099-03-15', subject: 'Рассмотрение обоснованности заявления' },
         { date: '2099-01-01', subject: 'Более раннее заседание' },
       ],
-      issues: [],
-    };
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
-      { match: (url) => url.endsWith('/sections/COURT_HEARINGS'), status: 200, body: futureHearings },
-    ]);
+    });
     const user = userEvent.setup();
     renderAtProcedure();
 
@@ -221,10 +167,7 @@ describe('ProcedurePage', () => {
   });
 
   it('shows no upcoming-hearing line when nothing is recorded or every hearing is past', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
-    ]);
+    await seedCommon();
     renderAtProcedure();
 
     await screen.findByText('Весь путь');
@@ -232,10 +175,7 @@ describe('ProcedurePage', () => {
   });
 
   it('shows the loading state, then every stage with its status, highlighting the current one', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/case-1/journey'), status: 200, body: JOURNEY_COMMON },
-    ]);
+    await seedCommon();
     const { container } = renderAtProcedure();
 
     expect(screen.getByText('Секунду…')).toBeInTheDocument();
@@ -272,10 +212,7 @@ describe('ProcedurePage', () => {
   });
 
   it('offers no way to edit derived stages, and links document preparation to its own screen', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/case-1/journey'), status: 200, body: JOURNEY_COMMON },
-    ]);
+    await seedCommon();
     const user = userEvent.setup();
     renderAtProcedure();
 
@@ -290,19 +227,8 @@ describe('ProcedurePage', () => {
     expect(await screen.findByText('journey-map')).toBeInTheDocument();
   });
 
-  it('records a stage through the PUT endpoint and re-renders with the new status', async () => {
-    const updated = {
-      ...JOURNEY_COMMON,
-      stages: JOURNEY_COMMON.stages.map((s) =>
-        s.stage === 'COURT_DECISION' ? { ...s, status: 'IN_PROGRESS' } : s),
-    };
-    const calls = stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url, init) => url.endsWith('/case-1/journey') && init?.method !== 'PUT',
-        status: 200, body: JOURNEY_COMMON },
-      { match: (url, init) => url.endsWith('/journey/COURT_DECISION') && init?.method === 'PUT',
-        status: 200, body: updated },
-    ]);
+  it('records a stage on the device and re-renders with the new status', async () => {
+    await seedCommon();
     const user = userEvent.setup();
     const { container } = renderAtProcedure();
 
@@ -311,22 +237,17 @@ describe('ProcedurePage', () => {
     await user.selectOptions(await screen.findByRole('combobox'), 'IN_PROGRESS');
     await user.click(screen.getByRole('button', { name: 'Записать' }));
 
-    const putCall = calls.find((c) => c.method === 'PUT');
-    expect(putCall?.url).toContain('/cases/case-1/journey/COURT_DECISION');
-    expect(JSON.parse(putCall!.body!)).toEqual({
+    await waitFor(() => expect(screen.queryByRole('combobox')).not.toBeInTheDocument());
+
+    expect((await storedCase())?.journey.COURT_DECISION).toEqual({
       status: 'IN_PROGRESS', startedOn: null, completedOn: null, note: null,
     });
-
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     const row = stageRow(container, 5);
     expect(row.querySelector('.procedure-status')?.textContent?.trim()).toBe('В процессе');
   });
 
   it('shows the branch stage only once the court procedure is recorded', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/case-1/journey'), status: 200, body: JOURNEY_REALIZATION },
-    ]);
+    await seedRealization();
     renderAtProcedure();
 
     expect(await screen.findByText('Опись имущества')).toBeInTheDocument();
@@ -338,29 +259,19 @@ describe('ProcedurePage', () => {
   });
 
   it('records the court procedure from the decision stage and reveals that branch', async () => {
-    const calls = stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url, init) => url.endsWith('/procedure-type') && init?.method === 'PUT',
-        status: 200, body: JOURNEY_REALIZATION },
-      { match: (url) => url.endsWith('/case-1/journey'), status: 200, body: JOURNEY_COMMON },
-    ]);
+    await seedCommon();
     const user = userEvent.setup();
     renderAtProcedure();
 
     await user.click(await screen.findByRole('button', { name: /Решение суда/ }));
     await user.click(screen.getByRole('button', { name: /Реализация имущества/ }));
 
-    const put = calls.find((c) => c.method === 'PUT' && c.url.endsWith('/procedure-type'));
-    expect(put).toBeDefined();
-    expect(JSON.parse(put!.body as string)).toEqual({ procedureType: 'REALIZATION' });
     expect(await screen.findByText('Опись имущества')).toBeInTheDocument();
+    expect((await storedCase())?.procedureType).toBe('REALIZATION');
   });
 
   it('explains a BLOCKED stage without it reading like an error', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/case-1/journey'), status: 200, body: JOURNEY_COMMON },
-    ]);
+    await seedCommon();
     const user = userEvent.setup();
     renderAtProcedure();
 
@@ -373,24 +284,13 @@ describe('ProcedurePage', () => {
   });
 
   it('shows the claim-filing deadline, a flagged summary, and both CREDITOR_CLAIMS detail links', async () => {
-    const deadline = {
-      publicationDate: '2026-06-01', deadlineDate: '2026-07-31',
-      daysFromPublication: 60, confirmed: false,
-    };
-    const claims = {
-      key: 'FILED_CLAIMS', order: 22, repeatable: true, fields: [],
-      data: [
+    await seedCommon({
+      EFRSB_PUBLICATION: { publicationDate: '2026-06-01' },
+      FILED_CLAIMS: [
         { creditorName: 'Банк А', amount: 100000, filedOn: '2026-08-15', disputed: false },
         { creditorName: 'Банк Б', amount: 50000, filedOn: '2026-07-10', disputed: true },
       ],
-      issues: [],
-    };
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
-      { match: (url) => url.endsWith('/claim-deadline'), status: 200, body: deadline },
-      { match: (url) => url.endsWith('/sections/FILED_CLAIMS'), status: 200, body: claims },
-    ]);
+    });
     const user = userEvent.setup();
     renderAtProcedure();
 
@@ -411,10 +311,7 @@ describe('ProcedurePage', () => {
   });
 
   it('shows nothing for the claim deadline when no publication date is recorded', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
-    ]);
+    await seedCommon();
     renderAtProcedure();
 
     await screen.findByText('Весь путь');
@@ -423,39 +320,26 @@ describe('ProcedurePage', () => {
   });
 
   it('shows the failure state and recovers on retry', async () => {
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/case-1/journey'), status: 500,
-        body: { status: 500, code: 'UNKNOWN', message: 'boom' } },
-    ]);
+    await seedCommon();
+    readBreaks.value = true;
     const user = userEvent.setup();
     renderAtProcedure();
 
     expect(await screen.findByText('Что-то пошло не так')).toBeInTheDocument();
 
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/case-1/journey'), status: 200, body: JOURNEY_COMMON },
-    ]);
+    readBreaks.value = false;
     await user.click(screen.getByRole('button', { name: 'Повторить' }));
 
     expect(await screen.findByText('Весь путь')).toBeInTheDocument();
   });
 
   it('shows the most recent manager correspondence on the MANAGER_SELECTION card', async () => {
-    const correspondence = {
-      key: 'MANAGER_CORRESPONDENCE', order: 23, repeatable: true, fields: [],
-      data: [
+    await seedCommon({
+      MANAGER_CORRESPONDENCE: [
         { date: '2026-07-10', type: 'Письмо' },
         { date: '2026-07-20', type: 'Отчёт' },
       ],
-      issues: [],
-    };
-    stubFetch([
-      { match: (url) => url.endsWith('/cases/current'), status: 200, body: CASE },
-      { match: (url) => url.endsWith('/journey'), status: 200, body: JOURNEY_COMMON },
-      { match: (url) => url.endsWith('/sections/MANAGER_CORRESPONDENCE'), status: 200, body: correspondence },
-    ]);
+    });
     renderAtProcedure();
 
     expect(await screen.findByText(/Последняя запись: 20\.07\.2026 — Отчёт/))

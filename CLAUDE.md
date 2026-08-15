@@ -49,6 +49,8 @@ docker compose --profile dev-tools up --build   # + Adminer on :8081
 npm run dev          # Vite dev server on :3000, proxies /api to :8080
 npm run build        # typecheck + production bundle
 npm test             # vitest
+npm run rules        # regenerate src/generated/ from the backend yml + templates + font
+npm run rules:check  # what CI runs: regenerate and fail on any diff
 ```
 
 Colima note: Docker Engine 29's socket must be pointed to explicitly for Testcontainers — same
@@ -70,8 +72,9 @@ cases answered as 404; step-by-step data collection and the deterministic valida
 both driven by `casefile/sections.yml` — field types, required flags, mandatory sections,
 duplicate rules, and the field ↔ 127-ФЗ mapping, placeholder pending lawyer review. Validation
 never blocks saving; `GET /cases/{id}/validation` is the report the generation gate consumes;
-document generation `POST /cases/{id}/documents` renders all eight filing documents in txt + docx
-+ pdf — minimal hand-built OOXML; PDF via PDFBox with the embedded DejaVu font for Cyrillic — hard-gated 409 GENERATION_BLOCKED with the missing-item
+document generation `POST /cases/{id}/documents` renders all five filing documents as PDF via
+PDFBox with the embedded DejaVu font for Cyrillic (txt and docx were retired in V11) — hard-gated
+409 GENERATION_BLOCKED with the missing-item
 list; once documents exist, every section save regenerates all of them while the case stays
 valid, or flags them `stale` when it doesn't — full regeneration by design, documents are never
 silently outdated; `POST /cases/{id}/documents/export` regenerates and bundles everything into
@@ -83,11 +86,21 @@ recorded by hand (409), so the map can never contradict the case; the rest the u
 (status, dates, note) through `PUT /cases/{id}/journey/{stage}`. `GET /cases/{id}/journey` returns
 the stages that apply plus the current one, and `PUT /cases/{id}/journey/procedure-type` records
 the court's choice — restructuring / realization / settlement — revealing that branch only)
-and `doctemplate` (versioned Mustache templates for the eight filing documents under
+and `doctemplate` (versioned Mustache templates for the five filing documents under
 `resources/doctemplates/<version>/`, shared legal boilerplate as partials, edition picked by
 `doctemplates/manifest.yml` — a legislative amendment is a new version directory + manifest bump,
 no code changes; every output carries a "ШАБЛОН-ПЛЕЙСХОЛДЕР" banner until lawyer sign-off;
 golden-file regression tests pin each document's output).
+
+> **`casefile` is no longer reached by the app.** Since 2026-08-15 the case lives in the user's
+> browser (see "Frontend → Local-first case data"), and the SPA calls none of `/cases/**`. The
+> module, its controllers and its tables are still here on purpose: they are what the one-time
+> import reads for users whose case is still on the server, and deleting them is a separate,
+> deliberate step (phase 4 of `docs/local-first-plan.md`, with the Flyway drops and the
+> retired-enum precedent below). Until then it is dead weight that must keep compiling and
+> passing its tests — **the browser is the authority, so any rule change has to land in both**,
+> which is exactly why the rules live in yml and are generated into the SPA rather than
+> hand-copied.
 
 Every business module gets identical internal layering:
 
@@ -154,8 +167,10 @@ against every existing database, production included.
 ## Frontend
 
 `frontend/` — React 19 + TypeScript + Vite SPA, served by nginx in Docker (static + SPA fallback,
-no API proxy; the API base URL is baked in via the `VITE_API_BASE` build arg). UI shell only — all
-legal/eligibility logic belongs to the backend. Copy style: warm, short, **formal second-person
+no API proxy; the API base URL is baked in via the `VITE_API_BASE` build arg). It is no longer a
+UI shell: since the local-first move it carries the whole case, including the rules that used to
+be the backend's alone (see below). What still goes over the network is sign-in and the
+anonymous screening. Copy style: warm, short, **formal second-person
 plural ("Вы")**, zero legalese. (This reversed the constitution's original informal "ты" — a
 product decision recorded in `../Corrections.xlsx`, 2026-07-21; `../constitution.docx` was brought
 in line on 2026-08-03 and now reads "Вы" throughout.) Use lowercase «вы/вас/ваш» mid-sentence, capital only at the
@@ -173,3 +188,32 @@ the ticket specified them); the rest of the app (wizard labels, journey, documen
 emoji-free. Design tokens live in
 `frontend/src/styles.css` `:root`. (Earlier AI-011 experiments with an Adiaphora slate/green, a
 light marketing landing, and a blue→cyan gradient were reverted.)
+
+### Local-first case data
+
+**Nothing the user types about their bankruptcy leaves the device** (2026-08-15, phases 0–3 of
+`docs/local-first-plan.md`). Answers, journey progress and the generated PDFs live in
+**IndexedDB**; `frontend/src/local/` holds the engine that used to be `casefile`'s: `validate.ts`,
+`model.ts`, `mustache.ts`, `pdf.ts`, `journey.ts`, `store.ts`. `api/` now means what it says —
+only `auth`, `eligibility` and the shared client are left in it.
+
+- **The rules are still authored in yml on the backend.** `npm run rules` builds
+  `src/generated/` (sections, journey, fees, courts, claim deadline, templates, the DejaVu font)
+  and cross-checks the keys against `SectionKey`, `JourneyStage` and `FeeItem`; CI runs
+  `npm run rules:check` and fails on drift. The generated files are committed because
+  `frontend/Dockerfile` copies only `frontend/`. **Edit the yml, never `src/generated/`.**
+- **The template renderer is hand-written on purpose.** `local/mustache.ts` reproduces
+  jmustache's non-standards-mode whitespace handling, which differs from the mustache spec that
+  mustache.js implements: a standalone partial's newline is swallowed *except* on a template's
+  first line, while standalone comment and section lines always go. The rules are pinned by
+  their own tests, and all five documents are asserted byte-identical to the Java golden files
+  in `src/test/resources/doctemplate/golden/`. Those goldens are the contract between the two
+  renderers — a template change must be regenerated and reviewed on both sides.
+- **Money is float here and BigDecimal there.** `formatMoney` rounds half-up through
+  `toPrecision(15)` so two-decimal amounts and their sums match the backend exactly.
+- **Browser storage is evictable, so the export file is the recovery story, not a nicety.**
+  `/backup` writes one passphrase-encrypted `.restart` file (PBKDF2-SHA256 300k, AES-GCM, all in
+  WebCrypto). The passphrase is unrecoverable and the app says so; the same page and the case
+  creation and documents screens say plainly that clearing site data loses the case.
+- **`pdf-lib` + the font are lazy-loaded** on the documents screen only (~1.1 MB / 506 kB gzip
+  plus a 340 kB font). Heavy — subsetting the font to Cyrillic + Latin is the obvious next win.

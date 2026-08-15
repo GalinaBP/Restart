@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { SectionEntry } from '../api/cases';
+import type { SectionEntry } from '../local/case';
 import { sortCorrespondence } from './sortCorrespondence';
 
 describe('sortCorrespondence', () => {

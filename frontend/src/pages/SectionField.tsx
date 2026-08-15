@@ -1,4 +1,4 @@
-import type { FieldMeta } from '../api/cases';
+import type { FieldMeta } from '../local/case';
 import { fieldLabel } from '../api/labels';
 import { inputType } from './sectionForm';
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
-import { currentCase, getSection, type SectionEntry } from '../api/cases';
+import { currentCase, getSection, type SectionEntry } from '../local/case';
 import { stageLabel, STATUS_LABELS } from '../api/labels';
 
 const SRO_STEP = {
@@ -27,7 +27,7 @@ export default function ManagerPage() {
         return;
       }
       setCaseId(existing.id);
-      const sroSection = await getSection(existing.id, 'MANAGER_SRO');
+      const sroSection = await getSection('MANAGER_SRO');
       setSro(sroSection.data && !Array.isArray(sroSection.data) ? sroSection.data : null);
     } catch {
       setFailed(true);

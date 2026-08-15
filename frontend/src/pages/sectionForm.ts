@@ -1,4 +1,4 @@
-import type { FieldMeta, SectionEntry, SectionIssue } from '../api/cases';
+import type { FieldMeta, SectionEntry, SectionIssue } from '../local/case';
 
 export type FormEntry = Record<string, string | boolean>;
 

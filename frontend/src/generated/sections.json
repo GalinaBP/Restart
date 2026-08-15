@@ -1,0 +1,574 @@
+[
+  {
+    "key": "PERSONAL_DETAILS",
+    "order": 1,
+    "repeatable": false,
+    "mandatory": true,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "lastName",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "firstName",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "middleName",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "birthDate",
+        "type": "DATE",
+        "required": true
+      },
+      {
+        "name": "birthPlace",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "inn",
+        "type": "INN",
+        "required": false
+      },
+      {
+        "name": "snils",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "PASSPORT",
+    "order": 2,
+    "repeatable": false,
+    "mandatory": true,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "series",
+        "type": "PASSPORT_SERIES",
+        "required": true
+      },
+      {
+        "name": "number",
+        "type": "PASSPORT_NUMBER",
+        "required": true
+      },
+      {
+        "name": "issuedBy",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "issueDate",
+        "type": "DATE",
+        "required": true
+      },
+      {
+        "name": "departmentCode",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "REGISTRATION_ADDRESS",
+    "order": 3,
+    "repeatable": false,
+    "mandatory": true,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "region",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "city",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "street",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "house",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "apartment",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "postalCode",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "CONTACT_INFO",
+    "order": 4,
+    "repeatable": false,
+    "mandatory": true,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "phone",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "email",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "EMPLOYMENT",
+    "order": 5,
+    "repeatable": false,
+    "mandatory": true,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "status",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "employerName",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "position",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "MONTHLY_INCOME",
+    "order": 6,
+    "repeatable": false,
+    "mandatory": true,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "amount",
+        "type": "MONEY",
+        "required": true
+      },
+      {
+        "name": "source",
+        "type": "STRING",
+        "required": true
+      }
+    ]
+  },
+  {
+    "key": "OTHER_INCOME",
+    "order": 7,
+    "repeatable": true,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "source",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "amount",
+        "type": "MONEY",
+        "required": true
+      }
+    ]
+  },
+  {
+    "key": "MARITAL_STATUS",
+    "order": 8,
+    "repeatable": false,
+    "mandatory": true,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "status",
+        "type": "STRING",
+        "required": true
+      }
+    ]
+  },
+  {
+    "key": "DEPENDENTS",
+    "order": 9,
+    "repeatable": true,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "fullName",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "birthDate",
+        "type": "DATE",
+        "required": true
+      },
+      {
+        "name": "relation",
+        "type": "STRING",
+        "required": true
+      }
+    ]
+  },
+  {
+    "key": "CREDITORS",
+    "order": 10,
+    "repeatable": true,
+    "mandatory": true,
+    "uniqueBy": [
+      "name",
+      "inn"
+    ],
+    "fields": [
+      {
+        "name": "name",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "inn",
+        "type": "INN",
+        "required": false
+      },
+      {
+        "name": "address",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "debtAmount",
+        "type": "MONEY",
+        "required": true
+      },
+      {
+        "name": "debtType",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "overdueSinceDate",
+        "type": "DATE",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "BANK_ACCOUNTS",
+    "order": 11,
+    "repeatable": true,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "bankName",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "accountNumber",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "balance",
+        "type": "MONEY",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "REAL_ESTATE",
+    "order": 12,
+    "repeatable": true,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "type",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "address",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "area",
+        "type": "MONEY",
+        "required": false
+      },
+      {
+        "name": "ownershipShare",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "VEHICLES",
+    "order": 13,
+    "repeatable": true,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "type",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "brand",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "model",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "year",
+        "type": "INTEGER",
+        "required": false
+      },
+      {
+        "name": "regNumber",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "MANAGER_SRO",
+    "order": 16,
+    "repeatable": false,
+    "mandatory": true,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "name",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "address",
+        "type": "STRING",
+        "required": true
+      },
+      {
+        "name": "inn",
+        "type": "INN",
+        "required": false
+      },
+      {
+        "name": "ogrn",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "registryNumber",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "PAYMENTS",
+    "order": 17,
+    "repeatable": false,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "stateDutyPaidOn",
+        "type": "DATE",
+        "required": false
+      },
+      {
+        "name": "stateDutyReference",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "depositPaidOn",
+        "type": "DATE",
+        "required": false
+      },
+      {
+        "name": "depositReference",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "FILING_SUBMISSION",
+    "order": 18,
+    "repeatable": false,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "submissionDate",
+        "type": "DATE",
+        "required": false
+      },
+      {
+        "name": "courtName",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "referenceNumber",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "COURT_CASE",
+    "order": 19,
+    "repeatable": false,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "caseNumber",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "admissionDate",
+        "type": "DATE",
+        "required": false
+      },
+      {
+        "name": "decision",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "COURT_HEARINGS",
+    "order": 20,
+    "repeatable": true,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "date",
+        "type": "DATE",
+        "required": false
+      },
+      {
+        "name": "subject",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "outcome",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "EFRSB_PUBLICATION",
+    "order": 21,
+    "repeatable": false,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "publicationDate",
+        "type": "DATE",
+        "required": false
+      },
+      {
+        "name": "messageNumber",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "FILED_CLAIMS",
+    "order": 22,
+    "repeatable": true,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "creditorName",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "amount",
+        "type": "MONEY",
+        "required": false
+      },
+      {
+        "name": "filedOn",
+        "type": "DATE",
+        "required": false
+      },
+      {
+        "name": "disputed",
+        "type": "BOOLEAN",
+        "required": false
+      }
+    ]
+  },
+  {
+    "key": "MANAGER_CORRESPONDENCE",
+    "order": 23,
+    "repeatable": true,
+    "mandatory": false,
+    "uniqueBy": [],
+    "fields": [
+      {
+        "name": "date",
+        "type": "DATE",
+        "required": false
+      },
+      {
+        "name": "type",
+        "type": "STRING",
+        "required": false
+      },
+      {
+        "name": "note",
+        "type": "STRING",
+        "required": false
+      }
+    ]
+  }
+]

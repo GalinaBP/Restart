@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { isSignedIn } from '../api/auth';
-import { currentCase, getSection, type SectionEntry } from '../api/cases';
+import { currentCase, getSection, type SectionEntry } from '../local/case';
 import {
   getClaimDeadline,
   getFees,
@@ -15,7 +15,7 @@ import {
   type JourneyView,
   type ProcedureBranch,
   type RecordStageInput,
-} from '../api/procedure';
+} from '../local/journey';
 import { BLOCKED_EXPLANATION, PROCEDURE_LABELS, STATUS_LABELS, stageLabel } from '../api/labels';
 import { nextUpcomingHearing, type UpcomingHearing } from './nextUpcomingHearing';
 import { flagClaims, type FlaggedClaim } from './flagClaims';
@@ -86,12 +86,12 @@ export default function ProcedurePage() {
       }
       setCaseId(existing.id);
       const [view, feeSchedule, hearingsSection, deadline, claimsSection, correspondenceSection] = await Promise.all([
-        getJourney(existing.id),
-        getFees(existing.id),
-        getSection(existing.id, 'COURT_HEARINGS'),
-        getClaimDeadline(existing.id),
-        getSection(existing.id, 'FILED_CLAIMS'),
-        getSection(existing.id, 'MANAGER_CORRESPONDENCE'),
+        getJourney(),
+        getFees(),
+        getSection('COURT_HEARINGS'),
+        getClaimDeadline(),
+        getSection('FILED_CLAIMS'),
+        getSection('MANAGER_CORRESPONDENCE'),
       ]);
       setJourney(view);
       setFees(feeSchedule);
@@ -119,14 +119,14 @@ export default function ProcedurePage() {
 
   const save = async (stage: JourneyStageKey, input: RecordStageInput) => {
     if (!caseId) return;
-    const updated = await recordStage(caseId, stage, input);
+    const updated = await recordStage(stage, input);
     setJourney(updated);
     setExpanded(null);
   };
 
   const chooseProcedure = async (procedureType: ProcedureBranch | null) => {
     if (!caseId) return;
-    setJourney(await recordProcedureType(caseId, procedureType));
+    setJourney(await recordProcedureType(procedureType));
   };
 
   if (loading) {
