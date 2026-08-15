@@ -10,7 +10,7 @@ Everything in this directory is produced by `npm run rules` from the backend's o
 | `courts.json` | `src/main/resources/casefile/courts.yml` |
 | `claim-deadline.json` | `src/main/resources/casefile/claim-deadline.yml` |
 | `templates.json` | `src/main/resources/doctemplates/manifest.yml` + the active version's `*.mustache` |
-| `DejaVuSansMono.ttf` | `src/main/resources/fonts/DejaVuSansMono.ttf` |
+| `DejaVuSansMono.ttf` | `src/main/resources/fonts/DejaVuSansMono.ttf`, subset to Latin + Cyrillic |
 
 The rules stay authored in YAML, in one place, with their
 placeholder-pending-lawyer-review markers intact — this is a build product of those files, not a
@@ -24,3 +24,8 @@ through the generator cannot reach main.
 
 The generator also cross-checks the keys against the Java enums (`SectionKey`, `JourneyStage`,
 `FeeItem`) and refuses to write anything if they have drifted apart.
+
+The font is cut down to the ranges listed in `FONT_RANGES` (ASCII, Latin-1, Latin Extended-A,
+Cyrillic and its supplement, general punctuation, currency, №) — 340 kB down to 56 kB. Anything
+outside those ranges is drawn as `?`, so widening the ranges is the fix if a real name ever needs
+it; `local/fontCoverage.test.ts` is what proves the documents still have every glyph they use.
