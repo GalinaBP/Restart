@@ -128,7 +128,7 @@ actually goes depends on backend variables:
 - Every push to `main` redeploys both services (Railway watches the repo). Since GitHub Actions CI
   also runs on `main`, consider enabling **branch protection** so only green PRs merge — Railway
   then only ever deploys tested code.
-- A 127-ФЗ template edition bump (`doctemplates/manifest.yml`) or a `sections.yml` rule change
+- A 127-ФЗ template edition bump (`rules/doctemplates/manifest.yml`) or a `rules/sections.yml` change
   ships like any other commit: edit the yml, `npm run rules`, PR → merge → auto-deploy. Both are
   built into the frontend bundle, so it is the **frontend** service that has to redeploy for a rule
   change to reach anyone. No console work.
