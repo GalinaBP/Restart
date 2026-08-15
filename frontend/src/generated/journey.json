@@ -1,0 +1,114 @@
+[
+  {
+    "key": "SCREENING",
+    "order": 1,
+    "branch": null,
+    "derived": true,
+    "statutoryBasis": "ст. 213.4 127-ФЗ — предварительная оценка признаков банкротства (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "MANAGER_SELECTION",
+    "order": 2,
+    "branch": null,
+    "derived": false,
+    "statutoryBasis": "ст. 213.4, 213.9 127-ФЗ — выбор СРО и финансового управляющего (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "DOCUMENT_PREPARATION",
+    "order": 3,
+    "branch": null,
+    "derived": true,
+    "statutoryBasis": "ст. 213.4 127-ФЗ — подготовка заявления и приложений (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "FEES_AND_DEPOSIT",
+    "order": 4,
+    "branch": null,
+    "derived": true,
+    "statutoryBasis": "ст. 213.4 127-ФЗ, ст. 333.21 НК РФ — госпошлина и депозит на вознаграждение (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "FILING",
+    "order": 5,
+    "branch": null,
+    "derived": true,
+    "statutoryBasis": "ст. 213.4 127-ФЗ — подача заявления в арбитражный суд (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "COURT_DECISION",
+    "order": 6,
+    "branch": null,
+    "derived": false,
+    "statutoryBasis": "ст. 213.6 127-ФЗ — рассмотрение обоснованности заявления судом (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "RESTRUCTURING_PLAN",
+    "order": 10,
+    "branch": "RESTRUCTURING",
+    "derived": false,
+    "statutoryBasis": "ст. 213.12, 213.14 127-ФЗ — разработка и представление плана реструктуризации (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "PROPERTY_INVENTORY",
+    "order": 10,
+    "branch": "REALIZATION",
+    "derived": false,
+    "statutoryBasis": "ст. 213.26 127-ФЗ — опись и оценка имущества, формирование конкурсной массы (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "SETTLEMENT_TERMS",
+    "order": 10,
+    "branch": "SETTLEMENT",
+    "derived": false,
+    "statutoryBasis": "ст. 213.31 127-ФЗ — согласование условий мирового соглашения с кредиторами (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "RESTRUCTURING_PLAN_APPROVAL",
+    "order": 11,
+    "branch": "RESTRUCTURING",
+    "derived": false,
+    "statutoryBasis": "ст. 213.17 127-ФЗ — рассмотрение и утверждение плана судом (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "PROPERTY_REALIZATION",
+    "order": 11,
+    "branch": "REALIZATION",
+    "derived": false,
+    "statutoryBasis": "ст. 213.26 127-ФЗ — продажа имущества гражданина (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "SETTLEMENT_AGREEMENT",
+    "order": 11,
+    "branch": "SETTLEMENT",
+    "derived": false,
+    "statutoryBasis": "ст. 213.31 127-ФЗ — утверждение мирового соглашения судом и прекращение производства (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "RESTRUCTURING_EXECUTION",
+    "order": 12,
+    "branch": "RESTRUCTURING",
+    "derived": false,
+    "statutoryBasis": "ст. 213.19, 213.22, 213.23 127-ФЗ — исполнение плана и его итог (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "CREDITOR_PAYOUTS",
+    "order": 12,
+    "branch": "REALIZATION",
+    "derived": false,
+    "statutoryBasis": "ст. 213.27 127-ФЗ — расчёты с кредиторами из вырученных средств (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "CREDITOR_CLAIMS",
+    "order": 20,
+    "branch": null,
+    "derived": false,
+    "statutoryBasis": "ст. 213.7, 213.8 127-ФЗ — реестр требований кредиторов и публикации ЕФРСБ (ПЛЕЙСХОЛДЕР)"
+  },
+  {
+    "key": "COMPLETION",
+    "order": 21,
+    "branch": null,
+    "derived": false,
+    "statutoryBasis": "ст. 213.28, 213.30 127-ФЗ — завершение процедуры, освобождение от обязательств и последствия (ПЛЕЙСХОЛДЕР)"
+  }
+]
