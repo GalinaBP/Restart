@@ -96,7 +96,7 @@ export default function JourneyPage() {
     return (
       <main className="check">
         <h1 className="check-question">Начнём ваше дело</h1>
-        <p className="journey-lead">
+        <p className="check-hint">
           Мы соберём всё по шагам: немного о вас, долги, доходы. Каждый шаг — один экран.
           Всё сохраняется сразу, бросить и вернуться можно в любой момент.
         </p>
@@ -172,7 +172,7 @@ export default function JourneyPage() {
 
       <section className="journey-part">
         <h2 className="journey-part-title">Информация о вас</h2>
-        <p className="journey-part-text">
+        <p className="check-hint">
           Вопросы о вас, долгах и доходах — на их основании мы подготовим документы для суда.
           Все вопросы собраны на одной странице.
         </p>
@@ -183,7 +183,7 @@ export default function JourneyPage() {
 
       <section className="journey-part">
         <h2 className="journey-part-title">Документы, которые готовит «Рестарт»</h2>
-        <p className="journey-part-text">
+        <p className="check-hint">
           Заявление, списки и описи мы соберём сами — из ваших ответов выше.
         </p>
         <Link to="/documents" className="journey-part-link">Открыть документы →</Link>
@@ -191,7 +191,7 @@ export default function JourneyPage() {
 
       <section className="journey-part">
         <h2 className="journey-part-title">Документы, которые нужно подготовить самостоятельно</h2>
-        <p className="journey-part-text">
+        <p className="check-hint">
           Эти бумаги выдают банки, работодатель и государство. Закажите их заранее — суд попросит
           такие документы к заседанию.
         </p>
@@ -225,7 +225,7 @@ export default function JourneyPage() {
             </button>
           </div>
           {work === null ? (
-            <p className="journey-part-text">
+            <p className="check-hint">
               Ответьте — и мы допишем сюда бумаги о доходах именно для вашего случая.
             </p>
           ) : (

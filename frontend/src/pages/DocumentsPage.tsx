@@ -97,7 +97,7 @@ export default function DocumentsPage() {
           className="landing-cta"
           onClick={() => {
             setFailed(false);
-            void load();
+            void (loaded ? generate() : load());
           }}
         >
           Повторить
@@ -120,13 +120,13 @@ export default function DocumentsPage() {
   return (
     <main className="journey">
       <header className="journey-header">
-        <h1 className="journey-title">Документы, которые подготовил «Рестарт»</h1>
-        <Link to="/journey" className="check-back">← К шагам</Link>
+        <h1 className="journey-title">Документы, которые готовит «Рестарт»</h1>
+        <Link to="/journey" className="check-back">← К делу</Link>
       </header>
 
       {missing.length > 0 && (
         <section className="docs-missing" aria-label="Чего не хватает">
-          <p className="docs-missing-title">Почти готово! Осталось дозаполнить:</p>
+          <p className="docs-missing-title">Осталось дозаполнить:</p>
           <ul className="check-reasons">
             {missing.map((item, index) => (
               <li key={index}>
@@ -174,7 +174,7 @@ export default function DocumentsPage() {
                     <button
                       key={file.id}
                       type="button"
-                      className="docs-download"
+                      className="btn-secondary"
                       onClick={() => void fetchFile(file)}
                     >
                       Скачать PDF
@@ -195,7 +195,7 @@ export default function DocumentsPage() {
             : 'Собрать заново'}
       </button>
       {documents.length > 0 && (
-        <button type="button" className="check-option" disabled={pending} onClick={() => void exportZip()}>
+        <button type="button" className="btn-secondary" disabled={pending} onClick={() => void exportZip()}>
           Скачать всё одним архивом
         </button>
       )}

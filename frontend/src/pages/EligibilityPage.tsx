@@ -619,7 +619,7 @@ function ResultScreen({ result }: { result: EligibilityResult }) {
         <p className="check-hint">
           Вернитесь, когда получится отложить эту сумму, — со всем остальным мы поможем.
         </p>
-        <Link to="/" className="check-back">На главную</Link>
+        <Link to="/" className="check-back">← На главную</Link>
       </main>
     );
   }
@@ -637,7 +637,7 @@ function ResultScreen({ result }: { result: EligibilityResult }) {
           Мы могли бы провести вас по шагам, но это было бы нечестно: процедура не даст того,
           ради чего вы её начинаете. Если ситуация изменится — возвращайтесь.
         </p>
-        <Link to="/" className="check-back">На главную</Link>
+        <Link to="/" className="check-back">← На главную</Link>
       </main>
     );
   }
@@ -653,7 +653,7 @@ function ResultScreen({ result }: { result: EligibilityResult }) {
       <p className="check-hint">
         Это не приговор — просто такие дела надёжнее вести с профессиональной поддержкой.
       </p>
-      <Link to="/" className="check-back">На главную</Link>
+      <Link to="/" className="check-back">← На главную</Link>
     </main>
   );
 }

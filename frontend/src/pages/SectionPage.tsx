@@ -139,10 +139,12 @@ export default function SectionPage() {
 
   return (
     <main className="section">
-      <Link to={back ?? '/journey'} className="check-back">
-        {back ? '← Назад' : '← К списку шагов'}
-      </Link>
-      <h1 className="check-question">{label.title}</h1>
+      <header className="journey-header">
+        <h1 className="journey-title">{label.title}</h1>
+        <Link to={back ?? '/journey'} className="check-back">
+          {back ? '← Назад' : '← К делу'}
+        </Link>
+      </header>
       {label.hint && <p className="check-hint">{label.hint}</p>}
       {label.caution && <p className="section-caution" role="note">{label.caution}</p>}
       <SectionHelp blocks={label.help} />
@@ -181,7 +183,7 @@ export default function SectionPage() {
             ))}
             <button
               type="button"
-              className="check-option"
+              className="btn-secondary"
               onClick={() => setEntries((current) => [...current, {}])}
             >
               + {label.entryName ?? 'Добавить'}

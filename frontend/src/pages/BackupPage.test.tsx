@@ -31,7 +31,8 @@ describe('BackupPage', () => {
     await seedCase({ sections: VALID_CASE });
     renderPage();
 
-    expect(screen.getByRole('note')).toHaveTextContent(/Дело пропадёт, если очистить данные сайта/);
+    expect(screen.getAllByRole('note').map((note) => note.textContent).join(' '))
+      .toMatch(/Дело пропадёт, если очистить данные сайта/);
     expect(screen.getByText(/хранится только на этом устройстве/)).toBeInTheDocument();
   });
 
