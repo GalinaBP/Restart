@@ -693,8 +693,10 @@ button:disabled {
 .journey-header {
   width: 100%;
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
+  gap: 0.4rem 1rem;
 }
 
 .journey-title {
@@ -703,12 +705,68 @@ button:disabled {
   margin: 0;
 }
 
+.journey-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1.15rem;
+}
+
+.journey-nav-link {
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.journey-nav-link:hover {
+  color: var(--text);
+}
+
+.journey-lead {
+  margin: 0;
+  max-width: 26rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.journey-status {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.journey-status-line {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.journey-status-count {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--accent-to);
+}
+
+.journey-status-text {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .journey-progress {
   width: 100%;
   height: 0.5rem;
   border-radius: 999px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .journey-continue {
@@ -753,7 +811,11 @@ button:disabled {
 
 .journey-part {
   width: 100%;
-  margin-top: 1.6rem;
+  margin-top: 1rem;
+  padding: 1.15rem 1.25rem;
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 1.15rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -838,48 +900,6 @@ button:disabled {
   color: var(--muted);
   font-size: 0.87rem;
   line-height: 1.5;
-}
-
-.journey-steps {
-  width: 100%;
-  margin: 0.6rem 0 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.journey-step {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.85rem 1rem;
-  background: var(--pill-bg);
-  border: 1px solid var(--pill-border);
-  border-radius: 1rem;
-  color: var(--text);
-  text-decoration: none;
-  transition: border-color 0.12s ease;
-}
-
-.journey-step:hover {
-  border-color: var(--accent-to);
-}
-
-.journey-step-done {
-  opacity: 0.75;
-}
-
-.journey-step-title {
-  flex: 1;
-  text-align: left;
-  font-weight: 600;
-}
-
-.journey-step-state {
-  color: var(--accent-to);
-  font-weight: 800;
 }
 
 .procedure-list {

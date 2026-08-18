@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { vi } from 'vitest';
 import { seedCase, signIn, storedCase } from '../test/localCase';
+import * as localCase from '../local/case';
 import JourneyPage from './JourneyPage';
 
 const ONE_STEP_FILLED = {
@@ -15,7 +17,7 @@ const ONE_STEP_FILLED = {
 
 function renderSignedIn() {
   signIn();
-  render(
+  return render(
     <MemoryRouter initialEntries={['/journey']}>
       <JourneyPage />
     </MemoryRouter>,
@@ -38,8 +40,10 @@ describe('JourneyPage', () => {
     await seedCase({ sections: ONE_STEP_FILLED });
     renderSignedIn();
 
-    expect(await screen.findByText('Заполнено 1 из 13. Продолжайте — всё сохраняется сразу.'))
-      .toBeInTheDocument();
+    const progress = await screen.findByRole('progressbar');
+    expect(progress).toHaveAttribute('aria-valuenow', '1');
+    expect(progress).toHaveAttribute('aria-valuemax', '13');
+    expect(screen.getByText('1 из 13')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Продолжить' }))
       .toHaveAttribute('href', '/journey/all');
     expect(screen.getByText('Документы, которые нужно подготовить самостоятельно'))
@@ -66,6 +70,32 @@ describe('JourneyPage', () => {
     expect(screen.getByText('Выписка из трудовой книжки')).toBeInTheDocument();
     expect(screen.queryByText('Трудовая книжка')).not.toBeInTheDocument();
     expect(screen.queryByText('Справки о доходах (2-НДФЛ) за три года')).not.toBeInTheDocument();
+  });
+
+  it('remembers the work answer after leaving the page', async () => {
+    await seedCase({ sections: ONE_STEP_FILLED });
+    const user = userEvent.setup();
+    const { unmount } = renderSignedIn();
+
+    await user.click(await screen.findByRole('button', { name: 'Не работаю' }));
+    expect(screen.getByText('Справка из центра занятости')).toBeInTheDocument();
+    unmount();
+
+    renderSignedIn();
+
+    expect(await screen.findByText('Справка из центра занятости')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Не работаю' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('does not claim the case is complete when no known step matched', async () => {
+    await seedCase({ sections: ONE_STEP_FILLED });
+    vi.spyOn(localCase, 'sectionsOverview').mockResolvedValue([]);
+    renderSignedIn();
+
+    const progress = await screen.findByRole('progressbar');
+    expect(progress).toHaveAttribute('aria-valuemax', '0');
+    expect(screen.queryByText(/Все шаги заполнены/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Продолжить' })).toBeInTheDocument();
   });
 
   it('links up to the stage overview (AI-019)', async () => {
