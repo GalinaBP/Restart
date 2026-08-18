@@ -1524,7 +1524,8 @@ a.procedure-stage:hover {
   font-size: 0.82rem;
   line-height: 1.55;
   white-space: pre-wrap;
-  overflow-x: auto;
+  max-height: 18rem;
+  overflow: auto;
 }
 
 .calm-template-actions {
