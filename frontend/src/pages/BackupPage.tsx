@@ -62,8 +62,10 @@ export default function BackupPage() {
 
   return (
     <main className="section">
-      <Link to="/journey" className="check-back">← К делу</Link>
-      <h1 className="check-question">Копия дела</h1>
+      <header className="journey-header">
+        <h1 className="journey-title">Копия дела</h1>
+        <Link to="/journey" className="check-back">← К делу</Link>
+      </header>
       <p className="check-hint">
         Всё, что вы вводите, хранится только на этом устройстве, в этом браузере. Мы никуда это
         не отправляем — и поэтому не можем восстановить это за вас.
@@ -95,7 +97,7 @@ export default function BackupPage() {
             onChange={(e) => setSavePassphrase(e.target.value)}
           />
         </label>
-        <p className="check-hint">
+        <p className="section-caution" role="note">
           Файл зашифрован этим паролем. Забытый пароль восстановить нельзя — тогда останется
           только то, что лежит в браузере.
         </p>
@@ -120,11 +122,11 @@ export default function BackupPage() {
             onChange={(e) => setOpenPassphrase(e.target.value)}
           />
         </label>
-        <p className="check-hint">
+        <p className="section-caution" role="note">
           То, что сейчас заполнено в браузере, заменится содержимым файла. Документы после этого
           нужно собрать заново — это одна кнопка.
         </p>
-        <button type="submit" className="check-option" disabled={pending}>
+        <button type="submit" className="btn-secondary" disabled={pending}>
           {pending ? 'Открываем…' : 'Открыть файл'}
         </button>
       </form>

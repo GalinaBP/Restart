@@ -169,7 +169,7 @@ export default function ProcedurePage() {
     <main className="journey">
       <header className="journey-header">
         <h1 className="journey-title">Весь путь</h1>
-        <Link to="/journey" className="check-back">← К шагам</Link>
+        <Link to="/journey" className="check-back">← К делу</Link>
       </header>
       <p className="check-placeholder" role="note">Черновик — проверяется юристом</p>
       <p className="check-hint">

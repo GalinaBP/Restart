@@ -154,16 +154,33 @@ export default function AboutYouPage() {
 
   return (
     <main className="section about-you">
-      <Link to="/journey" className="check-back">← К делу</Link>
-      <h1 className="check-question">Информация о вас</h1>
+      <header className="journey-header">
+        <h1 className="journey-title">Информация о вас</h1>
+        <Link to="/journey" className="check-back">← К делу</Link>
+      </header>
       <p className="check-hint">
         Вопросы о вас, долгах и доходах — на их основании мы подготовим документы для суда.
         Заполняйте в любом порядке, всё сохранится разом.
       </p>
 
-      <p className="about-you-progress-label" role="status">Заполнено {filled} из {total}</p>
-      <div className="journey-progress" aria-label={`Заполнено ${filled} из ${total}`}>
-        <div className="check-progress-fill" style={{ width: `${total ? (filled / total) * 100 : 0}%` }} />
+      <div className="journey-status">
+        <p className="journey-status-line" role="status">
+          <span className="journey-status-count">{filled} из {total}</span>
+          <span className="journey-status-text">разделов заполнено</span>
+        </p>
+        <div
+          className="journey-progress"
+          role="progressbar"
+          aria-valuenow={filled}
+          aria-valuemin={0}
+          aria-valuemax={total}
+          aria-label="Заполнено разделов"
+        >
+          <div
+            className="check-progress-fill"
+            style={{ width: `${total ? (filled / total) * 100 : 0}%` }}
+          />
+        </div>
       </div>
 
       {saved && problemCount > 0 && (
@@ -238,7 +255,7 @@ export default function AboutYouPage() {
                   ))}
                   <button
                     type="button"
-                    className="check-option"
+                    className="btn-secondary"
                     onClick={() => changeEntries(key, (entries) => [...entries, {}])}
                   >
                     + {label.entryName ?? 'Добавить'}

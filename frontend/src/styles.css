@@ -164,17 +164,6 @@ button:disabled {
   max-width: 26rem;
 }
 
-.landing-tagline {
-  display: inline-block;
-  background: var(--pill-bg);
-  border: 1px solid var(--pill-border);
-  border-radius: 999px;
-  padding: 0.45rem 1.05rem;
-  margin: 0.1rem 0 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
 .landing-login {
   position: absolute;
   top: 1.25rem;
@@ -210,6 +199,33 @@ button:disabled {
 .landing-cta:hover {
   transform: translateY(-2px) scale(1.03);
   box-shadow: 0 14px 40px rgba(52, 211, 153, 0.5);
+}
+
+.btn-primary-small,
+.btn-secondary {
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.btn-primary-small {
+  color: #04231a;
+  background: var(--accent-from);
+  border: 1px solid transparent;
+}
+
+.btn-secondary {
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--pill-border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--accent-to);
 }
 
 .landing-note {
@@ -292,7 +308,7 @@ button:disabled {
 .landing-script {
   margin: 0;
   padding: 0.9rem 1rem;
-  border-radius: 0.9rem;
+  border-radius: 1rem;
   background: rgba(255, 255, 255, 0.05);
   line-height: 1.6;
 }
@@ -312,7 +328,7 @@ button:disabled {
 .landing-block-starry {
   padding: 1rem 1.3rem;
   border: 1px solid rgba(252, 211, 77, 0.2);
-  border-radius: 1.25rem;
+  border-radius: 1rem;
   background-color: rgba(252, 211, 77, 0.045);
   background-image:
     radial-gradient(1.4px 1.4px at 14% 26%, var(--star), transparent 60%),
@@ -350,40 +366,8 @@ button:disabled {
   background: var(--accent-from);
 }
 
-.landing-starry {
-  position: relative;
-  max-width: 32rem;
-  margin: 0.4rem 0 0;
-  padding: 1rem 1.3rem;
-  border: 1px solid rgba(252, 211, 77, 0.2);
-  border-radius: 1.25rem;
-  background-color: rgba(252, 211, 77, 0.045);
-  background-image:
-    radial-gradient(1.4px 1.4px at 14% 26%, var(--star), transparent 60%),
-    radial-gradient(1px 1px at 34% 72%, var(--star), transparent 60%),
-    radial-gradient(1.6px 1.6px at 62% 22%, rgba(255, 255, 255, 0.75), transparent 60%),
-    radial-gradient(1px 1px at 82% 64%, var(--star), transparent 60%),
-    radial-gradient(1.2px 1.2px at 91% 32%, rgba(255, 255, 255, 0.6), transparent 60%);
-  color: var(--text);
-  font-size: 0.98rem;
-  line-height: 1.55;
-}
-
-.landing-star {
-  display: inline-block;
-  color: var(--star);
-  padding: 0 0.45rem;
-  text-shadow: 0 0 9px rgba(252, 211, 77, 0.75);
-  animation: star-twinkle 5.5s ease-in-out infinite;
-}
-
 .landing-star:last-child {
   animation-delay: 2.6s;
-}
-
-@keyframes star-twinkle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.45; transform: scale(0.85); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -422,11 +406,6 @@ button:disabled {
   background: var(--accent-from);
   border-radius: 0 999px 999px 0;
   transition: width 0.25s ease;
-}
-
-.check-emoji {
-  font-size: 3rem;
-  margin: 0;
 }
 
 .check-question {
@@ -520,14 +499,18 @@ button:disabled {
   text-decoration: none;
 }
 
+.check-back:hover {
+  color: var(--text);
+}
+
+.journey-header .check-back {
+  margin-top: 0;
+}
+
 .check-hint {
   margin: 0;
   max-width: 26rem;
-  padding: 0.7rem 1rem;
-  border: 1px solid rgba(234, 179, 8, 0.32);
-  border-radius: 0.9rem;
-  background: rgba(234, 179, 8, 0.07);
-  color: #f0dda4;
+  color: var(--muted);
   line-height: 1.6;
 }
 
@@ -665,7 +648,7 @@ button:disabled {
   color: var(--text);
   background: var(--pill-bg);
   border: 1px solid var(--pill-border);
-  border-radius: 0.9rem;
+  border-radius: 0.75rem;
   outline: none;
 }
 
@@ -679,7 +662,8 @@ button:disabled {
   margin: 0;
 }
 
-.journey {
+.journey,
+.section {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -727,13 +711,6 @@ button:disabled {
   color: var(--text);
 }
 
-.journey-lead {
-  margin: 0;
-  max-width: 26rem;
-  color: var(--muted);
-  line-height: 1.6;
-}
-
 .journey-status {
   width: 100%;
   display: flex;
@@ -774,16 +751,6 @@ button:disabled {
   display: inline-block;
 }
 
-.about-you {
-  max-width: 34rem;
-}
-
-.about-you-progress-label {
-  margin: 0.6rem 0 0.35rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
 .about-you .journey-progress {
   margin-bottom: 0.4rem;
 }
@@ -815,7 +782,7 @@ button:disabled {
   padding: 1.15rem 1.25rem;
   background: var(--pill-bg);
   border: 1px solid var(--pill-border);
-  border-radius: 1.15rem;
+  border-radius: 1rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -829,12 +796,6 @@ button:disabled {
 
 .journey-part .check-hint {
   max-width: none;
-}
-
-.journey-part-text {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.6;
 }
 
 .journey-part-link {
@@ -1114,7 +1075,7 @@ a.procedure-stage:hover {
 .procedure-hearing-upcoming {
   margin: 0.5rem 0 0;
   padding: 0.5rem 0.8rem;
-  border-radius: 0.6rem;
+  border-radius: 0.75rem;
   background: rgba(52, 211, 153, 0.16);
   color: var(--accent-from);
   font-size: 0.9rem;
@@ -1125,7 +1086,7 @@ a.procedure-stage:hover {
   display: block;
   margin: 0.5rem 0 0;
   padding: 0.5rem 0.8rem;
-  border-radius: 0.6rem;
+  border-radius: 0.75rem;
   background: rgba(52, 211, 153, 0.16);
   color: var(--accent-from);
   font-size: 0.9rem;
@@ -1135,7 +1096,7 @@ a.procedure-stage:hover {
 .procedure-claim-deadline {
   margin: 0.5rem 0 0;
   padding: 0.5rem 0.8rem;
-  border-radius: 0.6rem;
+  border-radius: 0.75rem;
   background: rgba(52, 211, 153, 0.16);
   color: var(--accent-from);
   font-size: 0.9rem;
@@ -1198,17 +1159,7 @@ a.procedure-stage:hover {
   margin-top: 0.9rem;
 }
 
-.section {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 2rem 1.5rem 3rem;
-  max-width: 30rem;
-  margin: 0 auto;
-  text-align: center;
-}
+
 
 .section-form {
   max-width: 24rem;
@@ -1365,21 +1316,6 @@ a.procedure-stage:hover {
   gap: 0.4rem;
 }
 
-.docs-download {
-  padding: 0.45rem 0.8rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text);
-  background: none;
-  border: 1px solid var(--pill-border);
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.docs-download:hover {
-  border-color: var(--accent-to);
-}
-
 .docs-next-step {
   margin-top: 0.2rem;
   padding: 0.6rem 1rem;
@@ -1464,7 +1400,7 @@ a.procedure-stage:hover {
 .calm-script {
   margin-top: 0.9rem;
   padding: 0.9rem 1rem;
-  border-radius: 0.9rem;
+  border-radius: 1rem;
   background: rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
@@ -1475,23 +1411,6 @@ a.procedure-stage:hover {
 .calm-script-text {
   margin: 0;
   line-height: 1.6;
-}
-
-.calm-copy,
-.calm-download {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  border-radius: 999px;
-  white-space: nowrap;
-  color: #04231a;
-  background: var(--accent-from);
-}
-
-.calm-download {
-  color: var(--text);
-  background: none;
-  border: 1px solid var(--pill-border);
 }
 
 .calm-block {
@@ -1537,7 +1456,7 @@ a.procedure-stage:hover {
 .calm-template-body {
   margin: 0.4rem 0 0;
   padding: 0.8rem 0.9rem;
-  border-radius: 0.8rem;
+  border-radius: 0.75rem;
   background: rgba(255, 255, 255, 0.05);
   color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;

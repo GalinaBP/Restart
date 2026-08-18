@@ -46,7 +46,7 @@ function CopyButton({ text, label = 'Скопировать текст' }: { tex
   };
 
   return (
-    <button type="button" className="calm-copy" onClick={() => void copy()}>
+    <button type="button" className="btn-primary-small" onClick={() => void copy()}>
       {state === 'done' ? 'Скопировано ✓' : state === 'failed' ? 'Не вышло — выделите текст' : label}
     </button>
   );
@@ -117,7 +117,7 @@ export default function CalmPage() {
               <CopyButton text={template.body} />
               <button
                 type="button"
-                className="calm-download"
+                className="btn-secondary"
                 onClick={() => downloadTemplate(template)}
               >
                 Скачать
