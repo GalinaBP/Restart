@@ -346,7 +346,7 @@ const STAGE_LABELS: Record<string, StageLabel> = {
   },
   DOCUMENT_PREPARATION: {
     title: 'Подготовка документов',
-    description: 'Вопросы о вас, долгах и доходах — на основании них мы подготовим документы для суда.',
+    description: 'Вопросы о вас, долгах и доходах — на их основании мы подготовим документы для суда.',
   },
   MANAGER_SELECTION: {
     title: 'Поиск финансового управляющего',

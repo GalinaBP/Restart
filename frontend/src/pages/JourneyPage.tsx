@@ -10,13 +10,25 @@ import {
 } from '../local/case';
 import { CASE_DATA_SECTIONS, OWN_DOCUMENTS, WORK_DOCUMENTS, type WorkStatus } from '../api/labels';
 
+const WORK_KEY = 'restart.journey.workStatus';
+
+function storedWork(): WorkStatus | null {
+  const saved = localStorage.getItem(WORK_KEY);
+  return saved === 'WORKING' || saved === 'NOT_WORKING' ? saved : null;
+}
+
 export default function JourneyPage() {
   const navigate = useNavigate();
   const [bankruptcyCase, setCase] = useState<CaseInfo | null>(null);
   const [steps, setSteps] = useState<SectionStatus[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  const [work, setWork] = useState<WorkStatus | null>(null);
+  const [work, setWork] = useState<WorkStatus | null>(storedWork);
+
+  const chooseWork = (status: WorkStatus) => {
+    setWork(status);
+    localStorage.setItem(WORK_KEY, status);
+  };
 
   const load = useCallback(async () => {
     try {
@@ -84,7 +96,7 @@ export default function JourneyPage() {
     return (
       <main className="check">
         <h1 className="check-question">Начнём ваше дело</h1>
-        <p className="check-hint">
+        <p className="journey-lead">
           Мы соберём всё по шагам: немного о вас, долги, доходы. Каждый шаг — один экран.
           Всё сохраняется сразу, бросить и вернуться можно в любой момент.
         </p>
@@ -105,57 +117,73 @@ export default function JourneyPage() {
     .filter((s): s is SectionStatus => s !== undefined);
   const filled = dataSteps.filter((s) => s.filled).length;
   const total = dataSteps.length;
-  const next = dataSteps.find((s) => !s.filled);
+  const allFilled = total > 0 && filled === total;
 
   return (
     <main className="journey">
       <header className="journey-header">
         <h1 className="journey-title">Ваше дело</h1>
-        <span>
-          <Link to="/procedure" className="check-back">Весь путь</Link>
-          {' · '}
-          <Link to="/documents" className="check-back">Документы</Link>
-          {' · '}
-          <Link to="/calm" className="check-back">Спокойно</Link>
-          {' · '}
-          <Link to="/backup" className="check-back">Копия дела</Link>
-          {' · '}
-          <button type="button" className="check-back" onClick={() => { logout(); navigate('/'); }}>
+        <nav className="journey-nav" aria-label="Разделы дела">
+          <Link to="/procedure" className="journey-nav-link">Весь путь</Link>
+          <Link to="/documents" className="journey-nav-link">Документы</Link>
+          <Link to="/calm" className="journey-nav-link">Спокойно</Link>
+          <Link to="/backup" className="journey-nav-link">Копия дела</Link>
+          <button
+            type="button"
+            className="journey-nav-link"
+            onClick={() => { logout(); navigate('/'); }}
+          >
             Выйти
           </button>
-        </span>
+        </nav>
       </header>
-      <p className="check-hint">
-        {filled === total
-          ? 'Все шаги заполнены! Пора собирать документы.'
-          : `Заполнено ${filled} из ${total}. Продолжайте — всё сохраняется сразу.`}
-      </p>
-      <div className="journey-progress" aria-label={`Заполнено ${filled} из ${total}`}>
-        <div className="check-progress-fill" style={{ width: `${total ? (filled / total) * 100 : 0}%` }} />
+
+      <div className="journey-status">
+        <p className="journey-status-line">
+          <span className="journey-status-count">{filled} из {total}</span>
+          <span className="journey-status-text">
+            {allFilled ? 'Все шаги заполнены. Пора собирать документы.' : 'Всё сохраняется сразу.'}
+          </span>
+        </p>
+        <div
+          className="journey-progress"
+          role="progressbar"
+          aria-valuenow={filled}
+          aria-valuemin={0}
+          aria-valuemax={total}
+          aria-label="Заполнено шагов"
+        >
+          <div
+            className="check-progress-fill"
+            style={{ width: `${total ? (filled / total) * 100 : 0}%` }}
+          />
+        </div>
       </div>
-      {next ? (
-        <Link className="landing-cta journey-continue" to="/journey/all">
-          Продолжить
-        </Link>
-      ) : (
+
+      {allFilled ? (
         <Link className="landing-cta journey-continue" to="/documents">
           Собрать документы
         </Link>
+      ) : (
+        <Link className="landing-cta journey-continue" to="/journey/all">
+          Продолжить
+        </Link>
       )}
+
       <section className="journey-part">
         <h2 className="journey-part-title">Информация о вас</h2>
-        <p className="check-hint">
-          Вопросы о вас, долгах и доходах — на основании них мы подготовим документы для суда.
-          Все они собраны на одной странице.
+        <p className="journey-part-text">
+          Вопросы о вас, долгах и доходах — на их основании мы подготовим документы для суда.
+          Все вопросы собраны на одной странице.
         </p>
         <Link to="/journey/all" className="journey-part-link">
-          {filled === total ? 'Проверить ответы →' : 'Заполнить →'}
+          {allFilled ? 'Проверить ответы →' : 'Заполнить →'}
         </Link>
       </section>
 
       <section className="journey-part">
-        <h2 className="journey-part-title">Документы, которые подготовил «Рестарт»</h2>
-        <p className="check-hint">
+        <h2 className="journey-part-title">Документы, которые готовит «Рестарт»</h2>
+        <p className="journey-part-text">
           Заявление, списки и описи мы соберём сами — из ваших ответов выше.
         </p>
         <Link to="/documents" className="journey-part-link">Открыть документы →</Link>
@@ -163,9 +191,9 @@ export default function JourneyPage() {
 
       <section className="journey-part">
         <h2 className="journey-part-title">Документы, которые нужно подготовить самостоятельно</h2>
-        <p className="check-hint">
-          Эти бумаги выдают банки, работодатель и государство — закажите их заранее, суд попросит
-          их к заседанию.
+        <p className="journey-part-text">
+          Эти бумаги выдают банки, работодатель и государство. Закажите их заранее — суд попросит
+          такие документы к заседанию.
         </p>
         <ul className="journey-own-docs">
           {OWN_DOCUMENTS.map((doc) => (
@@ -183,7 +211,7 @@ export default function JourneyPage() {
               type="button"
               className={`check-option${work === 'WORKING' ? ' check-option-selected' : ''}`}
               aria-pressed={work === 'WORKING'}
-              onClick={() => setWork('WORKING')}
+              onClick={() => chooseWork('WORKING')}
             >
               Работаю
             </button>
@@ -191,13 +219,13 @@ export default function JourneyPage() {
               type="button"
               className={`check-option${work === 'NOT_WORKING' ? ' check-option-selected' : ''}`}
               aria-pressed={work === 'NOT_WORKING'}
-              onClick={() => setWork('NOT_WORKING')}
+              onClick={() => chooseWork('NOT_WORKING')}
             >
               Не работаю
             </button>
           </div>
           {work === null ? (
-            <p className="check-hint">
+            <p className="journey-part-text">
               Ответьте — и мы допишем сюда бумаги о доходах именно для вашего случая.
             </p>
           ) : (
