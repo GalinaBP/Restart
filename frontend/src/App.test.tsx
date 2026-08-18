@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from './App';
+import { CALM_CARDS } from './pages/calmContent';
 
 describe('App', () => {
   it('renders the landing screen with the single call to action', () => {
@@ -31,8 +32,9 @@ describe('App', () => {
     });
 
     expect(screen.getByRole('heading', { name: 'Звонят банки и коллекторы?' })).toBeInTheDocument();
-    expect(screen.getByText(/По вопросам задолженности прошу общаться в письменной форме/))
-      .toBeInTheDocument();
+    const bankScript = CALM_CARDS.find((card) => card.script)?.script;
+    expect(bankScript).toBeTruthy();
+    expect(screen.getByText(bankScript as string)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Больше готовых ответов/ }))
       .toHaveAttribute('href', '/calm');
 
