@@ -6,7 +6,7 @@ import { parse } from 'yaml';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..', '..');
-const RESOURCES = join(REPO, 'src', 'main', 'resources');
+const RULES = join(REPO, 'rules');
 const OUT = join(HERE, '..', 'src', 'generated');
 
 const FIELD_TYPES = ['STRING', 'BOOLEAN', 'INTEGER', 'MONEY', 'DATE',
@@ -18,7 +18,7 @@ function fail(resource, message) {
 }
 
 function yml(...parts) {
-  return parse(readFileSync(join(RESOURCES, ...parts), 'utf8'));
+  return parse(readFileSync(join(RULES, ...parts), 'utf8'));
 }
 
 function requireText(resource, value, what) {
@@ -50,8 +50,8 @@ function byOrder(a, b) {
 }
 
 function sections() {
-  const resource = 'casefile/sections.yml';
-  const parsed = yml('casefile', 'sections.yml').sections;
+  const resource = 'rules/sections.yml';
+  const parsed = yml('sections.yml').sections;
   if (!Array.isArray(parsed) || parsed.length === 0) {
     fail(resource, 'no sections configured');
   }
@@ -98,8 +98,8 @@ function sections() {
 }
 
 function journey() {
-  const resource = 'casefile/journey.yml';
-  const parsed = yml('casefile', 'journey.yml').stages;
+  const resource = 'rules/journey.yml';
+  const parsed = yml('journey.yml').stages;
   if (!Array.isArray(parsed) || parsed.length === 0) {
     fail(resource, 'no stages configured');
   }
@@ -125,8 +125,8 @@ function journey() {
 }
 
 function fees() {
-  const resource = 'casefile/fees.yml';
-  const parsed = yml('casefile', 'fees.yml');
+  const resource = 'rules/fees.yml';
+  const parsed = yml('fees.yml');
   requireText(resource, parsed.effectiveFrom, 'effectiveFrom');
   if (!Array.isArray(parsed.items) || parsed.items.length === 0) {
     fail(resource, 'no items configured');
@@ -157,8 +157,8 @@ function fees() {
 }
 
 function courts() {
-  const resource = 'casefile/courts.yml';
-  const parsed = yml('casefile', 'courts.yml').courts;
+  const resource = 'rules/courts.yml';
+  const parsed = yml('courts.yml').courts;
   if (!Array.isArray(parsed) || parsed.length === 0) {
     fail(resource, 'no courts configured');
   }
@@ -175,8 +175,8 @@ function courts() {
 }
 
 function claimDeadline() {
-  const resource = 'casefile/claim-deadline.yml';
-  const parsed = yml('casefile', 'claim-deadline.yml');
+  const resource = 'rules/claim-deadline.yml';
+  const parsed = yml('claim-deadline.yml');
   requireText(resource, parsed.statutoryBasis, 'statutoryBasis');
   requireWholeNumber(resource, parsed.daysFromPublication, 'daysFromPublication');
   return {
@@ -186,7 +186,7 @@ function claimDeadline() {
 }
 
 function templates() {
-  const resource = 'doctemplates/manifest.yml';
+  const resource = 'rules/doctemplates/manifest.yml';
   const manifest = yml('doctemplates', 'manifest.yml');
   const activeVersion = requireText(resource, manifest.activeVersion, 'activeVersion');
   if (!Array.isArray(manifest.documents) || manifest.documents.length === 0) {
@@ -204,7 +204,7 @@ function templates() {
   const names = [...documents.map((document) => document.templateName),
     ...(manifest.partials ?? [])];
   for (const name of names) {
-    const path = join(RESOURCES, 'doctemplates', activeVersion, `${name}.mustache`);
+    const path = join(RULES, 'doctemplates', activeVersion, `${name}.mustache`);
     if (!existsSync(path)) {
       fail(resource, `template file missing: ${activeVersion}/${name}.mustache`);
     }
@@ -244,7 +244,7 @@ function keptCharacters() {
 }
 
 async function font() {
-  const full = readFileSync(join(RESOURCES, 'fonts', 'DejaVuSansMono.ttf'));
+  const full = readFileSync(join(RULES, 'fonts', 'DejaVuSansMono.ttf'));
   return subsetFont(full, keptCharacters(), { targetFormat: 'truetype' });
 }
 

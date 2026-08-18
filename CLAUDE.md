@@ -49,7 +49,7 @@ docker compose --profile dev-tools up --build   # + Adminer on :8081
 npm run dev          # Vite dev server on :3000, proxies /api to :8080
 npm run build        # typecheck + production bundle
 npm test             # vitest
-npm run rules        # regenerate src/generated/ from the backend yml + templates + font
+npm run rules        # regenerate src/generated/ from rules/ (yml + templates + font)
 npm run rules:check  # what CI runs: regenerate and fail on any diff
 ```
 
@@ -77,15 +77,19 @@ dropped them. What remains server-side is deliberately small:
   way in and nothing more: no case hangs off an account, so signing in on a second device shows an
   empty app, and the copy has to keep saying so.
 
-> **The rules still live here, in yml, and only here** — `casefile/sections.yml`,
-> `journey.yml`, `fees.yml`, `courts.yml`, `claim-deadline.yml`, and the versioned Mustache
-> templates under `doctemplates/<version>/` with `doctemplates/manifest.yml` naming the active
-> edition and the five documents. No Java reads them any more; `frontend/scripts/generate-rules.mjs`
-> does, and it is also what **validates** them (field types, duplicate keys, `uniqueBy` pointing at
-> real fields, fee amounts quoted so YAML cannot turn them into floats, every partial a template
-> references being listed). That validation used to be the Java registries' job — if you add a rule
-> file, give it checks there, or nothing checks it. A legislative amendment is still an edit to the
-> yml (or a new template version directory) plus `npm run rules`.
+> **The rules live in `rules/`** — the questionnaire, the journey, the fees, the courts, the claim
+> deadline, and the versioned Mustache templates under `rules/doctemplates/<version>/` with
+> `manifest.yml` naming the active edition and the five documents. They sat under
+> `src/main/resources/` while Java read them; nothing on the server does any more, so they moved to
+> where their location says what they are — product content, editable without touching code, all of
+> it placeholder pending lawyer review. `rules/README.md` is the map.
+>
+> `frontend/scripts/generate-rules.mjs` compiles them into the SPA and is also the only thing that
+> **validates** them: field types, duplicate keys, `uniqueBy` pointing at real fields, fee amounts
+> quoted so YAML cannot turn them into floats, every partial a template references being listed.
+> That was the Java registries' job — if you add a rule file, give it checks there, or nothing
+> checks it. A legislative amendment is still an edit to the yml (or a new template version
+> directory) plus `npm run rules`.
 
 Every business module gets identical internal layering:
 
@@ -111,6 +115,9 @@ Every business module gets identical internal layering:
   contributes its token filter via the `HttpSecurityCustomizer` extension point. Roles: `USER`, `ADMIN`.
 - Time: inject the UTC `Clock` bean (`ClockConfig`); never call `Instant.now()` in domain code.
 
+`src/main/resources/` is now only `application*.yml` and the Flyway migrations; the product content
+that used to live beside them is in `rules/`.
+
 **Database:** Flyway owns the schema (`src/main/resources/db/migration`, V1–V12); Hibernate
 runs `ddl-auto: validate`. Only `user_account` and `password_reset_token` are left — V12 dropped
 the four case tables. Add a migration in the same change as any new entity. UUIDs as
@@ -127,7 +134,7 @@ the four case tables. Add a migration in the same change as any new entity. UUID
 > the screens still answer.
 >
 > **The same trap now lives in the browser.** Document types are stored in IndexedDB by the `type`
-> from `doctemplates/manifest.yml`, and section keys index the saved answers — rename either and a
+> from `rules/doctemplates/manifest.yml`, and section keys index the saved answers — rename either and a
 > user's existing case no longer lines up with the rules. There is no migration to write there, so
 > the rule is simply: keys are permanent, and adding is safe where renaming is not.
 
@@ -149,9 +156,8 @@ the reasoning in the commit message or the pull request instead.
 **Directives a tool reads are not comments** and stay where they are needed:
 `// eslint-disable-next-line …`, `/// <reference types=…>`, `@ts-expect-error`, `prettier-ignore`.
 
-The rule covers **code only**. `yml` config and data keep their comments — `sections.yml`,
-`journey.yml`, `fees.yml`, `courts.yml` and `application*.yml` carry the placeholder-pending-lawyer-
-review markers — as do the mustache templates (golden-file tests pin their output), `nginx.conf`,
+The rule covers **code only**. `yml` config and data keep their comments — everything in `rules/`
+and `application*.yml` carry the placeholder-pending-lawyer-review markers — as do the mustache templates (golden-file tests pin their output), `nginx.conf`,
 the Dockerfiles, shell scripts and Markdown. **Never rewrite a Flyway migration just to tidy its
 comments:** Flyway checksums each file, so editing one that has already run breaks `validate`
 against every existing database, production included.
