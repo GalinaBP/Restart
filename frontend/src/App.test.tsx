@@ -16,7 +16,7 @@ describe('App', () => {
     expect(screen.getByRole('button', {
       name: 'Проверить, подходит ли мне самостоятельное банкротство',
     })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Войти' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Войти' })).toHaveAttribute('href', '/auth');
   });
 
   it('says what happens after the button, and what the service will not do', () => {

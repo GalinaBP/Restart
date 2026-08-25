@@ -173,6 +173,7 @@ button:disabled {
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--text);
+  text-decoration: none;
   background: var(--pill-bg);
   border: 1px solid var(--pill-border);
   border-radius: 999px;
@@ -660,6 +661,23 @@ button:disabled {
   color: #fda4af;
   font-size: 0.92rem;
   margin: 0;
+}
+
+.section-date-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.section-date-parts .auth-input {
+  flex: 1 1 5rem;
+  min-width: 0;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+}
+
+.section-date-parts .auth-input:nth-child(2) {
+  flex: 1 1 7rem;
 }
 
 .journey,

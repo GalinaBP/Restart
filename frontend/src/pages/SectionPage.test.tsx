@@ -48,9 +48,10 @@ async function fillPassport(user: ReturnType<typeof userEvent.setup>) {
   await user.type(await screen.findByLabelText('Серия — 4 цифры'), PASSPORT.series);
   await user.type(screen.getByLabelText('Номер — 6 цифр'), PASSPORT.number);
   await user.type(screen.getByLabelText('Кем выдан — как в паспорте'), PASSPORT.issuedBy);
-  fireEvent.change(screen.getByLabelText('Дата выдачи'), {
-    target: { value: PASSPORT.issueDate },
-  });
+  const [year, month, day] = PASSPORT.issueDate.split('-');
+  fireEvent.change(screen.getByLabelText('Дата выдачи — день'), { target: { value: day } });
+  fireEvent.change(screen.getByLabelText('Дата выдачи — месяц'), { target: { value: month } });
+  fireEvent.change(screen.getByLabelText('Дата выдачи — год'), { target: { value: year } });
 }
 
 describe('SectionPage', () => {
