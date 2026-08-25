@@ -68,7 +68,7 @@ describe('ManagerPage', () => {
     renderAtManager();
 
     await screen.findByText('Поиск финансового управляющего');
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Статус')).not.toBeInTheDocument();
     expect(screen.queryByText('Когда управляющего утвердят')).not.toBeInTheDocument();
     expect(screen.queryByText('Переписка с управляющим')).not.toBeInTheDocument();
   });

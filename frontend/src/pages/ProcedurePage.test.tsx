@@ -131,7 +131,7 @@ describe('ProcedurePage', () => {
     await screen.findByText('Весь путь');
 
     expect(screen.getByRole('link', { name: /Начать/ })).toHaveAttribute('href', '/manager');
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Статус')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Записать' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Переписка с управляющим/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/у организации есть пять дней/)).not.toBeInTheDocument();
@@ -234,13 +234,16 @@ describe('ProcedurePage', () => {
 
     await screen.findByText('Весь путь');
     await user.click(screen.getByRole('button', { name: /Решение суда/ }));
-    await user.selectOptions(await screen.findByRole('combobox'), 'IN_PROGRESS');
+    await user.selectOptions(await screen.findByLabelText('Статус'), 'IN_PROGRESS');
+    await user.selectOptions(screen.getByLabelText('Начали (не обязательно) — день'), '05');
+    await user.selectOptions(screen.getByLabelText('Начали (не обязательно) — месяц'), '03');
+    await user.selectOptions(screen.getByLabelText('Начали (не обязательно) — год'), '2026');
     await user.click(screen.getByRole('button', { name: 'Записать' }));
 
-    await waitFor(() => expect(screen.queryByRole('combobox')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByLabelText('Статус')).not.toBeInTheDocument());
 
     expect((await storedCase())?.journey.COURT_DECISION).toEqual({
-      status: 'IN_PROGRESS', startedOn: null, completedOn: null, note: null,
+      status: 'IN_PROGRESS', startedOn: '2026-03-05', completedOn: null, note: null,
     });
     const row = stageRow(container, 5);
     expect(row.querySelector('.procedure-status')?.textContent?.trim()).toBe('В процессе');
