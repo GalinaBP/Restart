@@ -125,7 +125,6 @@ export default function JourneyPage() {
         <h1 className="journey-title">Давайте разберёмся с долгами</h1>
         <nav className="journey-nav" aria-label="Разделы дела">
           <Link to="/procedure" className="journey-nav-link">Весь путь</Link>
-          <Link to="/documents" className="journey-nav-link">Документы</Link>
           <Link to="/calm" className="journey-nav-link">Кредиторы</Link>
           <Link to="/backup" className="journey-nav-link">Копия дела</Link>
           <button
