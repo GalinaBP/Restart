@@ -122,11 +122,11 @@ export default function JourneyPage() {
   return (
     <main className="journey">
       <header className="journey-header">
-        <h1 className="journey-title">Ваше дело</h1>
+        <h1 className="journey-title">Давайте разберёмся с долгами</h1>
         <nav className="journey-nav" aria-label="Разделы дела">
           <Link to="/procedure" className="journey-nav-link">Весь путь</Link>
           <Link to="/documents" className="journey-nav-link">Документы</Link>
-          <Link to="/calm" className="journey-nav-link">Спокойно</Link>
+          <Link to="/calm" className="journey-nav-link">Кредиторы</Link>
           <Link to="/backup" className="journey-nav-link">Копия дела</Link>
           <button
             type="button"
@@ -140,9 +140,11 @@ export default function JourneyPage() {
 
       <div className="journey-status">
         <p className="journey-status-line">
-          <span className="journey-status-count">{filled} из {total}</span>
+          <span className="journey-status-count">{filled} из {total} шагов</span>
           <span className="journey-status-text">
-            {allFilled ? 'Все шаги заполнены. Пора собирать документы.' : 'Всё сохраняется сразу.'}
+            {allFilled
+              ? 'Все шаги заполнены. Пора собирать документы.'
+              : 'Мы будем идти по порядку. Ответы сохраняются автоматически.'}
           </span>
         </p>
         <div
@@ -171,10 +173,10 @@ export default function JourneyPage() {
       )}
 
       <section className="journey-part">
-        <h2 className="journey-part-title">Информация о вас</h2>
+        <h2 className="journey-part-title">Сначала — несколько вопросов</h2>
         <p className="check-hint">
-          Вопросы о вас, долгах и доходах — на их основании мы подготовим документы для суда.
-          Все вопросы собраны на одной странице.
+          Расскажите о себе, доходах и долгах. Мы используем ваши ответы, чтобы подготовить
+          документы и показать, что делать дальше.
         </p>
         <Link to="/journey/all" className="journey-part-link">
           {allFilled ? 'Проверить ответы →' : 'Заполнить →'}
@@ -182,18 +184,19 @@ export default function JourneyPage() {
       </section>
 
       <section className="journey-part">
-        <h2 className="journey-part-title">Документы, которые готовит «Рестарт»</h2>
+        <h2 className="journey-part-title">Что подготовит «Рестарт»</h2>
         <p className="check-hint">
-          Заявление, списки и описи мы соберём сами — из ваших ответов выше.
+          Вам не придётся составлять заявление и списки самостоятельно. Мы соберём их из
+          ваших ответов.
         </p>
-        <Link to="/documents" className="journey-part-link">Открыть документы →</Link>
+        <Link to="/documents" className="journey-part-link">Посмотреть документы →</Link>
       </section>
 
       <section className="journey-part">
-        <h2 className="journey-part-title">Документы, которые нужно подготовить самостоятельно</h2>
+        <h2 className="journey-part-title">А что нужно найти вам</h2>
         <p className="check-hint">
-          Эти бумаги выдают банки, работодатель и государство. Закажите их заранее — суд попросит
-          такие документы к заседанию.
+          Часть документов уже есть у вас или их можно получить онлайн. Начните собирать их
+          заранее.
         </p>
         <ul className="journey-own-docs">
           {OWN_DOCUMENTS.map((doc) => (

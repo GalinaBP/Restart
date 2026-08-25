@@ -32,7 +32,7 @@ describe('JourneyPage', () => {
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Поехали' }));
 
-    expect(await screen.findByText('Информация о вас')).toBeInTheDocument();
+    expect(await screen.findByText('Сначала — несколько вопросов')).toBeInTheDocument();
     expect(await storedCase()).toMatchObject({ status: 'DRAFT', sections: {} });
   });
 
@@ -43,10 +43,10 @@ describe('JourneyPage', () => {
     const progress = await screen.findByRole('progressbar');
     expect(progress).toHaveAttribute('aria-valuenow', '1');
     expect(progress).toHaveAttribute('aria-valuemax', '13');
-    expect(screen.getByText('1 из 13')).toBeInTheDocument();
+    expect(screen.getByText('1 из 13 шагов')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Продолжить' }))
       .toHaveAttribute('href', '/journey/all');
-    expect(screen.getByText('Документы, которые нужно подготовить самостоятельно'))
+    expect(screen.getByText('А что нужно найти вам'))
       .toBeInTheDocument();
   });
 
