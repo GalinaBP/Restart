@@ -78,7 +78,11 @@ sections:
     mandatory: true
     statutoryBasis: "ст. 213.4 127-ФЗ — сведения о занятости (ПЛЕЙСХОЛДЕР)"
     fields:
-      - { name: status,       type: STRING, required: true }
+      # ПЛЕЙСХОЛДЕР: перечень занятости — на проверке юриста.
+      - name: status
+        type: STRING
+        required: true
+        options: [EMPLOYED, SELF_EMPLOYED, NOT_WORKING, RETIRED]
       - { name: employerName, type: STRING, required: false }
       - { name: position,     type: STRING, required: false }
 

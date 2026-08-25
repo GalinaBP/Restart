@@ -12,6 +12,7 @@ export interface FieldMeta {
   name: string;
   type: FieldType;
   required: boolean;
+  options?: string[];
 }
 
 export interface SectionDefinition {

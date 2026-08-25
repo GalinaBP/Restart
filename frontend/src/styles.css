@@ -834,23 +834,6 @@ button:disabled {
   border-top: 1px solid var(--pill-border);
 }
 
-.journey-work-question {
-  margin: 0 0 0.6rem;
-  font-weight: 700;
-}
-
-.journey-work-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
-.journey-work-options .check-option {
-  width: auto;
-  flex: 0 1 auto;
-  padding: 0.6rem 1.3rem;
-}
-
 .journey-own-docs {
   width: 100%;
   margin: 0.7rem 0 0;

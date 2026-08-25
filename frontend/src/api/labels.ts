@@ -34,7 +34,7 @@ export interface OwnDocument {
   where: string;
 }
 
-export type WorkStatus = 'WORKING' | 'NOT_WORKING';
+export type WorkStatus = 'EMPLOYED' | 'SELF_EMPLOYED' | 'NOT_WORKING' | 'RETIRED';
 
 export const OWN_DOCUMENTS: OwnDocument[] = [
   { title: 'Паспорт', where: 'Копии всех заполненных страниц.' },
@@ -47,7 +47,7 @@ export const OWN_DOCUMENTS: OwnDocument[] = [
 ];
 
 export const WORK_DOCUMENTS: Record<WorkStatus, OwnDocument[]> = {
-  WORKING: [
+  EMPLOYED: [
     { title: 'Трудовая книжка', where: 'Бумажная или выписка из электронной — Госуслуги, СФР.' },
     {
       title: 'Справки о доходах (2-НДФЛ) за три года',
@@ -56,6 +56,20 @@ export const WORK_DOCUMENTS: Record<WorkStatus, OwnDocument[]> = {
     {
       title: 'Справка о зарплате за последние месяцы',
       where: 'В бухгалтерии — её просят, когда суд смотрит текущий доход.',
+    },
+  ],
+  SELF_EMPLOYED: [
+    {
+      title: 'Справка о постановке на учёт самозанятого',
+      where: 'В приложении «Мой налог» или на Госуслугах — она подтверждает ваш статус.',
+    },
+    {
+      title: 'Справка о доходах за три года',
+      where: 'Тоже в «Моём налоге»: приложение формирует её за выбранный период.',
+    },
+    {
+      title: 'Выписка из трудовой книжки',
+      where: 'Госуслуги или СФР — если раньше вы работали по найму.',
     },
   ],
   NOT_WORKING: [
@@ -74,8 +88,22 @@ export const WORK_DOCUMENTS: Record<WorkStatus, OwnDocument[]> = {
         + 'справки просто не будет.',
     },
     {
-      title: 'Справка о пенсии или пособиях',
+      title: 'Справка о пособиях',
       where: 'В СФР или на Госуслугах — если вы их получаете.',
+    },
+  ],
+  RETIRED: [
+    {
+      title: 'Справка о размере пенсии',
+      where: 'В СФР или на Госуслугах — за последние месяцы.',
+    },
+    {
+      title: 'Выписка из трудовой книжки',
+      where: 'Госуслуги или СФР: покажет последнюю запись о работе.',
+    },
+    {
+      title: 'Сведения о доходах за три года',
+      where: 'В личном кабинете налоговой — кроме пенсии там видно всё остальное.',
     },
   ],
 };
@@ -243,7 +271,7 @@ const FIELD_LABELS: Record<string, string> = {
   'REGISTRATION_ADDRESS.postalCode': 'Индекс (если знаете)',
   'CONTACT_INFO.phone': 'Телефон',
   'CONTACT_INFO.email': 'Электронная почта',
-  'EMPLOYMENT.status': 'Чем вы сейчас занимаетесь — работаете, ищете работу…',
+  'EMPLOYMENT.status': 'Чем вы сейчас занимаетесь',
   'EMPLOYMENT.employerName': 'Где работаете (если работаете)',
   'EMPLOYMENT.position': 'Кем (если работаете)',
   'MONTHLY_INCOME.amount': 'Сколько получаете в месяц, ₽',
@@ -319,6 +347,17 @@ export function sectionLabel(key: string): SectionLabel {
 
 export function fieldLabel(sectionKey: string, fieldName: string): string {
   return FIELD_LABELS[`${sectionKey}.${fieldName}`] ?? fieldName;
+}
+
+const OPTION_LABELS: Record<string, string> = {
+  'EMPLOYMENT.status.EMPLOYED': 'Работаю по найму',
+  'EMPLOYMENT.status.SELF_EMPLOYED': 'Самозанятый',
+  'EMPLOYMENT.status.NOT_WORKING': 'Не работаю',
+  'EMPLOYMENT.status.RETIRED': 'Пенсионер',
+};
+
+export function optionLabel(sectionKey: string, fieldName: string, option: string): string {
+  return OPTION_LABELS[`${sectionKey}.${fieldName}.${option}`] ?? option;
 }
 
 export interface StageLabel {
