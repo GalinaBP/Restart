@@ -32,13 +32,7 @@ export default function LandingPage() {
   return (
     <main className="landing">
       <div className="landing-sky" aria-hidden="true" />
-      <button
-        type="button"
-        className="landing-login"
-        onClick={() => navigate('/auth')}
-      >
-        Войти
-      </button>
+      <Link to="/auth" className="landing-login">Войти</Link>
       <h1 className="landing-brand">Рестарт</h1>
       <p className="landing-lead">Начните путь к списанию долгов&nbsp;🚀</p>
       <p className="landing-sub">
