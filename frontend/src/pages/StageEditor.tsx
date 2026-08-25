@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { STATUS_LABELS } from '../api/labels';
+import DateField from './DateField';
 import type { JourneyStageView, RecordStageInput } from '../local/journey';
 
 export default function StageEditor({
@@ -51,24 +52,16 @@ export default function StageEditor({
           <option value="BLOCKED">{STATUS_LABELS.BLOCKED.title}</option>
         </select>
       </label>
-      <label className="auth-label">
-        Начали (не обязательно)
-        <input
-          className="auth-input"
-          type="date"
-          value={startedOn}
-          onChange={(e) => setStartedOn(e.target.value)}
-        />
-      </label>
-      <label className="auth-label">
-        Закончили (не обязательно)
-        <input
-          className="auth-input"
-          type="date"
-          value={completedOn}
-          onChange={(e) => setCompletedOn(e.target.value)}
-        />
-      </label>
+      <DateField
+        label="Начали (не обязательно)"
+        value={startedOn}
+        onChange={setStartedOn}
+      />
+      <DateField
+        label="Закончили (не обязательно)"
+        value={completedOn}
+        onChange={setCompletedOn}
+      />
       <label className="auth-label">
         Заметка (не обязательно)
         <textarea
