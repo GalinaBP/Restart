@@ -18,7 +18,7 @@ describe('CalmPage', () => {
   it('opens with reassurance and every subsection of the ticket', () => {
     renderPage();
 
-    expect(screen.getByRole('heading', { name: /Спокойно, это нормально/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Кредиторы/ })).toBeInTheDocument();
     expect(screen.getByText(/Почти каждый, кто проходит банкротство/)).toBeInTheDocument();
     expect(screen.getByRole('note')).toHaveTextContent('Черновик — проверяется юристом');
 
