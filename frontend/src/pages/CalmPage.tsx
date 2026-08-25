@@ -65,7 +65,7 @@ export default function CalmPage() {
   return (
     <main className="calm">
       <header className="journey-header">
-        <h1 className="journey-title">🛡️ Спокойно, это нормально</h1>
+        <h1 className="journey-title">🛡️ Кредиторы</h1>
         <Link to="/journey" className="check-back">← К делу</Link>
       </header>
 
