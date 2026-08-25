@@ -145,7 +145,13 @@
       {
         "name": "status",
         "type": "STRING",
-        "required": true
+        "required": true,
+        "options": [
+          "EMPLOYED",
+          "SELF_EMPLOYED",
+          "NOT_WORKING",
+          "RETIRED"
+        ]
       },
       {
         "name": "employerName",

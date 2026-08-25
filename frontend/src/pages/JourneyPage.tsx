@@ -4,17 +4,21 @@ import { isSignedIn, logout } from '../api/auth';
 import {
   createCase,
   currentCase,
+  getSection,
   sectionsOverview,
   type CaseInfo,
+  type SectionContent,
   type SectionStatus,
 } from '../local/case';
 import { CASE_DATA_SECTIONS, OWN_DOCUMENTS, WORK_DOCUMENTS, type WorkStatus } from '../api/labels';
 
-const WORK_KEY = 'restart.journey.workStatus';
-
-function storedWork(): WorkStatus | null {
-  const saved = localStorage.getItem(WORK_KEY);
-  return saved === 'WORKING' || saved === 'NOT_WORKING' ? saved : null;
+function workStatusOf(content: SectionContent): WorkStatus | null {
+  const data = content.data;
+  if (data === null || Array.isArray(data)) {
+    return null;
+  }
+  const status = data.status;
+  return typeof status === 'string' && status in WORK_DOCUMENTS ? status as WorkStatus : null;
 }
 
 export default function JourneyPage() {
@@ -23,19 +27,19 @@ export default function JourneyPage() {
   const [steps, setSteps] = useState<SectionStatus[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  const [work, setWork] = useState<WorkStatus | null>(storedWork);
-
-  const chooseWork = (status: WorkStatus) => {
-    setWork(status);
-    localStorage.setItem(WORK_KEY, status);
-  };
+  const [work, setWork] = useState<WorkStatus | null>(null);
 
   const load = useCallback(async () => {
     try {
       const existing = await currentCase();
       setCase(existing);
       if (existing) {
-        setSteps(await sectionsOverview());
+        const [overview, employment] = await Promise.all([
+          sectionsOverview(),
+          getSection('EMPLOYMENT'),
+        ]);
+        setSteps(overview);
+        setWork(workStatusOf(employment));
       }
     } catch {
       setFailed(true);
@@ -58,6 +62,7 @@ export default function JourneyPage() {
     try {
       setCase(await createCase());
       setSteps(await sectionsOverview());
+      setWork(null);
     } catch {
       setFailed(true);
     } finally {
@@ -207,28 +212,10 @@ export default function JourneyPage() {
         </ul>
 
         <div className="journey-work-choice">
-          <p className="journey-work-question">Вы сейчас работаете?</p>
-          <div className="journey-work-options" role="group" aria-label="Вы сейчас работаете?">
-            <button
-              type="button"
-              className={`check-option${work === 'WORKING' ? ' check-option-selected' : ''}`}
-              aria-pressed={work === 'WORKING'}
-              onClick={() => chooseWork('WORKING')}
-            >
-              Работаю
-            </button>
-            <button
-              type="button"
-              className={`check-option${work === 'NOT_WORKING' ? ' check-option-selected' : ''}`}
-              aria-pressed={work === 'NOT_WORKING'}
-              onClick={() => chooseWork('NOT_WORKING')}
-            >
-              Не работаю
-            </button>
-          </div>
           {work === null ? (
             <p className="check-hint">
-              Ответьте — и мы допишем сюда бумаги о доходах именно для вашего случая.
+              Ответьте в шаге «Работа», чем вы сейчас занимаетесь, — и мы допишем сюда бумаги
+              о доходах именно для вашего случая.
             </p>
           ) : (
             <ul className="journey-own-docs">

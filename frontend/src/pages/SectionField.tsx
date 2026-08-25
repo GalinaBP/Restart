@@ -1,5 +1,5 @@
 import type { FieldMeta } from '../local/case';
-import { fieldLabel } from '../api/labels';
+import { fieldLabel, optionLabel } from '../api/labels';
 import DateField from './DateField';
 import { inputType } from './sectionForm';
 
@@ -27,6 +27,27 @@ export function SectionField({
           onChange={(e) => onChange(e.target.checked)}
         />
         {label}
+      </label>
+    );
+  }
+
+  if (field.options) {
+    return (
+      <label className="auth-label">
+        {label}
+        <select
+          className={`auth-input${issue ? ' section-input-invalid' : ''}`}
+          value={typeof value === 'string' ? value : ''}
+          onChange={(e) => onChange(e.target.value)}
+        >
+          <option value="">Выберите вариант</option>
+          {field.options.map((option) => (
+            <option key={option} value={option}>
+              {optionLabel(sectionKey, field.name, option)}
+            </option>
+          ))}
+        </select>
+        {issue && <span className="auth-error" role="alert">{issue}</span>}
       </label>
     );
   }

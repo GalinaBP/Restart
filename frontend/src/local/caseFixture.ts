@@ -29,7 +29,7 @@ export const VALID_CASE: Record<string, SectionPayload> = {
     email: 'anna@example.com',
   },
   EMPLOYMENT: {
-    status: 'работаю по найму',
+    status: 'EMPLOYED',
     employerName: 'ООО «Ромашка»',
     position: 'менеджер',
   },

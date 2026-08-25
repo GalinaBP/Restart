@@ -70,7 +70,19 @@ function sections() {
         if (!FIELD_TYPES.includes(field.type)) {
           fail(resource, `field ${key}.${name} has unknown type ${field.type}`);
         }
-        return { name, type: field.type, required: Boolean(field.required) };
+        const options = field.options ?? null;
+        if (options !== null) {
+          if (!Array.isArray(options) || options.length === 0) {
+            fail(resource, `field ${key}.${name} has options that are not a non-empty list`);
+          }
+          for (const option of options) {
+            requireText(resource, option, `an option of ${key}.${name}`);
+          }
+          requireUnique(resource, options, `option of ${key}.${name}`);
+        }
+        return options === null
+          ? { name, type: field.type, required: Boolean(field.required) }
+          : { name, type: field.type, required: Boolean(field.required), options };
       });
       requireUnique(resource, fields.map((field) => field.name), `field in section ${key}`);
 

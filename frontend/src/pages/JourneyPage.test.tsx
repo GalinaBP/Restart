@@ -50,41 +50,46 @@ describe('JourneyPage', () => {
       .toBeInTheDocument();
   });
 
-  it('asks whether the user works, and lists the papers that answer proves', async () => {
-    await seedCase({ sections: ONE_STEP_FILLED });
-    const user = userEvent.setup();
+  it('lists the papers that match what the questionnaire says about work', async () => {
+    await seedCase({ sections: { ...ONE_STEP_FILLED, EMPLOYMENT: { status: 'EMPLOYED' } } });
     renderSignedIn();
 
-    expect(await screen.findByText('Паспорт')).toBeInTheDocument();
-    expect(screen.getByText('Вы сейчас работаете?')).toBeInTheDocument();
-    expect(screen.queryByText('Трудовая книжка')).not.toBeInTheDocument();
-    expect(screen.queryByText('Справка из центра занятости')).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Работаю' }));
-    expect(screen.getByText('Трудовая книжка')).toBeInTheDocument();
+    expect(await screen.findByText('Трудовая книжка')).toBeInTheDocument();
     expect(screen.getByText('Справки о доходах (2-НДФЛ) за три года')).toBeInTheDocument();
     expect(screen.queryByText('Справка из центра занятости')).not.toBeInTheDocument();
+    expect(screen.queryByText('Справка о постановке на учёт самозанятого')).not.toBeInTheDocument();
+  });
 
-    await user.click(screen.getByRole('button', { name: 'Не работаю' }));
-    expect(screen.getByText('Справка из центра занятости')).toBeInTheDocument();
-    expect(screen.getByText('Выписка из трудовой книжки')).toBeInTheDocument();
+  it('swaps the papers when the answer is «Самозанятый»', async () => {
+    await seedCase({ sections: { ...ONE_STEP_FILLED, EMPLOYMENT: { status: 'SELF_EMPLOYED' } } });
+    renderSignedIn();
+
+    expect(await screen.findByText('Справка о постановке на учёт самозанятого')).toBeInTheDocument();
     expect(screen.queryByText('Трудовая книжка')).not.toBeInTheDocument();
     expect(screen.queryByText('Справки о доходах (2-НДФЛ) за три года')).not.toBeInTheDocument();
   });
 
-  it('remembers the work answer after leaving the page', async () => {
+  it('points at the «Работа» step while the answer is missing, and asks nothing itself', async () => {
     await seedCase({ sections: ONE_STEP_FILLED });
-    const user = userEvent.setup();
-    const { unmount } = renderSignedIn();
-
-    await user.click(await screen.findByRole('button', { name: 'Не работаю' }));
-    expect(screen.getByText('Справка из центра занятости')).toBeInTheDocument();
-    unmount();
-
     renderSignedIn();
 
-    expect(await screen.findByText('Справка из центра занятости')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Не работаю' })).toHaveAttribute('aria-pressed', 'true');
+    expect(await screen.findByText('Паспорт')).toBeInTheDocument();
+    expect(screen.getByText(/Ответьте в шаге «Работа»/)).toBeInTheDocument();
+    expect(screen.queryByText('Трудовая книжка')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Работаю' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Не работаю' })).not.toBeInTheDocument();
+  });
+
+  it('keeps the papers after a remount, because the answer lives in the case', async () => {
+    await seedCase({ sections: { ...ONE_STEP_FILLED, EMPLOYMENT: { status: 'RETIRED' } } });
+    const { unmount } = renderSignedIn();
+
+    expect(await screen.findByText('Справка о размере пенсии')).toBeInTheDocument();
+    unmount();
+    localStorage.removeItem('restart.journey.workStatus');
+
+    renderSignedIn();
+    expect(await screen.findByText('Справка о размере пенсии')).toBeInTheDocument();
   });
 
   it('does not claim the case is complete when no known step matched', async () => {

@@ -81,6 +81,9 @@ function validateFields(
 }
 
 function checkValue(field: FieldMeta, value: SectionValue): Finding | null {
+  if (field.options && !field.options.includes(String(value))) {
+    return { code: 'INVALID_TYPE', message: 'Выберите один из вариантов' };
+  }
   switch (field.type) {
     case 'STRING':
       return typeof value === 'string'
