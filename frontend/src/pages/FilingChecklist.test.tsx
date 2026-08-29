@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { seedCase, seedDocument, signIn } from '../test/localCase';
 import SectionPage from './SectionPage';
@@ -26,9 +27,9 @@ describe('the checklist before filing', () => {
     expect(await screen.findByText('Перед подачей проверьте')).toBeInTheDocument();
 
     for (const [title, href] of [
-      ['Заявление и приложения готовы', '/documents'],
-      ['Квитанция о госпошлине готова', '/journey/PAYMENTS'],
-      ['Указана выбранная СРО финансового управляющего', '/journey/MANAGER_SRO'],
+      ['Заявление готово', '/documents'],
+      ['Госпошлина оплачена', '/journey/PAYMENTS'],
+      ['СРО выбрана', '/journey/MANAGER_SRO'],
     ] as const) {
       const row = rowFor(title);
       expect(within(row).getByText('Не готово')).toBeInTheDocument();
@@ -49,10 +50,10 @@ describe('the checklist before filing', () => {
     expect(await screen.findByText('Перед подачей проверьте')).toBeInTheDocument();
 
     for (const title of [
-      'Заявление и приложения готовы',
-      'Квитанция о госпошлине готова',
-      'Подтверждение депозита на финансового управляющего готово',
-      'Указана выбранная СРО финансового управляющего',
+      'Заявление готово',
+      'Госпошлина оплачена',
+      'Депозит внесён',
+      'СРО выбрана',
     ]) {
       const row = rowFor(title);
       expect(within(row).getByText('Готово')).toBeInTheDocument();
@@ -60,9 +61,9 @@ describe('the checklist before filing', () => {
     }
 
     for (const title of [
-      'Документы о доходах и имуществе приложены',
-      'Документы по долгам приложены',
-      'Все копии и реквизиты проверены',
+      'Справки о доходах и имуществе на руках',
+      'Договоры и справки по долгам на руках',
+      'Копии заявления для кредиторов готовы',
     ]) {
       expect(within(rowFor(title)).getByText('Проверьте сами')).toBeInTheDocument();
     }
@@ -75,8 +76,32 @@ describe('the checklist before filing', () => {
 
     await screen.findByText('Перед подачей проверьте');
 
-    expect(within(rowFor('Заявление и приложения готовы')).getByText('Не готово'))
+    expect(within(rowFor('Заявление готово')).getByText('Не готово'))
       .toBeInTheDocument();
+  });
+
+  it('shows one route at a time, and only after it is chosen', async () => {
+    await seedCase();
+    const user = userEvent.setup();
+    renderFiling();
+
+    expect(await screen.findByText('Как подать')).toBeInTheDocument();
+    expect(screen.getByText(/арбитражный суд по месту прописки/)).toBeInTheDocument();
+    expect(screen.getByText(/Копию заявления нужно отправить/)).toBeInTheDocument();
+    expect(screen.queryByText(/Войдите на «Мой арбитр»/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/заказным письмом с описью/)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Почтой/ }));
+
+    expect(screen.getByText(/заказным письмом с описью/)).toBeInTheDocument();
+    expect(screen.queryByText(/Войдите на «Мой арбитр»/)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Онлайн/ }));
+
+    expect(screen.getByText(/Войдите на «Мой арбитр»/)).toBeInTheDocument();
+    expect(screen.queryByText(/заказным письмом с описью/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Открыть «Мой арбитр»' }))
+      .toHaveAttribute('href', 'https://my.arbitr.ru');
   });
 
   it('names the save button after what it records', async () => {

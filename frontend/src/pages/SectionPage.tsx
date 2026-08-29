@@ -10,6 +10,7 @@ import { issueFor as findIssue, toApi, toForm, type FormEntry } from './sectionF
 import { SectionField } from './SectionField';
 import SectionHelp from './SectionHelp';
 import FilingChecklist from './FilingChecklist';
+import FilingRoutes from './FilingRoutes';
 
 export default function SectionPage() {
   const { sectionKey = '' } = useParams();
@@ -149,7 +150,12 @@ export default function SectionPage() {
       <p className="check-placeholder" role="note">Черновик — проверяется юристом</p>
       {label.hint && <p className="check-hint">{label.hint}</p>}
       {label.caution && <p className="section-caution" role="note">{label.caution}</p>}
-      {section.key === 'FILING_SUBMISSION' && <FilingChecklist />}
+      {section.key === 'FILING_SUBMISSION' && (
+        <>
+          <FilingChecklist />
+          <FilingRoutes />
+        </>
+      )}
       <SectionHelp blocks={label.help} />
       {saved && issues.length > 0 && (
         <p className="section-saved-note" role="status">

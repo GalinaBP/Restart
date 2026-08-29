@@ -20,9 +20,9 @@ const STATE_WORD: Record<State, string> = {
 };
 
 const OWN_ITEMS: Item[] = [
-  { title: 'Документы о доходах и имуществе приложены', state: 'own' },
-  { title: 'Документы по долгам приложены', state: 'own' },
-  { title: 'Все копии и реквизиты проверены', state: 'own' },
+  { title: 'Справки о доходах и имуществе на руках', state: 'own' },
+  { title: 'Договоры и справки по долгам на руках', state: 'own' },
+  { title: 'Копии заявления для кредиторов готовы', state: 'own' },
 ];
 
 function single(data: SectionEntry | SectionEntry[] | null): SectionEntry | null {
@@ -56,28 +56,26 @@ export default function FilingChecklist() {
           return;
         }
         setItems([
-          mark(ready ? 'done' : 'todo', 'Заявление и приложения готовы', '/documents', 'Собрать →'),
+          mark(ready ? 'done' : 'todo', 'Заявление готово', '/documents', 'Собрать →'),
           OWN_ITEMS[0],
           OWN_ITEMS[1],
           mark(filled(money, 'stateDutyPaidOn') ? 'done' : 'todo',
-            'Квитанция о госпошлине готова', '/journey/PAYMENTS', 'Отметить →'),
+            'Госпошлина оплачена', '/journey/PAYMENTS', 'Отметить →'),
           mark(filled(money, 'depositPaidOn') ? 'done' : 'todo',
-            'Подтверждение депозита на финансового управляющего готово',
-            '/journey/PAYMENTS', 'Отметить →'),
+            'Депозит внесён', '/journey/PAYMENTS', 'Отметить →'),
           mark(filled(single(sro.data), 'name') ? 'done' : 'todo',
-            'Указана выбранная СРО финансового управляющего',
-            '/journey/MANAGER_SRO', 'Указать →'),
+            'СРО выбрана', '/journey/MANAGER_SRO', 'Указать →'),
           OWN_ITEMS[2],
         ]);
       } catch {
         if (live) {
           setItems([
-            { title: 'Заявление и приложения готовы', state: 'own' },
+            { title: 'Заявление готово', state: 'own' },
             OWN_ITEMS[0],
             OWN_ITEMS[1],
-            { title: 'Квитанция о госпошлине готова', state: 'own' },
-            { title: 'Подтверждение депозита на финансового управляющего готово', state: 'own' },
-            { title: 'Указана выбранная СРО финансового управляющего', state: 'own' },
+            { title: 'Госпошлина оплачена', state: 'own' },
+            { title: 'Депозит внесён', state: 'own' },
+            { title: 'СРО выбрана', state: 'own' },
             OWN_ITEMS[2],
           ]);
         }
