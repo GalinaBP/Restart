@@ -12,13 +12,14 @@ import {
 } from '../local/case';
 import {
   CASE_DATA_SECTIONS,
+  CASE_DOCUMENTS,
   INCOME_DOCUMENTS,
-  OWN_DOCUMENTS,
   WORK_DOCUMENTS,
+  type DocumentGuide,
   type IncomeKind,
-  type OwnDocument,
   type WorkStatus,
 } from '../api/labels';
+import DocumentGuideList from './DocumentGuideList';
 
 function answer(content: SectionContent, field: string): string | null {
   const data = content.data;
@@ -29,7 +30,7 @@ function answer(content: SectionContent, field: string): string | null {
   return typeof value === 'string' ? value : null;
 }
 
-function workPapers(content: SectionContent): OwnDocument[] | null {
+function workPapers(content: SectionContent): DocumentGuide[] | null {
   const status = answer(content, 'status');
   if (status === null || !(status in WORK_DOCUMENTS)) {
     return null;
@@ -45,7 +46,7 @@ export default function JourneyPage() {
   const [steps, setSteps] = useState<SectionStatus[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  const [papers, setPapers] = useState<OwnDocument[] | null>(null);
+  const [papers, setPapers] = useState<DocumentGuide[] | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -216,19 +217,16 @@ export default function JourneyPage() {
       </section>
 
       <section className="journey-part">
-        <h2 className="journey-part-title">А что нужно найти вам</h2>
+        <h2 className="journey-part-title">Какие документы нужно собрать</h2>
         <p className="check-hint">
-          Часть документов уже есть у вас или их можно получить онлайн. Начните собирать их
-          заранее.
+          Часть документов уже есть у вас, а некоторые можно получить онлайн. Скачивайте их в PDF,
+          если сервис даёт выбрать формат; если PDF недоступен — сохраните как JPG или PNG.
         </p>
-        <ul className="journey-own-docs">
-          {OWN_DOCUMENTS.map((doc) => (
-            <li key={doc.title}>
-              <span className="journey-own-doc-title">{doc.title}</span>
-              <span className="journey-own-doc-where">{doc.where}</span>
-            </li>
-          ))}
-        </ul>
+        <p className="check-hint">
+          Перед загрузкой проверьте, что документ читается целиком, все страницы на месте, а текст
+          и реквизиты не обрезаны.
+        </p>
+        <DocumentGuideList guides={CASE_DOCUMENTS} />
 
         <div className="journey-work-choice">
           {papers === null ? (
@@ -237,14 +235,7 @@ export default function JourneyPage() {
               бумаги именно для вашего случая.
             </p>
           ) : (
-            <ul className="journey-own-docs">
-              {papers.map((doc) => (
-                <li key={doc.title}>
-                  <span className="journey-own-doc-title">{doc.title}</span>
-                  <span className="journey-own-doc-where">{doc.where}</span>
-                </li>
-              ))}
-            </ul>
+            <DocumentGuideList guides={papers} />
           )}
         </div>
       </section>

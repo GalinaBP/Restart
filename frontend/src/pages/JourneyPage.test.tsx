@@ -47,7 +47,7 @@ describe('JourneyPage', () => {
     expect(screen.getByText('1 из 13 шагов')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Продолжить' }))
       .toHaveAttribute('href', '/journey/all');
-    expect(screen.getByText('А что нужно найти вам'))
+    expect(screen.getByText('Какие документы нужно собрать'))
       .toBeInTheDocument();
   });
 
@@ -55,10 +55,10 @@ describe('JourneyPage', () => {
     await seedCase({ sections: { ...ONE_STEP_FILLED, EMPLOYMENT: { status: 'EMPLOYED', otherIncome: 'NONE' } } });
     renderSignedIn();
 
-    expect(await screen.findByText('Трудовая книжка')).toBeInTheDocument();
-    expect(screen.getByText('Справки о доходах (2-НДФЛ) за три года')).toBeInTheDocument();
+    expect(await screen.findByText('Сведения о трудовой деятельности')).toBeInTheDocument();
+    expect(screen.getByText('Сведения о доходах за последние три года')).toBeInTheDocument();
     expect(screen.queryByText('Справка из центра занятости')).not.toBeInTheDocument();
-    expect(screen.queryByText('Справка о постановке на учёт самозанятого')).not.toBeInTheDocument();
+    expect(screen.queryByText('Справки самозанятого')).not.toBeInTheDocument();
   });
 
   it('adds the self-employment papers to the ones for having no job', async () => {
@@ -70,10 +70,11 @@ describe('JourneyPage', () => {
     });
     renderSignedIn();
 
-    expect(await screen.findByText('Справка о постановке на учёт самозанятого')).toBeInTheDocument();
-    expect(screen.getByText('Выписка из трудовой книжки')).toBeInTheDocument();
-    expect(screen.queryByText('Трудовая книжка')).not.toBeInTheDocument();
-    expect(screen.queryByText('Справки о доходах (2-НДФЛ) за три года')).not.toBeInTheDocument();
+    expect(await screen.findByText('Справки самозанятого')).toBeInTheDocument();
+    expect(screen.getByText('Справка из центра занятости')).toBeInTheDocument();
+    expect(screen.getByText('Сведения о трудовой деятельности')).toBeInTheDocument();
+    expect(screen.queryByText('Справка о размере пенсии')).not.toBeInTheDocument();
+    expect(screen.queryByText('Справка о пособиях и выплатах')).not.toBeInTheDocument();
   });
 
   it('lists both sets for someone who works and also draws a pension', async () => {
@@ -85,8 +86,8 @@ describe('JourneyPage', () => {
     });
     renderSignedIn();
 
-    expect(await screen.findByText('Трудовая книжка')).toBeInTheDocument();
-    expect(screen.getByText('Справки о доходах (2-НДФЛ) за три года')).toBeInTheDocument();
+    expect(await screen.findByText('Сведения о трудовой деятельности')).toBeInTheDocument();
+    expect(screen.getByText('Сведения о доходах за последние три года')).toBeInTheDocument();
     expect(screen.getByText('Справка о размере пенсии')).toBeInTheDocument();
   });
 
@@ -96,7 +97,7 @@ describe('JourneyPage', () => {
 
     expect(await screen.findByText('Паспорт')).toBeInTheDocument();
     expect(screen.getByText(/Ответьте в шаге «Работа»/)).toBeInTheDocument();
-    expect(screen.queryByText('Трудовая книжка')).not.toBeInTheDocument();
+    expect(screen.queryByText('Сведения о трудовой деятельности')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Работаю' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Не работаю' })).not.toBeInTheDocument();
   });
