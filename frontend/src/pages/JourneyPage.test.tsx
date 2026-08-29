@@ -41,6 +41,7 @@ describe('JourneyPage', () => {
     renderSignedIn();
 
     const progress = await screen.findByRole('progressbar');
+    expect(screen.getByText('Черновик — проверяется юристом')).toBeInTheDocument();
     expect(progress).toHaveAttribute('aria-valuenow', '1');
     expect(progress).toHaveAttribute('aria-valuemax', '13');
     expect(screen.getByText('1 из 13 шагов')).toBeInTheDocument();

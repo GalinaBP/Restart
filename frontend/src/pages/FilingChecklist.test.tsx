@@ -84,6 +84,7 @@ describe('the checklist before filing', () => {
     renderFiling();
 
     expect(await screen.findByRole('button', { name: 'Я подал заявление' })).toBeInTheDocument();
+    expect(screen.getByText('Черновик — проверяется юристом')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Сохранить и дальше' })).not.toBeInTheDocument();
   });
 });

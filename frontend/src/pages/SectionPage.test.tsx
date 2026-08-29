@@ -139,7 +139,10 @@ describe('SectionPage', () => {
     await seedCase();
     renderAt('MARITAL_STATUS');
 
-    expect(await screen.findByRole('note'))
-      .toHaveTextContent('рассчитан на тех, кто не состоит в браке');
+    await screen.findByRole('heading', { name: 'Семейное положение' });
+
+    expect(screen.getByText(/рассчитан на тех, кто не состоит в браке/))
+      .toHaveClass('section-caution');
+    expect(screen.getByText('Черновик — проверяется юристом')).toBeInTheDocument();
   });
 });

@@ -158,6 +158,7 @@ export default function AboutYouPage() {
         <h1 className="journey-title">Информация о вас</h1>
         <Link to="/journey" className="check-back">← К делу</Link>
       </header>
+      <p className="check-placeholder" role="note">Черновик — проверяется юристом</p>
       <p className="check-hint">
         Вопросы о вас, долгах и доходах — на их основании мы подготовим документы для суда.
         Заполняйте в любом порядке, всё сохранится разом.

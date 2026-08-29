@@ -141,6 +141,7 @@ export default function JourneyPage() {
           </button>
         </nav>
       </header>
+      <p className="check-placeholder" role="note">Черновик — проверяется юристом</p>
 
       <div className="journey-status">
         <p className="journey-status-line">
