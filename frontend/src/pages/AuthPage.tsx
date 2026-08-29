@@ -5,11 +5,20 @@ import { ApiError } from '../api/client';
 
 type Mode = 'register' | 'login' | 'forgot' | 'sent';
 
+function initialMode(search: string, state: unknown): Mode {
+  const asked = new URLSearchParams(search).get('mode');
+  if (asked === 'login' || asked === 'register') {
+    return asked;
+  }
+  return (state as { mode?: Mode } | null)?.mode ?? 'register';
+}
+
 export default function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const initialMode = (location.state as { mode?: Mode } | null)?.mode ?? 'register';
-  const [mode, setMode] = useState<Mode>(initialMode);
+  const [mode, setMode] = useState<Mode>(
+    () => initialMode(location.search, location.state),
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +60,7 @@ export default function AuthPage() {
 
   const hint = {
     register: 'Аккаунт — это только вход. Всё, что вы заполните по делу, останется на этом устройстве и никуда не отправится: мы к нему не притрагиваемся.',
-    login: 'Войдите — и продолжайте с того шага, где остановились. Дело хранится на устройстве, с которого вы его заполняли.',
+    login: 'Документы хранятся на устройстве, с которого вы их заполняли. Войдите — и продолжайте с того шага, где остановились.',
     forgot: 'Укажите почту, с которой вы регистрировались, — мы отправим на неё ссылку для смены пароля.',
     sent: 'Если такая почта у нас есть, письмо со ссылкой уже в пути. Ссылка работает один час. Не пришло за пару минут — загляните в папку «Спам».',
   }[mode];
