@@ -1304,6 +1304,49 @@ a.procedure-stage:hover {
   white-space: nowrap;
 }
 
+.filing-routes {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.filing-route-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.filing-route-options .check-option {
+  width: auto;
+  flex: 1 1 8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 1rem;
+  text-align: left;
+}
+
+.filing-route-title {
+  font-weight: 800;
+}
+
+.filing-route-summary {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.filing-route-steps {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.filing-route-link {
+  margin: 0;
+}
+
 .section-saved-note {
   background: rgba(52, 211, 153, 0.18);
   border: 1px solid var(--pill-border);
