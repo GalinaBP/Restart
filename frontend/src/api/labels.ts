@@ -35,7 +35,9 @@ export interface OwnDocument {
   where: string;
 }
 
-export type WorkStatus = 'EMPLOYED' | 'SELF_EMPLOYED' | 'NOT_WORKING' | 'RETIRED';
+export type WorkStatus = 'EMPLOYED' | 'NOT_WORKING';
+
+export type IncomeKind = 'SELF_EMPLOYED' | 'PENSION' | 'BENEFITS' | 'NONE' | 'OTHER';
 
 export const OWN_DOCUMENTS: OwnDocument[] = [
   { title: 'Паспорт', where: 'Копии всех заполненных страниц.' },
@@ -59,20 +61,6 @@ export const WORK_DOCUMENTS: Record<WorkStatus, OwnDocument[]> = {
       where: 'В бухгалтерии — её просят, когда суд смотрит текущий доход.',
     },
   ],
-  SELF_EMPLOYED: [
-    {
-      title: 'Справка о постановке на учёт самозанятого',
-      where: 'В приложении «Мой налог» или на Госуслугах — она подтверждает ваш статус.',
-    },
-    {
-      title: 'Справка о доходах за три года',
-      where: 'Тоже в «Моём налоге»: приложение формирует её за выбранный период.',
-    },
-    {
-      title: 'Выписка из трудовой книжки',
-      where: 'Госуслуги или СФР — если раньше вы работали по найму.',
-    },
-  ],
   NOT_WORKING: [
     {
       title: 'Выписка из трудовой книжки',
@@ -88,23 +76,30 @@ export const WORK_DOCUMENTS: Record<WorkStatus, OwnDocument[]> = {
       where: 'Если вы стоите на учёте: о постановке и размере пособия. Если не стоите — этой '
         + 'справки просто не будет.',
     },
+  ],
+};
+
+export const INCOME_DOCUMENTS: Partial<Record<IncomeKind, OwnDocument[]>> = {
+  SELF_EMPLOYED: [
     {
-      title: 'Справка о пособиях',
-      where: 'В СФР или на Госуслугах — если вы их получаете.',
+      title: 'Справка о постановке на учёт самозанятого',
+      where: 'В приложении «Мой налог» или на Госуслугах — она подтверждает ваш статус.',
+    },
+    {
+      title: 'Справка о доходах самозанятого за три года',
+      where: 'Тоже в «Моём налоге»: приложение формирует её за выбранный период.',
     },
   ],
-  RETIRED: [
+  PENSION: [
     {
       title: 'Справка о размере пенсии',
       where: 'В СФР или на Госуслугах — за последние месяцы.',
     },
+  ],
+  BENEFITS: [
     {
-      title: 'Выписка из трудовой книжки',
-      where: 'Госуслуги или СФР: покажет последнюю запись о работе.',
-    },
-    {
-      title: 'Сведения о доходах за три года',
-      where: 'В личном кабинете налоговой — кроме пенсии там видно всё остальное.',
+      title: 'Справка о пособиях и выплатах',
+      where: 'В СФР, на Госуслугах или в соцзащите — смотря кто их платит.',
     },
   ],
 };
@@ -270,7 +265,8 @@ const FIELD_LABELS: Record<string, string> = {
   'REGISTRATION_ADDRESS.postalCode': 'Индекс (если знаете)',
   'CONTACT_INFO.phone': 'Телефон',
   'CONTACT_INFO.email': 'Электронная почта',
-  'EMPLOYMENT.status': 'Чем вы сейчас занимаетесь',
+  'EMPLOYMENT.status': 'Есть ли у вас сейчас официальная работа?',
+  'EMPLOYMENT.otherIncome': 'Получаете ли вы сейчас другие доходы?',
   'EMPLOYMENT.employerName': 'Где работаете (если работаете)',
   'EMPLOYMENT.position': 'Кем (если работаете)',
   'MONTHLY_INCOME.amount': 'Сколько получаете в месяц, ₽',
@@ -349,11 +345,23 @@ export function fieldLabel(sectionKey: string, fieldName: string): string {
 }
 
 const OPTION_LABELS: Record<string, string> = {
-  'EMPLOYMENT.status.EMPLOYED': 'Работаю по найму',
-  'EMPLOYMENT.status.SELF_EMPLOYED': 'Самозанятый',
-  'EMPLOYMENT.status.NOT_WORKING': 'Не работаю',
-  'EMPLOYMENT.status.RETIRED': 'Пенсионер',
+  'EMPLOYMENT.status.EMPLOYED': 'Да, работаю по найму',
+  'EMPLOYMENT.status.NOT_WORKING': 'Нет',
+  'EMPLOYMENT.otherIncome.SELF_EMPLOYED': 'Самозанятость',
+  'EMPLOYMENT.otherIncome.PENSION': 'Пенсия',
+  'EMPLOYMENT.otherIncome.BENEFITS': 'Пособия / выплаты',
+  'EMPLOYMENT.otherIncome.NONE': 'Нет других доходов',
+  'EMPLOYMENT.otherIncome.OTHER': 'Другое',
 };
+
+const FIELD_HINTS: Record<string, string> = {
+  'EMPLOYMENT.status': 'Если вы работаете как самозанятый, выберите «Нет» — самозанятость мы '
+    + 'уточним следующим вопросом.',
+};
+
+export function fieldHint(sectionKey: string, fieldName: string): string | undefined {
+  return FIELD_HINTS[`${sectionKey}.${fieldName}`];
+}
 
 export function optionLabel(sectionKey: string, fieldName: string, option: string): string {
   return OPTION_LABELS[`${sectionKey}.${fieldName}.${option}`] ?? option;

@@ -1196,6 +1196,12 @@ a.procedure-stage:hover {
   border-color: #fda4af;
 }
 
+.section-field-hint {
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
 .filing-check {
   width: 100%;
   display: flex;

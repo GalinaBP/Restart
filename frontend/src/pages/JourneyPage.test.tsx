@@ -52,7 +52,7 @@ describe('JourneyPage', () => {
   });
 
   it('lists the papers that match what the questionnaire says about work', async () => {
-    await seedCase({ sections: { ...ONE_STEP_FILLED, EMPLOYMENT: { status: 'EMPLOYED' } } });
+    await seedCase({ sections: { ...ONE_STEP_FILLED, EMPLOYMENT: { status: 'EMPLOYED', otherIncome: 'NONE' } } });
     renderSignedIn();
 
     expect(await screen.findByText('Трудовая книжка')).toBeInTheDocument();
@@ -61,13 +61,33 @@ describe('JourneyPage', () => {
     expect(screen.queryByText('Справка о постановке на учёт самозанятого')).not.toBeInTheDocument();
   });
 
-  it('swaps the papers when the answer is «Самозанятый»', async () => {
-    await seedCase({ sections: { ...ONE_STEP_FILLED, EMPLOYMENT: { status: 'SELF_EMPLOYED' } } });
+  it('adds the self-employment papers to the ones for having no job', async () => {
+    await seedCase({
+      sections: {
+        ...ONE_STEP_FILLED,
+        EMPLOYMENT: { status: 'NOT_WORKING', otherIncome: 'SELF_EMPLOYED' },
+      },
+    });
     renderSignedIn();
 
     expect(await screen.findByText('Справка о постановке на учёт самозанятого')).toBeInTheDocument();
+    expect(screen.getByText('Выписка из трудовой книжки')).toBeInTheDocument();
     expect(screen.queryByText('Трудовая книжка')).not.toBeInTheDocument();
     expect(screen.queryByText('Справки о доходах (2-НДФЛ) за три года')).not.toBeInTheDocument();
+  });
+
+  it('lists both sets for someone who works and also draws a pension', async () => {
+    await seedCase({
+      sections: {
+        ...ONE_STEP_FILLED,
+        EMPLOYMENT: { status: 'EMPLOYED', otherIncome: 'PENSION' },
+      },
+    });
+    renderSignedIn();
+
+    expect(await screen.findByText('Трудовая книжка')).toBeInTheDocument();
+    expect(screen.getByText('Справки о доходах (2-НДФЛ) за три года')).toBeInTheDocument();
+    expect(screen.getByText('Справка о размере пенсии')).toBeInTheDocument();
   });
 
   it('points at the «Работа» step while the answer is missing, and asks nothing itself', async () => {
@@ -82,7 +102,7 @@ describe('JourneyPage', () => {
   });
 
   it('keeps the papers after a remount, because the answer lives in the case', async () => {
-    await seedCase({ sections: { ...ONE_STEP_FILLED, EMPLOYMENT: { status: 'RETIRED' } } });
+    await seedCase({ sections: { ...ONE_STEP_FILLED, EMPLOYMENT: { status: 'NOT_WORKING', otherIncome: 'PENSION' } } });
     const { unmount } = renderSignedIn();
 
     expect(await screen.findByText('Справка о размере пенсии')).toBeInTheDocument();

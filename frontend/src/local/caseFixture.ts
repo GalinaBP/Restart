@@ -30,6 +30,7 @@ export const VALID_CASE: Record<string, SectionPayload> = {
   },
   EMPLOYMENT: {
     status: 'EMPLOYED',
+    otherIncome: 'NONE',
     employerName: 'ООО «Ромашка»',
     position: 'менеджер',
   },

@@ -1,5 +1,5 @@
 import type { FieldMeta } from '../local/case';
-import { fieldLabel, optionLabel } from '../api/labels';
+import { fieldHint, fieldLabel, optionLabel } from '../api/labels';
 import DateField from './DateField';
 import { inputType } from './sectionForm';
 
@@ -32,6 +32,7 @@ export function SectionField({
   }
 
   if (field.options) {
+    const hint = fieldHint(sectionKey, field.name);
     return (
       <label className="auth-label">
         {label}
@@ -47,6 +48,7 @@ export function SectionField({
             </option>
           ))}
         </select>
+        {hint && <span className="section-field-hint">{hint}</span>}
         {issue && <span className="auth-error" role="alert">{issue}</span>}
       </label>
     );
