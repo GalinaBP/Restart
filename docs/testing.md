@@ -20,10 +20,18 @@ regenerates `frontend/src/generated/` from `rules/` and fails on any drift.
 **A skipped test fails the build on CI.** The integration tests are annotated
 `@Testcontainers(disabledWithoutDocker = true)`, so without a Docker daemon they vanish quietly
 instead of failing — the guard in the workflow asserts that the skip count is zero, which is the
-only reason the integration layer cannot silently drop out. That is not theoretical: on this
-project's Colima setup (Docker Engine 29, API 1.54) Testcontainers currently does not recognise the
-daemon even with `~/.testcontainers.properties` pointing at the socket, and all 12 integration
-tests skip locally while passing on GitHub's runners. Read a local green build accordingly.
+only reason the integration layer cannot silently drop out.
+
+Locally that guard does not exist, and on Colima the default is exactly the silent case: plain
+`./mvnw verify` leaves all 12 integration tests skipped and still prints BUILD SUCCESS. The full
+suite needs the daemon pointed at, the API version raised and Ryuk disabled —
+
+```bash
+TESTCONTAINERS_RYUK_DISABLED=true ./mvnw clean verify -DargLine="-Dapi.version=1.44"
+```
+
+— with `docker.host` set in `~/.testcontainers.properties`. Why each of the three is needed is in
+[CLAUDE.md](../CLAUDE.md). Check the run said `Skipped: 0` before believing a local green build.
 
 ## The browser carries the case, so most of the coverage is there
 
