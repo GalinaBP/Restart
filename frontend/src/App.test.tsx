@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 import { CALM_CARDS } from './pages/calmContent';
@@ -16,7 +17,21 @@ describe('App', () => {
     expect(screen.getByRole('button', {
       name: 'Проверить, подходит ли мне самостоятельное банкротство',
     })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Войти' })).toHaveAttribute('href', '/auth');
+    expect(screen.getByRole('link', { name: 'Войти' })).toHaveAttribute('href', '/auth?mode=login');
+  });
+
+  it('opens the sign-in form from «Войти», not the sign-up one', async () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    await userEvent.setup().click(screen.getByRole('link', { name: 'Войти' }));
+
+    expect(await screen.findByRole('heading', { name: 'С возвращением!' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Войти' })).toBeInTheDocument();
+    expect(screen.getByText(/Документы хранятся на устройстве/)).toBeInTheDocument();
   });
 
   it('says what happens after the button, and what the service will not do', () => {

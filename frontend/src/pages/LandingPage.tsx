@@ -32,7 +32,7 @@ export default function LandingPage() {
   return (
     <main className="landing">
       <div className="landing-sky" aria-hidden="true" />
-      <Link to="/auth" className="landing-login">Войти</Link>
+      <Link to="/auth?mode=login" className="landing-login">Войти</Link>
       <h1 className="landing-brand">Рестарт</h1>
       <p className="landing-lead">Начните путь к списанию долгов&nbsp;🚀</p>
       <p className="landing-sub">
