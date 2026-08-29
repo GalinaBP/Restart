@@ -2,7 +2,7 @@
 #
 # This file is to the procedure what sections.yml is to the questionnaire: the single source of
 # truth. Adding a stage, reordering the procedure, or changing which branch a stage belongs to is
-# an edit here — the state machine, the API and the stepper UI all read from it.
+# an edit here — the journey screens and the derived-stage logic in the browser both read from it.
 #
 # ############################################################################################
 # ##  ПЛЕЙСХОЛДЕР ДО ПРОВЕРКИ ЮРИСТОМ. Состав этапов, их порядок, условия перехода и ссылки  ##
@@ -11,7 +11,8 @@
 # ############################################################################################
 #
 # Structure:
-#   key            — stable machine key, must match the JourneyStage enum
+#   key            — stable machine key; permanent, because a user's recorded stage statuses are
+#                    stored under it in their browser
 #   order          — position in the procedure; unique within each branch
 #   branch         — ALL: part of the common path, before the court picks a procedure.
 #                    RESTRUCTURING | REALIZATION | SETTLEMENT: shown only once the court has

@@ -22,8 +22,12 @@ version directory) followed by `npm run rules`.
 `npm run rules:check`, which regenerates and fails on any diff, so a YAML edit that never made it
 through the generator cannot reach main.
 
-The generator also cross-checks the keys against the Java enums (`SectionKey`, `JourneyStage`,
-`FeeItem`) and refuses to write anything if they have drifted apart.
+The generator is also the only thing that **validates** the rules — it used to cross-check the
+keys against the Java enums, and those went with the `casefile` and `doctemplate` modules. It
+refuses to write anything when a field has an unknown type, a key is duplicated, a `uniqueBy`
+names a field that does not exist or sits on a section that is not repeatable, a stage names an
+unknown branch, a fee amount was left unquoted so YAML read it as a float, a court has no
+keywords, or a template pulls in a partial the manifest does not list.
 
 The font is cut down to the ranges listed in `FONT_RANGES` (ASCII, Latin-1, Latin Extended-A,
 Cyrillic and its supplement, general punctuation, currency, №) — 340 kB down to 56 kB. Anything
