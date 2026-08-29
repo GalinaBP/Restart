@@ -9,6 +9,7 @@ import { CASE_DATA_SECTIONS, sectionLabel } from '../api/labels';
 import { issueFor as findIssue, toApi, toForm, type FormEntry } from './sectionForm';
 import { SectionField } from './SectionField';
 import SectionHelp from './SectionHelp';
+import FilingChecklist from './FilingChecklist';
 
 export default function SectionPage() {
   const { sectionKey = '' } = useParams();
@@ -147,6 +148,7 @@ export default function SectionPage() {
       </header>
       {label.hint && <p className="check-hint">{label.hint}</p>}
       {label.caution && <p className="section-caution" role="note">{label.caution}</p>}
+      {section.key === 'FILING_SUBMISSION' && <FilingChecklist />}
       <SectionHelp blocks={label.help} />
       {saved && issues.length > 0 && (
         <p className="section-saved-note" role="status">
@@ -193,7 +195,9 @@ export default function SectionPage() {
           section.fields.map((field) => renderField(field, 0))
         )}
         <button type="submit" className="landing-cta" disabled={pending}>
-          {pending ? 'Сохраняем…' : (back ? 'Сохранить' : 'Сохранить и дальше')}
+          {pending
+            ? 'Сохраняем…'
+            : (label.submitLabel ?? (back ? 'Сохранить' : 'Сохранить и дальше'))}
         </button>
       </form>
     </main>
