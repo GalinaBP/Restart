@@ -41,6 +41,7 @@ describe('AboutYouPage', () => {
     renderPage();
 
     expect(await screen.findByLabelText('Фамилия')).toHaveValue('Иванова');
+    expect(screen.getByText('Черновик — проверяется юристом')).toBeInTheDocument();
     expect(values('Название банка или МФО')).toEqual(['ПАО «Банк Восход»', 'МФО «Деньги-Быстро»']);
     expect(values('ИНН кредитора (есть в договоре)')).toEqual(['7707083893', '']);
     expect(values('С какого числа не получается платить — год')).toEqual(['2026', '']);

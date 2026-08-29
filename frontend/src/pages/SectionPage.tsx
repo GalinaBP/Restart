@@ -146,6 +146,7 @@ export default function SectionPage() {
           {back ? '← Назад' : '← К делу'}
         </Link>
       </header>
+      <p className="check-placeholder" role="note">Черновик — проверяется юристом</p>
       {label.hint && <p className="check-hint">{label.hint}</p>}
       {label.caution && <p className="section-caution" role="note">{label.caution}</p>}
       {section.key === 'FILING_SUBMISSION' && <FilingChecklist />}

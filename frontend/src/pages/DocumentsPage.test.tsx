@@ -37,6 +37,7 @@ describe('DocumentsPage', () => {
     await user.click(await screen.findByRole('button', { name: 'Собрать документы' }));
 
     expect(await screen.findByText('Осталось дозаполнить:')).toBeInTheDocument();
+    expect(screen.getByText('Черновик — проверяется юристом')).toBeInTheDocument();
     const passportLink = screen.getByRole('link', { name: /^Паспорт$/ });
     expect(passportLink).toHaveAttribute('href', '/journey/PASSPORT');
     expect(screen.getByRole('link', { name: /Кому и сколько вы должны.*запись № 2/ }))

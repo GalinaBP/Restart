@@ -123,6 +123,7 @@ export default function DocumentsPage() {
         <h1 className="journey-title">Документы, которые готовит «Рестарт»</h1>
         <Link to="/journey" className="check-back">← К делу</Link>
       </header>
+      <p className="check-placeholder" role="note">Черновик — проверяется юристом</p>
 
       {missing.length > 0 && (
         <section className="docs-missing" aria-label="Чего не хватает">
