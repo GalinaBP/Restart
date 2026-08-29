@@ -15,8 +15,11 @@ bankruptcy procedure step by step, as a journey rather than bureaucracy. The pro
   behind them. Complex cases (assets, deals, divorce, business) must be detected early and routed
   to a lawyer — honestly. **The size of the debt is no longer part of the ICP** (2026-08-07): the
   screening collects it but never decides on it, and the old 350k–3M window and the ≤5-creditor
-  limit are gone from the rules — `../constitution.docx` still says otherwise and needs updating.
+  limit are gone from the rules and, since 2026-08-29, from `../constitution.docx` too.
 - The app never promises guaranteed discharge of debts.
+- Nothing the user types about their case leaves the device (2026-08-29 in
+  `../constitution.docx`, shipped 2026-08-15) — with the honest other half: clearing site data
+  loses the case, so the encrypted export exists and the copy says so.
 
 > Legal rules and questionnaire content are **placeholders pending lawyer review** — flag that when
 > touching anything rule-like.
