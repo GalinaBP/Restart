@@ -10,15 +10,33 @@ import {
   type SectionContent,
   type SectionStatus,
 } from '../local/case';
-import { CASE_DATA_SECTIONS, OWN_DOCUMENTS, WORK_DOCUMENTS, type WorkStatus } from '../api/labels';
+import {
+  CASE_DATA_SECTIONS,
+  INCOME_DOCUMENTS,
+  OWN_DOCUMENTS,
+  WORK_DOCUMENTS,
+  type IncomeKind,
+  type OwnDocument,
+  type WorkStatus,
+} from '../api/labels';
 
-function workStatusOf(content: SectionContent): WorkStatus | null {
+function answer(content: SectionContent, field: string): string | null {
   const data = content.data;
   if (data === null || Array.isArray(data)) {
     return null;
   }
-  const status = data.status;
-  return typeof status === 'string' && status in WORK_DOCUMENTS ? status as WorkStatus : null;
+  const value = data[field];
+  return typeof value === 'string' ? value : null;
+}
+
+function workPapers(content: SectionContent): OwnDocument[] | null {
+  const status = answer(content, 'status');
+  if (status === null || !(status in WORK_DOCUMENTS)) {
+    return null;
+  }
+  const income = answer(content, 'otherIncome');
+  const extra = income === null ? undefined : INCOME_DOCUMENTS[income as IncomeKind];
+  return [...WORK_DOCUMENTS[status as WorkStatus], ...(extra ?? [])];
 }
 
 export default function JourneyPage() {
@@ -27,7 +45,7 @@ export default function JourneyPage() {
   const [steps, setSteps] = useState<SectionStatus[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  const [work, setWork] = useState<WorkStatus | null>(null);
+  const [papers, setPapers] = useState<OwnDocument[] | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -39,7 +57,7 @@ export default function JourneyPage() {
           getSection('EMPLOYMENT'),
         ]);
         setSteps(overview);
-        setWork(workStatusOf(employment));
+        setPapers(workPapers(employment));
       }
     } catch {
       setFailed(true);
@@ -62,7 +80,7 @@ export default function JourneyPage() {
     try {
       setCase(await createCase());
       setSteps(await sectionsOverview());
-      setWork(null);
+      setPapers(null);
     } catch {
       setFailed(true);
     } finally {
@@ -213,14 +231,14 @@ export default function JourneyPage() {
         </ul>
 
         <div className="journey-work-choice">
-          {work === null ? (
+          {papers === null ? (
             <p className="check-hint">
-              Ответьте в шаге «Работа», чем вы сейчас занимаетесь, — и мы допишем сюда бумаги
-              о доходах именно для вашего случая.
+              Ответьте в шаге «Работа», есть ли у вас работа и другие доходы, — и мы допишем сюда
+              бумаги именно для вашего случая.
             </p>
           ) : (
             <ul className="journey-own-docs">
-              {WORK_DOCUMENTS[work].map((doc) => (
+              {papers.map((doc) => (
                 <li key={doc.title}>
                   <span className="journey-own-doc-title">{doc.title}</span>
                   <span className="journey-own-doc-where">{doc.where}</span>

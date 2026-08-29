@@ -148,9 +148,19 @@
         "required": true,
         "options": [
           "EMPLOYED",
+          "NOT_WORKING"
+        ]
+      },
+      {
+        "name": "otherIncome",
+        "type": "STRING",
+        "required": true,
+        "options": [
           "SELF_EMPLOYED",
-          "NOT_WORKING",
-          "RETIRED"
+          "PENSION",
+          "BENEFITS",
+          "NONE",
+          "OTHER"
         ]
       },
       {
