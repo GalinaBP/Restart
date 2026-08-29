@@ -1196,6 +1196,75 @@ a.procedure-stage:hover {
   border-color: #fda4af;
 }
 
+.filing-check {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.filing-check-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.filing-check-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filing-check-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.6rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--pill-border);
+  border-radius: 0.75rem;
+  background: var(--pill-bg);
+  line-height: 1.5;
+}
+
+.filing-check-state {
+  flex: 0 0 auto;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--pill-border);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.filing-check-done .filing-check-state {
+  color: var(--accent-from);
+  border-color: rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.12);
+}
+
+.filing-check-todo .filing-check-state {
+  color: #eab308;
+  border-color: rgba(234, 179, 8, 0.45);
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.filing-check-text {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.filing-check-link {
+  flex: 0 0 auto;
+  color: var(--accent-to);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 .section-saved-note {
   background: rgba(52, 211, 153, 0.18);
   border: 1px solid var(--pill-border);
@@ -1224,6 +1293,7 @@ a.procedure-stage:hover {
   border: 1px solid var(--pill-border);
   border-radius: 1rem;
   padding: 0.8rem 1rem;
+  width: 100%;
   max-width: 26rem;
   text-align: left;
   font-size: 0.95rem;
