@@ -11,7 +11,8 @@
 # ############################################################################################
 #
 # Structure:
-#   key            — stable machine key, must match SectionKey enum
+#   key            — stable machine key; permanent, because it indexes the answers already saved
+#                    in a user's browser — adding a section is safe, renaming one is not
 #   order          — position in the step-by-step journey (one section per screen)
 #   repeatable     — true: payload is an array of entry objects; false: payload is one object
 #   mandatory      — true: an empty/absent section blocks document generation (AI-003/AI-007)
