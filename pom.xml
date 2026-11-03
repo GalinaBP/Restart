@@ -231,6 +231,19 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Docker Engine 29 (GitHub's Ubuntu 26 runners, Colima) refuses the API 1.32
+                         that Testcontainers' docker-java negotiates by default, and the
+                         disabledWithoutDocker tests then skip instead of failing. Pinning the API
+                         version in the forked test JVM keeps them running everywhere. -->
+                    <systemPropertyVariables>
+                        <api.version>1.44</api.version>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

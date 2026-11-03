@@ -23,11 +23,11 @@ instead of failing — the guard in the workflow asserts that the skip count is 
 only reason the integration layer cannot silently drop out.
 
 Locally that guard does not exist, and on Colima the default is exactly the silent case: plain
-`./mvnw verify` leaves all 12 integration tests skipped and still prints BUILD SUCCESS. The full
-suite needs the daemon pointed at, the API version raised and Ryuk disabled —
+`./mvnw verify` leaves all 19 integration tests skipped and still prints BUILD SUCCESS. The full
+suite needs the daemon pointed at and Ryuk disabled (the API version is pinned in `pom.xml`) —
 
 ```bash
-TESTCONTAINERS_RYUK_DISABLED=true ./mvnw clean verify -DargLine="-Dapi.version=1.44"
+TESTCONTAINERS_RYUK_DISABLED=true ./mvnw clean verify
 ```
 
 — with `docker.host` set in `~/.testcontainers.properties`. Why each of the three is needed is in

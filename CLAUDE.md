@@ -58,30 +58,32 @@ npm run rules:check  # what CI runs: regenerate and fail on any diff
 
 **Colima note.** On Colima with Docker Engine 29 the integration tests are *skipped*, not failed —
 `@Testcontainers(disabledWithoutDocker = true)` swallows the reason — so a green `./mvnw verify`
-locally may have touched no database at all. Three things have to be true; only the first lives in
-`~/.testcontainers.properties`:
+locally may have touched no database at all. Three things have to be true; the first lives in
+`~/.testcontainers.properties`, the second in `pom.xml`:
 
 ```
 docker.host=unix:///Users/<you>/.colima/default/docker.sock
 ```
 
 ```bash
-TESTCONTAINERS_RYUK_DISABLED=true ./mvnw clean verify -DargLine="-Dapi.version=1.44"
+TESTCONTAINERS_RYUK_DISABLED=true ./mvnw clean verify
 ```
 
 - **`docker.host`** — Colima creates no `/var/run/docker.sock`, so nothing finds the daemon by
   default. `DOCKER_HOST` in the environment does the same job.
 - **`api.version`** — docker-java negotiates API 1.32 and Engine 29 refuses anything below 1.40
   («client version 1.32 is too old»). It has to reach the *forked test JVM* as a system property,
-  which is why it goes through `argLine`; `.testcontainers.properties` does not carry this key, and
-  upgrading Testcontainers does not change the default (tried 1.21.3, same 1.32).
+  so `maven-surefire-plugin` sets `api.version=1.44` in `systemPropertyVariables` for every run;
+  `.testcontainers.properties` does not carry this key, and upgrading Testcontainers does not
+  change the default (tried 1.21.3, same 1.32). Since 2026-10-19 GitHub's `ubuntu-latest` (Ubuntu
+  26) ships Engine 29 too, and before the pin all 19 integration tests skipped on CI.
 - **Ryuk off, as an environment variable** — the reaper bind-mounts the socket path, which Colima's
   VM cannot mount («operation not supported»), and the `ryuk.disabled=true` line in
   `~/.testcontainers.properties` is *not* honoured. With it off, containers outliving a crashed JVM
   are nobody's job: check `docker ps -a`.
 
-Verified 2026-08-29 on Colima, engine 29.5.2 / API 1.54: 78 tests, 0 skipped. CI needs none of
-this, and its guard fails the build if anything is skipped there.
+Verified 2026-11-03 on Colima: 101 tests, 0 skipped. CI needs only the pom pin, and its guard
+fails the build if anything is skipped there.
 
 Swagger UI (`local` profile only, disabled in `prod`): http://localhost:8080/swagger-ui.html
 
@@ -102,6 +104,12 @@ dropped them. What remains server-side is deliberately small:
   `HttpSecurityCustomizer`; local demo account seeded when `restart.seed.enabled=true`. It is the
   way in and nothing more: no case hangs off an account, so signing in on a second device shows an
   empty app, and the copy has to keep saying so.
+- `payment` — the one-off 1 000 ₽ payment that opens the journey, through ЮKassa
+  (`YooKassaGateway` behind the `PaymentGateway` port). Access hangs off the account: granted while
+  it has a `SUCCEEDED` payment, or always when `restart.payment.enabled` is false. The webhook is
+  public and treated as a hint only — the payment is re-read from ЮKassa with the shop credentials,
+  and the amount checked, before anything changes. Payment status is stored as an enum name, so the
+  «deleting a stored enum constant» rule below applies to `PaymentStatus`.
 
 > **The rules live in `rules/`** — the questionnaire, the journey, the fees, the courts, the claim
 > deadline, and the versioned Mustache templates under `rules/doctemplates/<version>/` with
@@ -144,15 +152,15 @@ Every business module gets identical internal layering:
 `src/main/resources/` is now only `application*.yml` and the Flyway migrations; the product content
 that used to live beside them is in `rules/`.
 
-**Database:** Flyway owns the schema (`src/main/resources/db/migration`, V1–V12); Hibernate
-runs `ddl-auto: validate`. Only `user_account` and `password_reset_token` are left — V12 dropped
+**Database:** Flyway owns the schema (`src/main/resources/db/migration`, V1–V13); Hibernate
+runs `ddl-auto: validate`. `user_account`, `password_reset_token` and `payment` (V13) — V12 dropped
 the four case tables. Add a migration in the same change as any new entity. UUIDs as
 `BINARY(16)` (`UuidUtils`), money as `DECIMAL(19,2)`, timestamps UTC.
 
-> **Deleting a stored enum constant needs a migration in the same change.** Nothing persisted is
-> currently `@Enumerated(STRING)` — the enums that were (`SectionKey`, `DocumentType`,
-> `JourneyStage`, `FeeItem` and friends) went with `casefile` — but the lesson cost a production
-> outage and applies to the next one. A row holding a name the enum no longer knows cannot be
+> **Deleting a stored enum constant needs a migration in the same change.** `PaymentStatus`
+> (`payment.status`) and `UserRole` are the persisted `@Enumerated(STRING)` enums now — the ones
+> that were (`SectionKey`, `DocumentType`, `JourneyStage`, `FeeItem` and friends) went with
+> `casefile` — and the lesson cost a production outage. A row holding a name the enum no longer knows cannot be
 > mapped, and *every read of that table for that row throws*: the feature looks fine on fresh data
 > and breaks only for users who already have the old value. V7 and V9 are the precedent, V9 having
 > been written after shipping the removal without one took «Документы» and «Весь путь» down. Pin it
@@ -219,7 +227,8 @@ light marketing landing, and a blue→cyan gradient were reverted.)
 `docs/local-first-plan.md`). Answers, journey progress and the generated PDFs live in
 **IndexedDB**; `frontend/src/local/` holds the engine that used to be `casefile`'s: `validate.ts`,
 `model.ts`, `mustache.ts`, `pdf.ts`, `journey.ts`, `store.ts`. `api/` now means what it says —
-only `auth`, `eligibility` and the shared client are left in it.
+only `auth`, `eligibility`, `payment` and the shared client are left in it. The journey routes sit
+behind `pages/RequireAccess.tsx`, which sends an unpaid account to `/pay`.
 
 - **The rules are still authored in yml on the backend.** `npm run rules` builds
   `src/generated/` (sections, journey, fees, courts, claim deadline, templates, the DejaVu font)

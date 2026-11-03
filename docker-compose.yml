@@ -39,6 +39,11 @@ services:
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-local-development-access-secret-change-me-01234567890}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-local-development-refresh-secret-change-me-01234567890}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      PAYMENT_ENABLED: ${PAYMENT_ENABLED:-false}
+      YOOKASSA_SHOP_ID: ${YOOKASSA_SHOP_ID:-}
+      YOOKASSA_SECRET_KEY: ${YOOKASSA_SECRET_KEY:-}
+      YOOKASSA_RECEIPT_ENABLED: ${YOOKASSA_RECEIPT_ENABLED:-false}
+      YOOKASSA_VAT_CODE: ${YOOKASSA_VAT_CODE:-1}
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     healthcheck:
