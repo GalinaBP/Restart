@@ -663,6 +663,13 @@ button:disabled {
   margin: 0;
 }
 
+.pay-price {
+  margin: 0.4rem 0 0;
+  font-size: clamp(2rem, 8vw, 2.6rem);
+  font-weight: 800;
+  color: var(--accent-to);
+}
+
 .section-date-parts {
   display: flex;
   flex-wrap: wrap;

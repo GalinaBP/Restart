@@ -15,6 +15,7 @@ and the developer documentation are English.
 | Screen | What happens |
 |---|---|
 | `/check` | A 2-minute screening: is a self-service bankruptcy realistic, or is this a case for a lawyer? Anonymous, no account, stores nothing. |
+| `/pay` | «Откройте весь путь» — the one-off 1 000 ₽ payment through ЮKassa (Russian cards, СБП). Everything from `/journey` to `/backup` sits behind it; `/check` and `/calm` stay free. `/pay/return` is where ЮKassa sends the person back. |
 | `/journey` | The case home — «Давайте разберёмся с долгами»: what is done, what to do next. |
 | `/journey/:section` | The questionnaire: 21 sections (passport, registration, employment, income, family, creditors, accounts, property, payments, and the court case as it unfolds). `/journey/all` shows them all at once. |
 | `/procedure` | «Весь путь» — the whole court procedure as 16 stages, several of them derived from the case rather than ticked by hand. |
@@ -35,6 +36,9 @@ What is left server-side is deliberately small:
 - **`eligibility`** — the screening check. Stateless, anonymous, persists nothing.
 - **`auth`** — accounts and stateless JWT, and nothing more. No case hangs off an account, so
   signing in on a second device shows an empty app, and the copy says so.
+- **`payment`** — the one-off payment that opens the journey, through ЮKassa. It stores who paid
+  how much and when, never anything about the case. Switched off (`PAYMENT_ENABLED=false`, the
+  default) every signed-in account has access.
 
 Two consequences worth knowing before touching anything:
 
@@ -59,7 +63,7 @@ in. CI runs `npm run rules:check` and fails on any drift. **Edit the YAML, never
 ## Stack
 
 - **Backend** — Spring Boot 4.1 / Java 21 modular monolith (Spring Modulith), MySQL 8.4, Flyway
-  (V1–V12; only `user_account` and `password_reset_token` remain), stateless JWT, springdoc-openapi.
+  (V1–V13; `user_account`, `password_reset_token` and `payment`), stateless JWT, springdoc-openapi.
   Tested with JUnit, Testcontainers and ArchUnit.
 - **Frontend** — React 19 + TypeScript + Vite SPA, React Router, IndexedDB, WebCrypto, `pdf-lib`
   (lazy-loaded on the documents screen only). Vitest + Testing Library.
@@ -111,6 +115,8 @@ Swagger UI, `local` only: http://localhost:8080/swagger-ui.html
 ### API surface
 
 `/api/v1/eligibility/check` · `/api/v1/auth/{register,login,refresh,forgot-password,reset-password,me}`
+· `/api/v1/payments` (`GET /access`, `POST`, `GET /{id}`, and the public ЮKassa webhook
+`POST /yookassa/notifications`)
 — that is the whole of it.
 
 ## Tests

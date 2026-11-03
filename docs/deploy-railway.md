@@ -123,6 +123,34 @@ actually goes depends on backend variables:
 - The link points at the first `CORS_ALLOWED_ORIGINS` entry (= the frontend domain); set
   `FRONTEND_BASE_URL` only if that ever stops being right.
 
+## Payments (ЮKassa)
+
+The journey is behind a one-off 1 000 ₽ payment (`restart.payment.price` in `application.yml`).
+It stays **off** until you switch it on, so deploying this code changes nothing by itself.
+
+1. In the ЮKassa dashboard, take the **shopId** and create a **secret key** (Интеграция → Ключи
+   API). Start with the **test shop** ЮKassa gives you: test keys, test cards, no real money.
+2. Under Интеграция → HTTP-уведомления, set the notification URL to
+   `https://<backend domain>/api/v1/payments/yookassa/notifications` and tick
+   `payment.succeeded` and `payment.canceled`.
+3. On the backend service set and redeploy:
+
+   ```
+   PAYMENT_ENABLED=true
+   YOOKASSA_SHOP_ID=<shopId>
+   YOOKASSA_SECRET_KEY=<secret key>
+   YOOKASSA_RECEIPT_ENABLED=true   # once «Чеки от ЮKassa» (54-ФЗ) is connected
+   YOOKASSA_VAT_CODE=1             # 1 = без НДС; check with your accountant
+   ```
+
+   With `PAYMENT_ENABLED=true` and no shop id or key, the backend refuses to start.
+4. Smoke test: sign in with a fresh account → you land on «Откройте весь путь» → pay with a
+   ЮKassa test card → you come back to «Оплата прошла» and the journey opens.
+
+The person comes back to `<frontend>/pay/return`, which is built from `FRONTEND_BASE_URL`, or
+from the first `CORS_ALLOWED_ORIGINS` entry, the same as reset links. Swapping the test keys for
+the live ones is the whole of going live.
+
 ## Ongoing
 
 - Every push to `main` redeploys both services (Railway watches the repo). Since GitHub Actions CI

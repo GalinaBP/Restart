@@ -16,6 +16,11 @@ app:
 restart:
   seed:
     enabled: false
+  payment:
+    enabled: true
+    yookassa:
+      shop-id: test-shop
+      secret-key: test-secret-key
 
 springdoc:
   api-docs:

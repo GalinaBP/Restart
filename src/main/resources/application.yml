@@ -60,3 +60,19 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+# One-off payment that opens the journey (payment module). Off unless PAYMENT_ENABLED=true: with it
+# off every signed-in account has access and nothing talks to YooKassa. With it on, the shop id and
+# secret key are required and the app refuses to start without them. The price is quoted so YAML
+# keeps it a decimal. Fiscal receipts (54-ФЗ) are sent through «Чеки от ЮKassa» only when
+# YOOKASSA_RECEIPT_ENABLED=true; YOOKASSA_VAT_CODE follows YooKassa's vat_code table (1 = без НДС).
+restart:
+  payment:
+    enabled: ${PAYMENT_ENABLED:false}
+    price: "1000.00"
+    yookassa:
+      shop-id: ${YOOKASSA_SHOP_ID:}
+      secret-key: ${YOOKASSA_SECRET_KEY:}
+      api-base: https://api.yookassa.ru/v3
+      receipt-enabled: ${YOOKASSA_RECEIPT_ENABLED:false}
+      vat-code: ${YOOKASSA_VAT_CODE:1}
