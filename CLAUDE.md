@@ -58,30 +58,32 @@ npm run rules:check  # what CI runs: regenerate and fail on any diff
 
 **Colima note.** On Colima with Docker Engine 29 the integration tests are *skipped*, not failed —
 `@Testcontainers(disabledWithoutDocker = true)` swallows the reason — so a green `./mvnw verify`
-locally may have touched no database at all. Three things have to be true; only the first lives in
-`~/.testcontainers.properties`:
+locally may have touched no database at all. Three things have to be true; the first lives in
+`~/.testcontainers.properties`, the second in `pom.xml`:
 
 ```
 docker.host=unix:///Users/<you>/.colima/default/docker.sock
 ```
 
 ```bash
-TESTCONTAINERS_RYUK_DISABLED=true ./mvnw clean verify -DargLine="-Dapi.version=1.44"
+TESTCONTAINERS_RYUK_DISABLED=true ./mvnw clean verify
 ```
 
 - **`docker.host`** — Colima creates no `/var/run/docker.sock`, so nothing finds the daemon by
   default. `DOCKER_HOST` in the environment does the same job.
 - **`api.version`** — docker-java negotiates API 1.32 and Engine 29 refuses anything below 1.40
   («client version 1.32 is too old»). It has to reach the *forked test JVM* as a system property,
-  which is why it goes through `argLine`; `.testcontainers.properties` does not carry this key, and
-  upgrading Testcontainers does not change the default (tried 1.21.3, same 1.32).
+  so `maven-surefire-plugin` sets `api.version=1.44` in `systemPropertyVariables` for every run;
+  `.testcontainers.properties` does not carry this key, and upgrading Testcontainers does not
+  change the default (tried 1.21.3, same 1.32). Since 2026-10-19 GitHub's `ubuntu-latest` (Ubuntu
+  26) ships Engine 29 too, and before the pin all 19 integration tests skipped on CI.
 - **Ryuk off, as an environment variable** — the reaper bind-mounts the socket path, which Colima's
   VM cannot mount («operation not supported»), and the `ryuk.disabled=true` line in
   `~/.testcontainers.properties` is *not* honoured. With it off, containers outliving a crashed JVM
   are nobody's job: check `docker ps -a`.
 
-Verified 2026-08-29 on Colima, engine 29.5.2 / API 1.54: 78 tests, 0 skipped. CI needs none of
-this, and its guard fails the build if anything is skipped there.
+Verified 2026-11-03 on Colima: 101 tests, 0 skipped. CI needs only the pom pin, and its guard
+fails the build if anything is skipped there.
 
 Swagger UI (`local` profile only, disabled in `prod`): http://localhost:8080/swagger-ui.html
 
