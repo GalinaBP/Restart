@@ -204,7 +204,7 @@ export default function DocumentsPage() {
         <p className="section-caution" role="note">
           Документы собраны здесь, на вашем устройстве, и лежат только в этом браузере.
           Сейчас хороший момент{' '}
-          <Link to="/backup" className="docs-missing-link">сохранить копию дела в файл</Link>
+          <Link to="/backup">сохранить копию дела в файл</Link>
           {' '}— чтобы не собирать всё заново, если данные сайта очистятся.
         </p>
       )}
