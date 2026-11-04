@@ -10,6 +10,30 @@ and the developer documentation are English.
 > user's behalf — the person does that themselves. Open questions:
 > [docs/lawyer-review.md](docs/lawyer-review.md).
 
+<p align="center">
+  <a href="docs/screenshots/landing.png"><img src="docs/screenshots/landing.png" alt="The Restart landing page: the headline, the one button that starts the two-minute screening, how it works in three steps, a ready answer for when a bank calls, and a panel spelling out what the app does not promise" width="720"></a><br>
+  <em>The landing — one action: start the check.</em>
+</p>
+
+<table>
+  <tr>
+    <td align="center" valign="top" width="33%">
+      <a href="docs/screenshots/journey.png"><img src="docs/screenshots/journey.png" alt="The case home «Давайте разберёмся с долгами»: progress through the questionnaire, the continue button, and the list of papers to collect" width="260"></a><br>
+      <em>The case home — progress and the next step.</em>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <a href="docs/screenshots/procedure.png"><img src="docs/screenshots/procedure.png" alt="The «Весь путь» screen: the court procedure as stages with the current one highlighted, and the court fee and the manager's deposit spelled out" width="260"></a><br>
+      <em>«Весь путь» — the stages, the current one marked.</em>
+    </td>
+    <td align="center" valign="top" width="33%">
+      <a href="docs/screenshots/documents.png"><img src="docs/screenshots/documents.png" alt="The documents screen: five filing documents generated in the browser, each with a PDF download, and a reminder that they live only on this device" width="260"></a><br>
+      <em>The filing package, built in the browser.</em>
+    </td>
+  </tr>
+</table>
+
+<sub>Screens from a made-up demo case; nothing in them belongs to a real person.</sub>
+
 ## What it does
 
 | Screen | What happens |
@@ -79,7 +103,7 @@ rules/                          questionnaire, journey, fees, courts, deadlines,
 frontend/src/local/             the case engine that runs in the browser
 frontend/src/generated/         build product of rules/ — do not edit
 frontend/src/pages/             the screens
-docs/                           local-first plan, lawyer review dossier, Railway deploy, test traceability
+docs/                           local-first plan, lawyer review dossier, Railway deploy, test traceability, screenshots
 ```
 
 ## Quick start
